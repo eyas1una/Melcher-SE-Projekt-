@@ -82,6 +82,7 @@ public class Main {
             System.out.println("User deleted. Exists? " + userService.getUser(bob.getId()).isPresent());
 
             System.out.println("All operations completed successfully.");
+            System.out.println("Access H2 Console at: http://localhost:8080/h2-console");
         };
     }
 }
