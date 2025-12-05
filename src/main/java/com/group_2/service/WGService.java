@@ -24,11 +24,17 @@ public class WGService {
     @Transactional
     public WG createWG(String name, User admin, List<Room> rooms) {
         WG wg = new WG(name, admin, rooms);
+        // Ensure admin has the WG set
+        admin.setWg(wg);
         return wgRepository.save(wg);
     }
 
     @Transactional
     public WG addMitbewohner(Long wgId, User user) {
+        // Check if user is already in a WG
+        if (user.getWg() != null) {
+            throw new RuntimeException("User is already a member of a WG.");
+        }
         WG wg = wgRepository.findById(wgId).orElseThrow(() -> new RuntimeException("WG not found"));
         wg.addMitbewohner(user);
         return wgRepository.save(wg);
@@ -40,6 +46,31 @@ public class WGService {
 
     public Optional<WG> getWG(Long id) {
         return wgRepository.findById(id);
+    }
+
+    public Optional<WG> getWGByInviteCode(String inviteCode) {
+        return wgRepository.findByInviteCode(inviteCode.toUpperCase());
+    }
+
+    @Transactional
+    public WG addMitbewohnerByInviteCode(String inviteCode, User user) {
+        // Check if user is already in a WG
+        if (user.getWg() != null) {
+            throw new RuntimeException("User is already a member of a WG. Leave current WG first.");
+        }
+
+        WG wg = wgRepository.findByInviteCode(inviteCode.toUpperCase())
+                .orElseThrow(() -> new RuntimeException("WG not found with invite code: " + inviteCode));
+
+        // Check if user is already in this WG (by ID comparison)
+        boolean alreadyMember = wg.getMitbewohner().stream()
+                .anyMatch(m -> m.getId().equals(user.getId()));
+        if (alreadyMember) {
+            throw new RuntimeException("User is already a member of this WG.");
+        }
+
+        wg.addMitbewohner(user);
+        return wgRepository.save(wg);
     }
 
     @Transactional

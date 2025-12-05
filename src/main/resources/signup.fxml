@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.group_2.ui.SignUpController"
+      spacing="20"
+      alignment="CENTER"
+      styleClass="root-pane"
+      stylesheets="@/styles.css">
+
+    <Text text="Create Account" styleClass="title-text"/>
+
+    <TextField fx:id="signupNameField" promptText="Name" styleClass="text-field"/>
+    <TextField fx:id="signupSurnameField" promptText="Surname" styleClass="text-field"/>
+    <TextField fx:id="signupEmailField" promptText="Email" styleClass="text-field"/>
+    <PasswordField fx:id="signupPasswordField" promptText="Password" styleClass="text-field"/>
+
+    <Button text="Sign Up" onAction="#handleSignup" styleClass="success-button"/>
+    
+    <Hyperlink text="Already have an account? Login" onAction="#showLoginScreen"/>
+
+</VBox>

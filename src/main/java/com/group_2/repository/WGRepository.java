@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WGRepository extends JpaRepository<WG, Long> {
+    java.util.Optional<WG> findByInviteCode(String inviteCode);
 }

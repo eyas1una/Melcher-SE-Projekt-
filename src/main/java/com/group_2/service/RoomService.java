@@ -37,8 +37,7 @@ public class RoomService {
     public Room updateRoom(Long id, String name) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found with id: " + id));
-        // Same here, need setName in Room.java
-        // room.setName(name);
+        room.setName(name);
         return roomRepository.save(room);
     }
 

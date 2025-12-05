@@ -9,10 +9,17 @@ public class WG {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Changed to Long for consistency with other entities
+    private Long id;
+
+    @Column(unique = true, nullable = false, length = 8)
+    private String inviteCode;
 
     public Long getId() {
         return id;
+    }
+
+    public String getInviteCode() {
+        return inviteCode;
     }
 
     public String name;
@@ -34,7 +41,18 @@ public class WG {
         this.admin = admin;
         this.rooms = rooms;
         this.mitbewohner = new ArrayList<>();
-        addMitbewohner(admin); // Add admin as first user
+        this.inviteCode = generateInviteCode();
+        addMitbewohner(admin);
+    }
+
+    private static String generateInviteCode() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars: I, O, 0, 1
+        StringBuilder code = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < 8; i++) {
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return code.toString();
     }
 
     public boolean addRoom(Room room) {
@@ -67,19 +85,17 @@ public class WG {
 
     public boolean addMitbewohner(User user) {
         if (mitbewohner.contains(user)) {
-
-            // throw error
             return false;
         }
+        user.setWg(this);
         return mitbewohner.add(user);
     }
 
     public boolean removeMitbewohner(User user) {
         if (!mitbewohner.contains(user)) {
-
-            // throw error
             return false;
         }
+        user.setWg(null);
         return mitbewohner.remove(user);
     }
 
