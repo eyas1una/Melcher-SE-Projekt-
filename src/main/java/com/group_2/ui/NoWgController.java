@@ -3,6 +3,7 @@ package com.group_2.ui;
 import com.group_2.service.RoomService;
 import com.group_2.service.UserService;
 import com.group_2.service.WGService;
+import com.group_2.util.SessionManager;
 import com.model.Room;
 import com.model.User;
 
@@ -31,6 +32,7 @@ public class NoWgController extends Controller {
     private final UserService userService;
     private final WGService wgService;
     private final RoomService roomService;
+    private final SessionManager sessionManager;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -55,15 +57,17 @@ public class NoWgController extends Controller {
     @FXML
     private TextField wgIdField;
 
-    public NoWgController(UserService userService, WGService wgService, RoomService roomService) {
+    public NoWgController(UserService userService, WGService wgService, RoomService roomService,
+            SessionManager sessionManager) {
         this.userService = userService;
         this.wgService = wgService;
         this.roomService = roomService;
+        this.sessionManager = sessionManager;
     }
 
     public void initView() {
-        refreshCurrentUser();
-        User currentUser = getCurrentUser();
+        sessionManager.refreshCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser != null) {
             welcomeText.setText("Welcome, " + currentUser.getName() + "!");
         }
@@ -153,13 +157,13 @@ public class NoWgController extends Controller {
         }
 
         try {
-            User currentUser = getCurrentUser();
+            User currentUser = sessionManager.getCurrentUser();
             wgService.createWG(wgName, currentUser, rooms);
             // Refresh user and their WG data
-            refreshCurrentUser();
+            sessionManager.refreshCurrentUser();
 
             // Should get the updated user with WG reference
-            currentUser = getCurrentUser();
+            currentUser = sessionManager.getCurrentUser();
             if (currentUser.getWg() == null) {
                 // Fallback if not updated correctly, though refreshCurrentUser should handle it
                 // via sessionManager logic
@@ -183,8 +187,8 @@ public class NoWgController extends Controller {
         }
 
         try {
-            wgService.addMitbewohnerByInviteCode(inviteCode, getCurrentUser());
-            refreshCurrentUser();
+            wgService.addMitbewohnerByInviteCode(inviteCode, sessionManager.getCurrentUser());
+            sessionManager.refreshCurrentUser();
             showAlert(Alert.AlertType.INFORMATION, "Success", "Successfully joined the WG!");
             navigateToMainScreen();
         } catch (Exception e) {
@@ -194,7 +198,7 @@ public class NoWgController extends Controller {
 
     @FXML
     public void handleLogout() {
-        clearSession();
+        sessionManager.clear();
         loadScene(welcomeText.getScene(), "/login.fxml");
     }
 

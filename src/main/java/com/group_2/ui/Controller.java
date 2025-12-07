@@ -6,10 +6,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.group_2.util.SessionManager;
 import com.group_2.util.SpringFXMLLoader;
-import com.model.User;
-import com.model.WG;
 
 import java.io.IOException;
 
@@ -23,9 +20,6 @@ public abstract class Controller {
 
     @Autowired
     protected SpringFXMLLoader fxmlLoader;
-
-    @Autowired
-    protected SessionManager sessionManager;
 
     /**
      * Loads and displays a new JavaFX scene using Spring's FXML loader.
@@ -100,65 +94,4 @@ public abstract class Controller {
         });
     }
 
-    // ========== Session Management Helper Methods ==========
-
-    /**
-     * Gets the currently logged-in user from the session.
-     *
-     * @return The current User, or null if not logged in
-     */
-    protected User getCurrentUser() {
-        return sessionManager.getCurrentUser();
-    }
-
-    /**
-     * Gets the ID of the currently logged-in user.
-     *
-     * @return The user ID, or null if not logged in
-     */
-    protected Long getCurrentUserId() {
-        return sessionManager.getCurrentUserId();
-    }
-
-    /**
-     * Gets the WG of the currently logged-in user.
-     *
-     * @return The user's WG, or null if not in a WG
-     */
-    protected WG getCurrentUserWG() {
-        return sessionManager.getCurrentUserWG();
-    }
-
-    /**
-     * Checks if a user is currently logged in.
-     *
-     * @return true if a user is logged in, false otherwise
-     */
-    protected boolean isLoggedIn() {
-        return sessionManager.isLoggedIn();
-    }
-
-    /**
-     * Sets the current user in the session.
-     *
-     * @param user The user to set as current
-     */
-    protected void setCurrentUser(User user) {
-        sessionManager.setCurrentUser(user);
-    }
-
-    /**
-     * Clears the current session (logs out the user).
-     */
-    protected void clearSession() {
-        sessionManager.clear();
-    }
-
-    /**
-     * Refreshes the current user data from the database.
-     * Useful after operations that might have changed user data.
-     */
-    protected void refreshCurrentUser() {
-        sessionManager.refreshCurrentUser();
-    }
 }

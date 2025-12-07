@@ -1,6 +1,7 @@
 package com.group_2.ui;
 
 import com.group_2.service.ShoppingListService;
+import com.group_2.util.SessionManager;
 import com.model.ShoppingList;
 import com.model.ShoppingListItem;
 import com.model.User;
@@ -27,6 +28,7 @@ import java.util.Optional;
 public class ShoppingListController extends Controller {
 
     private final ShoppingListService shoppingListService;
+    private final SessionManager sessionManager;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -65,8 +67,9 @@ public class ShoppingListController extends Controller {
 
     private ShoppingList selectedList;
 
-    public ShoppingListController(ShoppingListService shoppingListService) {
+    public ShoppingListController(ShoppingListService shoppingListService, SessionManager sessionManager) {
         this.shoppingListService = shoppingListService;
+        this.sessionManager = sessionManager;
     }
 
     @FXML
@@ -76,7 +79,7 @@ public class ShoppingListController extends Controller {
     }
 
     private void updateSidebarUserInfo() {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser != null) {
             String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
                     ? currentUser.getName().substring(0, 1).toUpperCase()
@@ -89,7 +92,7 @@ public class ShoppingListController extends Controller {
     }
 
     private void loadLists() {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null)
             return;
 
@@ -115,7 +118,7 @@ public class ShoppingListController extends Controller {
     }
 
     private HBox createListCard(ShoppingList list) {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         HBox card = new HBox(12);
         card.setAlignment(Pos.CENTER_LEFT);
         card.getStyleClass().add("list-item");
@@ -167,7 +170,7 @@ public class ShoppingListController extends Controller {
 
     private void selectList(ShoppingList list) {
         this.selectedList = list;
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
 
         // Show details view
         noListSelectedView.setVisible(false);
@@ -216,7 +219,7 @@ public class ShoppingListController extends Controller {
     }
 
     private HBox createItemRow(ShoppingListItem item) {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("list-item");
@@ -259,7 +262,7 @@ public class ShoppingListController extends Controller {
             return;
         }
 
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null)
             return;
 
@@ -289,7 +292,7 @@ public class ShoppingListController extends Controller {
 
     @FXML
     public void showCreateListDialog() {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null || currentUser.getWg() == null) {
             showAlert(Alert.AlertType.ERROR, "Error", "You must be in a WG to create shopping lists.");
             return;
@@ -372,7 +375,7 @@ public class ShoppingListController extends Controller {
         if (selectedList == null)
             return;
 
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null || !selectedList.getCreator().getId().equals(currentUser.getId())) {
             showAlert(Alert.AlertType.WARNING, "Permission Denied", "Only the list creator can manage sharing.");
             return;
@@ -443,7 +446,7 @@ public class ShoppingListController extends Controller {
         if (selectedList == null)
             return;
 
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null || !selectedList.getCreator().getId().equals(currentUser.getId())) {
             showAlert(Alert.AlertType.WARNING, "Permission Denied", "Only the list creator can delete this list.");
             return;
@@ -472,7 +475,7 @@ public class ShoppingListController extends Controller {
 
     @FXML
     public void handleLogout() {
-        clearSession();
+        sessionManager.clear();
         loadScene(avatarInitial.getScene(), "/login.fxml");
     }
 

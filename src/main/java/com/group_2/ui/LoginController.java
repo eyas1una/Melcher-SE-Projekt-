@@ -1,6 +1,7 @@
 package com.group_2.ui;
 
 import com.group_2.service.UserService;
+import com.group_2.util.SessionManager;
 import com.model.User;
 
 import javafx.scene.control.Alert;
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class LoginController extends Controller {
 
     private final UserService userService;
+    private final SessionManager sessionManager;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -30,8 +32,9 @@ public class LoginController extends Controller {
     @FXML
     private PasswordField passwordField;
 
-    public LoginController(UserService userService) {
+    public LoginController(UserService userService, SessionManager sessionManager) {
         this.userService = userService;
+        this.sessionManager = sessionManager;
     }
 
     @FXML
@@ -41,7 +44,7 @@ public class LoginController extends Controller {
 
         Optional<User> user = userService.authenticate(email, password);
         if (user.isPresent()) {
-            setCurrentUser(user.get()); // Set the current user in the session
+            sessionManager.setCurrentUser(user.get()); // Set the current user in the session
             navigateAfterAuth(user.get());
         } else {
             showAlert(Alert.AlertType.ERROR, "Login Failed", "Invalid email or password.");

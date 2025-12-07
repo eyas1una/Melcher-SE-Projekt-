@@ -1,6 +1,7 @@
 package com.group_2.ui;
 
 import com.group_2.service.UserService;
+import com.group_2.util.SessionManager;
 import com.model.User;
 
 import javafx.scene.control.Alert;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 public class SignUpController extends Controller {
 
     private final UserService userService;
+    private final SessionManager sessionManager;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -32,8 +34,9 @@ public class SignUpController extends Controller {
     @FXML
     private PasswordField signupPasswordField;
 
-    public SignUpController(UserService userService) {
+    public SignUpController(UserService userService, SessionManager sessionManager) {
         this.userService = userService;
+        this.sessionManager = sessionManager;
     }
 
     @FXML
@@ -45,7 +48,7 @@ public class SignUpController extends Controller {
 
         try {
             User user = userService.registerUser(name, surname, email, password);
-            setCurrentUser(user); // Set as current user in session
+            sessionManager.setCurrentUser(user); // Set as current user in session
             showAlert(Alert.AlertType.INFORMATION, "Signup Successful", "Account created!");
             // New users never have a WG, so go to no_wg screen
             loadScene(signupNameField.getScene(), "/no_wg.fxml");

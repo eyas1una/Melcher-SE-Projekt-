@@ -3,6 +3,7 @@ package com.group_2.ui;
 import com.group_2.service.WGService;
 import com.group_2.service.UserService;
 import com.group_2.service.RoomService;
+import com.group_2.util.SessionManager;
 import com.model.Room;
 import com.model.User;
 import com.model.WG;
@@ -26,6 +27,7 @@ public class DashboardController extends Controller {
     private final UserService userService;
     private final WGService wgService;
     private final RoomService roomService;
+    private final SessionManager sessionManager;
 
     // Sidebar elements
     @FXML
@@ -94,20 +96,22 @@ public class DashboardController extends Controller {
     @org.springframework.beans.factory.annotation.Autowired
     private org.springframework.context.ApplicationContext applicationContext;
 
-    public DashboardController(UserService userService, WGService wgService, RoomService roomService) {
+    public DashboardController(UserService userService, WGService wgService, RoomService roomService,
+            SessionManager sessionManager) {
         this.userService = userService;
         this.wgService = wgService;
         this.roomService = roomService;
+        this.sessionManager = sessionManager;
     }
 
     public void initView() {
-        refreshCurrentUser();
+        sessionManager.refreshCurrentUser();
         updateSidebarUserInfo();
         showWgView();
     }
 
     private void updateSidebarUserInfo() {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser != null) {
             String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
                     ? currentUser.getName().substring(0, 1).toUpperCase()
@@ -121,7 +125,7 @@ public class DashboardController extends Controller {
 
     @FXML
     public void refreshView() {
-        refreshCurrentUser();
+        sessionManager.refreshCurrentUser();
         updateSidebarUserInfo();
         showWgView();
     }
@@ -149,7 +153,7 @@ public class DashboardController extends Controller {
         resetAllViews();
         resetMenuStyles();
         menuWgButton.getStyleClass().add("menu-item-active");
-        showWGDetails(getCurrentUser().getWg());
+        showWGDetails(sessionManager.getCurrentUser().getWg());
     }
 
     @FXML
@@ -161,7 +165,7 @@ public class DashboardController extends Controller {
         accountView.setVisible(true);
         accountView.setManaged(true);
 
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
                 ? currentUser.getName().substring(0, 1).toUpperCase()
                 : "?";
@@ -186,7 +190,7 @@ public class DashboardController extends Controller {
         roomsView.setVisible(true);
         roomsView.setManaged(true);
 
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         roomsListBox.getChildren().clear();
         if (currentUser.getWg() != null && currentUser.getWg().rooms != null) {
             for (Room room : currentUser.getWg().rooms) {
@@ -208,7 +212,7 @@ public class DashboardController extends Controller {
         membersView.setVisible(true);
         membersView.setManaged(true);
 
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         membersListBox.getChildren().clear();
         if (currentUser.getWg() != null && currentUser.getWg().mitbewohner != null) {
             for (User member : currentUser.getWg().mitbewohner) {

@@ -1,5 +1,6 @@
 package com.group_2.ui;
 
+import com.group_2.util.SessionManager;
 import com.model.User;
 import com.model.WG;
 
@@ -18,8 +19,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class MainScreenController extends Controller {
 
+    private final SessionManager sessionManager;
+
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    public MainScreenController(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
+    }
 
     // Header elements
     @FXML
@@ -42,13 +50,13 @@ public class MainScreenController extends Controller {
     private Text inviteCodeText;
 
     public void initView() {
-        refreshCurrentUser();
+        sessionManager.refreshCurrentUser();
         updateHeader();
         updateStats();
     }
 
     private void updateHeader() {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         if (currentUser != null) {
             String fullName = currentUser.getName() +
                     (currentUser.getSurname() != null ? " " + currentUser.getSurname() : "");
@@ -71,7 +79,7 @@ public class MainScreenController extends Controller {
     }
 
     private void updateStats() {
-        User currentUser = getCurrentUser();
+        User currentUser = sessionManager.getCurrentUser();
         WG wg = currentUser != null ? currentUser.getWg() : null;
         if (wg != null) {
             int memberCount = wg.mitbewohner != null ? wg.mitbewohner.size() : 0;
@@ -115,7 +123,7 @@ public class MainScreenController extends Controller {
 
     @FXML
     public void handleLogout() {
-        clearSession();
+        sessionManager.clear();
         loadScene(headerUserName.getScene(), "/login.fxml");
     }
 }
