@@ -399,3 +399,48 @@
     -fx-font-size: 12px;
     -fx-fill: #94a3b8;
 }
+
+/* ===== CALENDAR STYLES ===== */
+.calendar-header {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1 0;
+}
+
+.calendar-day-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 1 0 0;
+    -fx-alignment: center;
+}
+
+.calendar-day-cell {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 1 1 0;
+    -fx-padding: 10;
+}
+
+.calendar-day-cell-today {
+    -fx-background-color: #eef2ff;
+    -fx-border-color: #6366f1;
+}
+
+.calendar-day-cell-weekend {
+    -fx-background-color: #f8fafc;
+}
+
+.task-pill {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8;
+    -fx-cursor: hand;
+}
+
+.task-pill-mine {
+    -fx-background-color: #eef2ff;
+}
+
+.task-pill-completed {
+    -fx-background-color: #dcfce7;
+}

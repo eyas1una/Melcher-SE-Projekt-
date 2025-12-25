@@ -106,8 +106,7 @@ public class MainScreenController extends Controller {
 
     @FXML
     public void navigateToCleaningSchedule() {
-        showAlert(Alert.AlertType.INFORMATION, "Coming Soon",
-                "The Cleaning Schedule feature is coming soon!");
+        loadScene(headerUserName.getScene(), "/cleaning_schedule.fxml");
     }
 
     @FXML

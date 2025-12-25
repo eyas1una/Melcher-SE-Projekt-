@@ -82,8 +82,8 @@
                         <Text text="Organize cleaning duties and schedules."
                               styleClass="card-subtitle" wrappingWidth="180" style="-fx-text-alignment: center; -fx-font-size: 12px;"/>
                         <Region VBox.vgrow="ALWAYS"/>
-                        <Button text="Coming Soon" 
-                                styleClass="secondary-button" style="-fx-pref-width: 140; -fx-font-size: 12px;" disable="true"/>
+                        <Button text="Open →" 
+                                styleClass="primary-button" style="-fx-pref-width: 140; -fx-font-size: 12px;" onAction="#navigateToCleaningSchedule"/>
                     </VBox>
 
                     <!-- Shopping List Card -->

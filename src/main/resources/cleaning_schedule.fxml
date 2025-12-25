@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.group_2.ui.CleaningScheduleController"
+            styleClass="dashboard-root"
+            stylesheets="@/styles.css"
+            prefWidth="1200" prefHeight="800">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="260">
+            <!-- Logo/Header -->
+            <VBox styleClass="sidebar-header" spacing="5">
+                <Text text="🧹 Cleaning" styleClass="sidebar-logo"/>
+                <Text text="Weekly Schedule" styleClass="sidebar-subtitle"/>
+            </VBox>
+
+            <!-- Navigation Menu -->
+            <VBox styleClass="sidebar-menu" VBox.vgrow="ALWAYS">
+                <Text text="NAVIGATION" styleClass="menu-section-label"/>
+                
+                <Button text="🏠  Home" styleClass="menu-item" onAction="#backToHome"/>
+                <Button text="🏘️  Dashboard" styleClass="menu-item" onAction="#goToDashboard"/>
+
+                <Region style="-fx-pref-height: 20;"/>
+                
+                <Text text="ACTIONS" styleClass="menu-section-label"/>
+                
+                <Button fx:id="generateButton" text="🎲  Generate Random" 
+                        styleClass="menu-item" onAction="#generateSchedule"/>
+                
+                <Button text="➕  Add Task Manually" 
+                        styleClass="menu-item" onAction="#showAddTaskDialog"/>
+
+                <Region style="-fx-pref-height: 10;"/>
+                
+                <Text text="TEMPLATE" styleClass="menu-section-label"/>
+                
+                <Button text="📝  Edit Template" 
+                        styleClass="menu-item" onAction="#openTemplateEditor"/>
+                
+                <Button fx:id="loadTemplateButton" text="📥  Apply Template" 
+                        styleClass="menu-item" onAction="#loadFromTemplate"/>
+
+                <!-- Spacer -->
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- Week Navigation -->
+                <VBox spacing="10" style="-fx-padding: 15;">
+                    <Text text="CURRENT WEEK" styleClass="menu-section-label"/>
+                    <HBox spacing="10" alignment="CENTER">
+                        <Button text="◀" styleClass="icon-button" onAction="#previousWeek"/>
+                        <Text fx:id="weekRangeText" text="Dec 23 - 29" 
+                              style="-fx-font-size: 12px; -fx-fill: #94a3b8;"/>
+                        <Button text="▶" styleClass="icon-button" onAction="#nextWeek"/>
+                    </HBox>
+                    <Button text="📅 Today" styleClass="secondary-button" 
+                            style="-fx-pref-width: 200;" onAction="#goToCurrentWeek"/>
+                </VBox>
+
+                <!-- User Profile at Bottom -->
+                <HBox styleClass="user-profile-section" spacing="12" alignment="CENTER_LEFT">
+                    <StackPane styleClass="avatar">
+                        <Text fx:id="avatarInitial" text="?" styleClass="avatar-text"/>
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Text fx:id="userNameText" text="User Name" styleClass="user-name"/>
+                        <Text fx:id="userEmailText" text="user@email.com" styleClass="user-email"/>
+                    </VBox>
+                </HBox>
+                
+                <Button text="🚪  Logout" styleClass="menu-item" onAction="#handleLogout"/>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content Area - Calendar View -->
+    <center>
+        <VBox style="-fx-background-color: #f8fafc; -fx-padding: 25;">
+            
+            <!-- Header Row -->
+            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 20 0;">
+                <VBox spacing="5">
+                    <Text fx:id="weekTitle" text="Week 52, 2024" 
+                          style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <Text fx:id="weekDateRange" text="December 23 - December 29" 
+                          style="-fx-font-size: 14px; -fx-fill: #64748b;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <!-- Progress Stats -->
+                <HBox spacing="15" alignment="CENTER">
+                    <VBox alignment="CENTER" spacing="2" 
+                          style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12 20;">
+                        <Text fx:id="completedTasksText" text="0/0" 
+                              style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #10b981;"/>
+                        <Text text="Completed" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                    </VBox>
+                    <VBox alignment="CENTER" spacing="2" 
+                          style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12 20;">
+                        <Text fx:id="myTasksCountText" text="0" 
+                              style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #6366f1;"/>
+                        <Text text="My Tasks" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                    </VBox>
+                </HBox>
+            </HBox>
+
+            <!-- Calendar Grid -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+                <VBox spacing="0">
+                    
+                    <!-- Day Headers -->
+                    <HBox styleClass="calendar-header" spacing="0">
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Mon" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                        </StackPane>
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Tue" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                        </StackPane>
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Wed" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                        </StackPane>
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Thu" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                        </StackPane>
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Fri" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                        </StackPane>
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Sat" style="-fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                        </StackPane>
+                        <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
+                            <Text text="Sun" style="-fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                        </StackPane>
+                    </HBox>
+
+                    <!-- Calendar Day Cells Container -->
+                    <HBox fx:id="calendarDaysContainer" spacing="0" alignment="TOP_LEFT">
+                        <!-- Day cells will be added dynamically -->
+                    </HBox>
+
+                    <!-- Tasks by Room Section -->
+                    <VBox spacing="15" style="-fx-padding: 25 0 0 0;">
+                        <Text text="📋 All Cleaning Tasks" 
+                              style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                        
+                        <HBox fx:id="roomCardsContainer" spacing="15" alignment="TOP_LEFT">
+                            <!-- Room task cards will be added dynamically -->
+                        </HBox>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>
