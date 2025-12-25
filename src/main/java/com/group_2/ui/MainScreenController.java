@@ -117,8 +117,11 @@ public class MainScreenController extends Controller {
 
     @FXML
     public void navigateToExpenses() {
-        showAlert(Alert.AlertType.INFORMATION, "Coming Soon",
-                "The Shared Expenses feature is coming soon!");
+        loadScene(headerUserName.getScene(), "/transactions.fxml");
+        javafx.application.Platform.runLater(() -> {
+            TransactionsController transactionsController = applicationContext.getBean(TransactionsController.class);
+            transactionsController.initView();
+        });
     }
 
     @FXML

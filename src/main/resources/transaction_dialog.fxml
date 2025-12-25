@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<!-- Main container with three layered screens -->
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           prefWidth="500" prefHeight="600"
+           style="-fx-background-color: rgba(0,0,0,0.5);">
+
+    <!-- Screen 1: Main Dialog -->
+    <VBox fx:id="mainDialogScreen" styleClass="card" spacing="20" 
+          style="-fx-max-width: 480; -fx-padding: 0; -fx-background-color: white; -fx-background-radius: 12;">
+        
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20 20 15 20; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
+            <Button text="✕" onAction="#handleCloseDialog" 
+                    style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 0; -fx-min-width: 30;"/>
+            <Text text="Add a transaction" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="saveButton" text="Save" onAction="#handleSaveTransaction" 
+                    styleClass="primary-button" style="-fx-padding: 8 20;"/>
+        </HBox>
+
+        <VBox spacing="20" style="-fx-padding: 0 20 20 20;">
+            <!-- Participants Summary -->
+            <Text fx:id="participantsSummaryText" text="With you and: Select participants" 
+                  style="-fx-font-size: 13px; -fx-fill: #64748b;"/>
+
+            <!-- Description Input -->
+            <VBox spacing="6">
+                <Text text="Description" style="-fx-font-size: 13px; -fx-fill: #475569; -fx-font-weight: 500;"/>
+                <TextField fx:id="descriptionField" promptText="Enter description" styleClass="text-field"/>
+            </VBox>
+
+            <!-- Amount Input -->
+            <VBox spacing="6">
+                <Text text="Amount" style="-fx-font-size: 13px; -fx-fill: #475569; -fx-font-weight: 500;"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Text text="€" style="-fx-font-size: 16px; -fx-fill: #64748b;"/>
+                    <TextField fx:id="amountField" promptText="0.00" styleClass="text-field" HBox.hgrow="ALWAYS"/>
+                </HBox>
+            </VBox>
+
+            <!-- Split Summary with Chips -->
+            <VBox spacing="10">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Text text="Paid by" style="-fx-font-size: 13px; -fx-fill: #475569;"/>
+                    <HBox fx:id="payerChip" onMouseClicked="#showChoosePayerScreen" 
+                          styleClass="split-chip" spacing="6" alignment="CENTER" 
+                          style="-fx-background-color: #e2e8f0; -fx-background-radius: 16; -fx-padding: 6 12; -fx-cursor: hand;">
+                        <Text fx:id="payerChipText" text="You" style="-fx-font-size: 13px; -fx-fill: #1e293b;"/>
+                    </HBox>
+                    <Text text="and split" style="-fx-font-size: 13px; -fx-fill: #475569;"/>
+                    <HBox fx:id="splitModeChip" onMouseClicked="#showSplitOptionsScreen" 
+                          styleClass="split-chip" spacing="6" alignment="CENTER"
+                          style="-fx-background-color: #e2e8f0; -fx-background-radius: 16; -fx-padding: 6 12; -fx-cursor: hand;">
+                        <Text fx:id="splitModeChipText" text="equally" style="-fx-font-size: 13px; -fx-fill: #1e293b;"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+
+            <!-- Validation Message -->
+            <Text fx:id="validationMessageText" text="" 
+                  style="-fx-font-size: 12px; -fx-fill: #ef4444;" visible="false" managed="false"/>
+        </VBox>
+    </VBox>
+
+    <!-- Screen 2: Choose Payer -->
+    <VBox fx:id="choosePayerScreen" visible="false" managed="false" styleClass="card" spacing="0" 
+          style="-fx-max-width: 480; -fx-padding: 0; -fx-background-color: white; -fx-background-radius: 12;">
+        
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
+            <Button text="← Cancel" onAction="#returnToMainDialog" 
+                    style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Text text="Choose payer" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+
+        <!-- Payer List -->
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+            <VBox fx:id="payerListBox" spacing="0" style="-fx-padding: 10;"/>
+        </ScrollPane>
+    </VBox>
+
+    <!-- Screen 3: Split Options -->
+    <VBox fx:id="splitOptionsScreen" visible="false" managed="false" styleClass="card" spacing="0"
+          style="-fx-max-width: 480; -fx-padding: 0; -fx-background-color: white; -fx-background-radius: 12;">
+        
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 1 0;">
+            <Button text="← Cancel" onAction="#returnToMainDialog" 
+                    style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Text text="Split options" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Done" onAction="#handleSplitOptionsDone" 
+                    styleClass="primary-button" style="-fx-padding: 8 20;"/>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+            <VBox spacing="20" style="-fx-padding: 20;">
+                <!-- Split Mode Selection -->
+                <VBox spacing="12">
+                    <RadioButton fx:id="equalSplitRadio" text="Split equally" selected="true" 
+                                 onAction="#handleSplitModeChange" styleClass="radio-button"/>
+                    <RadioButton fx:id="percentageSplitRadio" text="Split by percentage" 
+                                 onAction="#handleSplitModeChange" styleClass="radio-button"/>
+                    <RadioButton fx:id="customAmountSplitRadio" text="Split by custom amounts" 
+                                 onAction="#handleSplitModeChange" styleClass="radio-button"/>
+                </VBox>
+
+                <!-- Mode-specific content -->
+                <VBox fx:id="splitContentBox" spacing="15">
+                    <!-- Equal Split Content -->
+                    <VBox fx:id="equalSplitContent" spacing="10">
+                        <Text text="Select which people owe an equal share." 
+                              style="-fx-font-size: 13px; -fx-fill: #64748b;"/>
+                        <VBox fx:id="equalSplitParticipantsBox" spacing="8"/>
+                        <Text fx:id="equalSplitSummary" text="" 
+                              style="-fx-font-size: 13px; -fx-fill: #475569; -fx-font-weight: 500;"/>
+                    </VBox>
+
+                    <!-- Percentage Split Content -->
+                    <VBox fx:id="percentageSplitContent" spacing="10" visible="false" managed="false">
+                        <Text text="Enter percentage for each person." 
+                              style="-fx-font-size: 13px; -fx-fill: #64748b;"/>
+                        <VBox fx:id="percentageSplitParticipantsBox" spacing="8"/>
+                        <Text fx:id="percentageSplitSummary" text="Total: 0%" 
+                              style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: 500;"/>
+                    </VBox>
+
+                    <!-- Custom Amount Split Content -->
+                    <VBox fx:id="customAmountSplitContent" spacing="10" visible="false" managed="false">
+                        <Text text="Enter custom amount for each person." 
+                              style="-fx-font-size: 13px; -fx-fill: #64748b;"/>
+                        <VBox fx:id="customAmountSplitParticipantsBox" spacing="8"/>
+                        <Text fx:id="customAmountSplitSummary" text="Remaining: €0.00" 
+                              style="-fx-font-size: 13px; -fx-fill: #64748b; -fx-font-weight: 500;"/>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+
+</StackPane>

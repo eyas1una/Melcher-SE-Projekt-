@@ -101,19 +101,19 @@
                                 styleClass="secondary-button" style="-fx-pref-width: 140; -fx-font-size: 12px;" disable="true"/>
                     </VBox>
 
-                    <!-- Expenses Card -->
+                    <!-- Transactions Card -->
                     <VBox styleClass="card" spacing="15" alignment="CENTER" 
                           style="-fx-pref-width: 220; -fx-pref-height: 220; -fx-cursor: hand;"
                           onMouseClicked="#navigateToExpenses">
                         <StackPane style="-fx-background-color: linear-gradient(to bottom right, #f59e0b, #d97706); -fx-background-radius: 16; -fx-pref-width: 60; -fx-pref-height: 60;">
                             <Text text="💰" style="-fx-font-size: 28px;"/>
                         </StackPane>
-                        <Text text="Expenses" styleClass="card-title" style="-fx-font-size: 16px;"/>
+                        <Text text="Transactions" styleClass="card-title" style="-fx-font-size: 16px;"/>
                         <Text text="Track and split shared costs fairly."
                               styleClass="card-subtitle" wrappingWidth="180" style="-fx-text-alignment: center; -fx-font-size: 12px;"/>
                         <Region VBox.vgrow="ALWAYS"/>
-                        <Button text="Coming Soon" 
-                                styleClass="secondary-button" style="-fx-pref-width: 140; -fx-font-size: 12px;" disable="true"/>
+                        <Button text="Open" onAction="#navigateToExpenses"
+                                styleClass="secondary-button" style="-fx-pref-width: 140; -fx-font-size: 12px;"/>
                     </VBox>
 
                 </HBox>
