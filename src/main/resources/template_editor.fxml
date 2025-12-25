@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.group_2.ui.TemplateEditorController"
+            styleClass="dashboard-root"
+            stylesheets="@/styles.css"
+            prefWidth="1000" prefHeight="700">
+
+    <!-- Sidebar -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="260">
+            <VBox styleClass="sidebar-header" spacing="5">
+                <Text text="📝 Template" styleClass="sidebar-logo"/>
+                <Text text="Default Schedule" styleClass="sidebar-subtitle"/>
+            </VBox>
+
+            <VBox styleClass="sidebar-menu" VBox.vgrow="ALWAYS">
+                <Text text="NAVIGATION" styleClass="menu-section-label"/>
+                
+                <Button text="🏠  Home" styleClass="menu-item" onAction="#backToHome"/>
+                <Button text="🧹  Cleaning" styleClass="menu-item" onAction="#goToCleaningSchedule"/>
+
+                <Region style="-fx-pref-height: 20;"/>
+                
+                <Text text="TEMPLATE ACTIONS" styleClass="menu-section-label"/>
+                
+                <Button text="➕  Add Task" styleClass="menu-item" onAction="#showAddTemplateDialog"/>
+                <Button text="🗑️  Clear All" styleClass="menu-item" onAction="#clearAllTemplates"/>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <VBox spacing="10" style="-fx-padding: 15;">
+                    <Text text="INFO" styleClass="menu-section-label"/>
+                    <Text text="This template will be used as the default schedule for every new week." 
+                          style="-fx-font-size: 11px; -fx-fill: #94a3b8;" wrappingWidth="200"/>
+                </VBox>
+
+                <HBox styleClass="user-profile-section" spacing="12" alignment="CENTER_LEFT">
+                    <StackPane styleClass="avatar">
+                        <Text fx:id="avatarInitial" text="?" styleClass="avatar-text"/>
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Text fx:id="userNameText" text="User Name" styleClass="user-name"/>
+                        <Text fx:id="userEmailText" text="user@email.com" styleClass="user-email"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <VBox style="-fx-background-color: #f8fafc; -fx-padding: 25;">
+            
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 25 0;">
+                <VBox spacing="5">
+                    <Text text="Default Weekly Template" 
+                          style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <Text text="Define tasks that repeat every week" 
+                          style="-fx-font-size: 14px; -fx-fill: #64748b;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <VBox alignment="CENTER" spacing="2" 
+                      style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12 20;">
+                    <Text fx:id="templateCountText" text="0" 
+                          style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #6366f1;"/>
+                    <Text text="Tasks" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                </VBox>
+            </HBox>
+
+            <!-- Day Columns -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+                <HBox spacing="10" alignment="TOP_LEFT">
+                    
+                    <!-- Monday -->
+                    <VBox fx:id="mondayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="120">
+                        <Text text="Monday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    </VBox>
+                    
+                    <!-- Tuesday -->
+                    <VBox fx:id="tuesdayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="120">
+                        <Text text="Tuesday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    </VBox>
+                    
+                    <!-- Wednesday -->
+                    <VBox fx:id="wednesdayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="120">
+                        <Text text="Wednesday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    </VBox>
+                    
+                    <!-- Thursday -->
+                    <VBox fx:id="thursdayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="120">
+                        <Text text="Thursday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    </VBox>
+                    
+                    <!-- Friday -->
+                    <VBox fx:id="fridayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="120">
+                        <Text text="Friday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    </VBox>
+                    
+                    <!-- Saturday -->
+                    <VBox fx:id="saturdayColumn" spacing="10" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 15; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" prefWidth="120">
+                        <Text text="Saturday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                    </VBox>
+                    
+                    <!-- Sunday -->
+                    <VBox fx:id="sundayColumn" spacing="10" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 15; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" prefWidth="120">
+                        <Text text="Sunday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                    </VBox>
+                    
+                </HBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>
