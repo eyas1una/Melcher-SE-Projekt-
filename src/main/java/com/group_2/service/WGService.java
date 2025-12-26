@@ -78,7 +78,16 @@ public class WGService {
     public WG updateWG(Long id, String name, User admin) {
         WG wg = wgRepository.findById(id).orElseThrow(() -> new RuntimeException("WG not found"));
         wg.name = name; // Accessing public field directly as per WG.java
-        wg.setAdmin(admin);
+
+        if (admin != null) {
+            // Find the managed user entity from the WG's member list by ID
+            // This avoids JPA merge issues with detached entities
+            User managedAdmin = wg.getMitbewohner().stream()
+                    .filter(m -> m.getId().equals(admin.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("User is not a member of this WG"));
+            wg.admin = managedAdmin;
+        }
         return wgRepository.save(wg);
     }
 
@@ -99,6 +108,10 @@ public class WGService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("User not found in WG"));
         wg.removeMitbewohner(userToRemove);
+
+        // Regenerate invite code to prevent removed user from rejoining with old code
+        wg.regenerateInviteCode();
+
         wgRepository.save(wg);
     }
 

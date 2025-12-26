@@ -28,19 +28,9 @@ public class TransactionsController extends Controller {
     @Autowired
     private ApplicationContext applicationContext;
 
-    // Header elements
-    @FXML
-    private Text headerUserName;
-    @FXML
-    private Text headerWgName;
-    @FXML
-    private Text headerAvatar;
-
     // Balance display
     @FXML
     private Text totalBalanceText;
-    @FXML
-    private Text balanceStatusText;
 
     // Balance table
     @FXML
@@ -69,30 +59,8 @@ public class TransactionsController extends Controller {
 
     public void initView() {
         sessionManager.refreshCurrentUser();
-        updateHeader();
         updateBalanceDisplay();
         updateBalanceSheet();
-    }
-
-    private void updateHeader() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null) {
-            String fullName = currentUser.getName() +
-                    (currentUser.getSurname() != null ? " " + currentUser.getSurname() : "");
-            headerUserName.setText(fullName);
-
-            String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
-                    ? currentUser.getName().substring(0, 1).toUpperCase()
-                    : "?";
-            headerAvatar.setText(initial);
-
-            WG wg = currentUser.getWg();
-            if (wg != null) {
-                headerWgName.setText(wg.name);
-            } else {
-                headerWgName.setText("No WG");
-            }
-        }
     }
 
     private void setupBalanceTable() {
@@ -124,7 +92,38 @@ public class TransactionsController extends Controller {
                 }
             }
         });
+
+        // Remove placeholder rows and configure table properly
+        balanceTable.setPlaceholder(new Text("No balance data available"));
+        balanceTable.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        balanceTable.setSelectionModel(null); // Disable selection
+        balanceTable.setFocusTraversable(false);
+
+        // Add a listener to dynamically resize the table based on the number of items
+        balanceTable.getItems()
+                .addListener((javafx.collections.ListChangeListener.Change<? extends BalanceEntry> c) -> {
+                    updateBalanceTableHeight();
+                });
     }
+
+    private void updateBalanceTableHeight() {
+        int rowCount = balanceTable.getItems().size();
+        if (rowCount == 0) {
+            balanceTable.setPrefHeight(100);
+            balanceTable.setMaxHeight(100);
+            balanceTable.setMinHeight(100);
+        } else {
+            // Calculate exact height: header (40px) + rows (50px each)
+            double height = 40 + (rowCount * 50);
+            balanceTable.setPrefHeight(height);
+            balanceTable.setMaxHeight(height);
+            balanceTable.setMinHeight(height);
+        }
+    }
+
+    // Balance card
+    @FXML
+    private VBox balanceCard;
 
     private void updateBalanceDisplay() {
         User currentUser = sessionManager.getCurrentUser();
@@ -134,24 +133,34 @@ public class TransactionsController extends Controller {
         double totalBalance = transactionService.getTotalBalance(currentUser.getId());
         totalBalanceText.setText(currencyFormat.format(totalBalance));
 
+        // Change card color based on balance
         if (totalBalance > 0) {
-            balanceStatusText.setText("(You are owed)");
+            // Green gradient - they owe you
+            balanceCard.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom right, #10b981, #059669); -fx-padding: 25;");
         } else if (totalBalance < 0) {
-            balanceStatusText.setText("(You owe)");
+            // Red gradient - you owe them
+            balanceCard.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom right, #ef4444, #dc2626); -fx-padding: 25;");
         } else {
-            balanceStatusText.setText("(All settled)");
+            // Blue gradient - all settled
+            balanceCard.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom right, #3b82f6, #2563eb); -fx-padding: 25;");
         }
     }
 
     private void updateBalanceSheet() {
         User currentUser = sessionManager.getCurrentUser();
-        WG wg = currentUser != null ? currentUser.getWg() : null;
 
         balanceTable.getItems().clear();
 
+        if (currentUser == null) {
+            return;
+        }
+
+        WG wg = currentUser.getWg();
+
         if (wg == null || wg.mitbewohner == null) {
-            balanceTable.setPrefHeight(100);
-            balanceTable.setMaxHeight(100);
             return;
         }
 
@@ -166,22 +175,33 @@ public class TransactionsController extends Controller {
             }
         }
 
-        int rowCount = balanceTable.getItems().size();
-        double tableHeight = (rowCount * 50) + 35;
-        balanceTable.setPrefHeight(tableHeight);
-        balanceTable.setMaxHeight(tableHeight);
-        balanceTable.setMinHeight(tableHeight);
+        // The listener will automatically update the height
+        // But call it explicitly to ensure it happens immediately
+        updateBalanceTableHeight();
     }
 
     @FXML
     public void showAddTransactionDialog() {
-        // New Splitwise-style dialog will be implemented here
-        System.out.println("Add Transaction clicked - dialog not yet implemented");
+        try {
+            TransactionDialogController dialogController = applicationContext
+                    .getBean(TransactionDialogController.class);
+
+            // Set callback to refresh when transaction is saved
+            dialogController.setOnTransactionSaved(() -> {
+                updateBalanceDisplay();
+                updateBalanceSheet();
+            });
+
+            dialogController.showDialog();
+        } catch (Exception e) {
+            System.err.println("Error showing transaction dialog: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @FXML
     public void backToHome() {
-        loadScene(headerUserName.getScene(), "/main_screen.fxml");
+        loadScene(balanceTable.getScene(), "/main_screen.fxml");
         javafx.application.Platform.runLater(() -> {
             MainScreenController mainScreenController = applicationContext.getBean(MainScreenController.class);
             mainScreenController.initView();
@@ -189,9 +209,13 @@ public class TransactionsController extends Controller {
     }
 
     @FXML
-    public void handleLogout() {
-        sessionManager.clear();
-        loadScene(headerUserName.getScene(), "/login.fxml");
+    public void navigateToHistory() {
+        loadScene(balanceTable.getScene(), "/transaction_history.fxml");
+        javafx.application.Platform.runLater(() -> {
+            TransactionHistoryController historyController = applicationContext
+                    .getBean(TransactionHistoryController.class);
+            historyController.initView();
+        });
     }
 
     public static class BalanceEntry {

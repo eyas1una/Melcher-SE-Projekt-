@@ -5,6 +5,60 @@
     -fx-alignment: center;
 }
 
+/* ===== NAVBAR STYLES ===== */
+.navbar {
+    -fx-background-color: linear-gradient(to right, #1e293b, #334155);
+    -fx-padding: 25 38;
+    -fx-spacing: 25;
+    -fx-alignment: center-left;
+}
+
+.navbar-title {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-fill: white;
+}
+
+.navbar-back-button {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-font-size: 18px;
+}
+
+.navbar-back-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-settings-button {
+    -fx-background-color: transparent;
+    -fx-font-size: 25px;
+    -fx-cursor: hand;
+    -fx-padding: 10;
+    -fx-text-fill: white;
+}
+
+.navbar-settings-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 10;
+}
+
+.navbar-user-name {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-fill: white;
+}
+
+.navbar-wg-name {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 15px;
+    -fx-fill: #94a3b8;
+}
+
 /* ===== TYPOGRAPHY ===== */
 .title-text {
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -443,4 +497,116 @@
 
 .task-pill-completed {
     -fx-background-color: #dcfce7;
+}
+
+/* ===== TABLE STYLES ===== */
+/* Remove default table styling and placeholder rows */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 16 12;
+}
+
+.table-view .column-header .label {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #475569;
+    -fx-alignment: center-left;
+}
+
+.table-view .table-cell {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1e293b;
+    -fx-padding: 16 12;
+    -fx-border-color: transparent transparent #f1f5f9 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: white;
+}
+
+.table-row-cell {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #fafbfc;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #f1f5f9;
+    -fx-cursor: hand;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #eef2ff;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #1e293b;
+}
+
+/* Remove placeholder/empty rows */
+.table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-min-height: 0;
+}
+
+.table-row-cell:empty .table-cell {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-min-height: 0;
+}
+
+/* Scrollbar styling for tables */
+.table-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 10;
+}
+
+.table-view .scroll-bar:vertical .track {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 5;
+}
+
+.table-view .scroll-bar:vertical .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 5;
+}
+
+.table-view .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+
+/* Remove corner region between scrollbars */
+.table-view .corner {
+    -fx-background-color: transparent;
+}
+
+/* Remove horizontal scrollbar if not needed */
+.table-view .scroll-bar:horizontal {
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-min-height: 0;
+}
+
+/* Filler (empty table area) */
+.table-view .filler {
+    -fx-background-color: transparent;
 }

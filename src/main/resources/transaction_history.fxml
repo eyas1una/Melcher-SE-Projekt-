@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.group_2.ui.TransactionHistoryController"
+      spacing="0" style="-fx-background-color: #f9fafb;">
+
+    <!-- Header -->
+    <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
+        <Button text="← Back" onAction="#returnToTransactions" styleClass="navbar-back-button"/>
+        <Text text="📜 Transaction History" styleClass="navbar-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Main Content -->
+    <VBox spacing="20" style="-fx-padding: 24;" VBox.vgrow="ALWAYS">
+        
+        <!-- Info Card -->
+        <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 12; -fx-border-color: #e5e7eb; -fx-border-width: 1; -fx-border-radius: 12;">
+            <Text text="📊" style="-fx-font-size: 24px;"/>
+            <VBox spacing="4">
+                <Text text="All Your Transactions" style="-fx-font-size: 14px; -fx-font-weight: 600; -fx-fill: #111827;"/>
+                <Text fx:id="transactionCountText" text="Loading..." style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
+            </VBox>
+        </HBox>
+
+        <!-- Table Container -->
+        <VBox styleClass="card" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 0;">
+            
+            <!-- Table Header -->
+            <HBox alignment="CENTER_LEFT" style="-fx-padding: 16 20; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0;">
+                <Text text="Transaction History" styleClass="card-title"/>
+            </HBox>
+
+            <!-- Table -->
+            <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <columnResizePolicy>
+                    <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY"/>
+                </columnResizePolicy>
+                <columns>
+                    <TableColumn fx:id="dateColumn" text="Date" prefWidth="120" minWidth="100" resizable="false"/>
+                    <TableColumn fx:id="timeColumn" text="Time" prefWidth="100" minWidth="80" resizable="false"/>
+                    <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="250" minWidth="200"/>
+                    <TableColumn fx:id="amountColumn" text="Amount" prefWidth="120" minWidth="100" resizable="false"/>
+                    <TableColumn fx:id="creditorColumn" text="Creditor" prefWidth="150" minWidth="120"/>
+                    <TableColumn fx:id="debtorColumn" text="Debtor(s)" prefWidth="180" minWidth="140"/>
+                </columns>
+
+            </TableView>
+        </VBox>
+    </VBox>
+</VBox>

@@ -52,10 +52,12 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, String name) {
+    public User updateUser(Long id, String name, String surname, String email) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         user.setName(name);
+        user.setSurname(surname);
+        user.setEmail(email);
         return userRepository.save(user);
     }
 

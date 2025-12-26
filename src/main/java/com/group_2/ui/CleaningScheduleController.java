@@ -706,13 +706,4 @@ public class CleaningScheduleController extends Controller {
             controller.initView();
         });
     }
-
-    @FXML
-    public void goToDashboard() {
-        loadScene(avatarInitial.getScene(), "/dashboard.fxml");
-        javafx.application.Platform.runLater(() -> {
-            DashboardController controller = applicationContext.getBean(DashboardController.class);
-            controller.initView();
-        });
-    }
 }

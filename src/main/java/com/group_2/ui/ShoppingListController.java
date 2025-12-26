@@ -33,14 +33,6 @@ public class ShoppingListController extends Controller {
     @Autowired
     private ApplicationContext applicationContext;
 
-    // Sidebar elements
-    @FXML
-    private Text avatarInitial;
-    @FXML
-    private Text userNameText;
-    @FXML
-    private Text userEmailText;
-
     // Left panel - lists
     @FXML
     private VBox listsContainer;
@@ -74,21 +66,7 @@ public class ShoppingListController extends Controller {
 
     @FXML
     public void initialize() {
-        updateSidebarUserInfo();
         loadLists();
-    }
-
-    private void updateSidebarUserInfo() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null) {
-            String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
-                    ? currentUser.getName().substring(0, 1).toUpperCase()
-                    : "?";
-            avatarInitial.setText(initial);
-            userNameText.setText(currentUser.getName() +
-                    (currentUser.getSurname() != null ? " " + currentUser.getSurname() : ""));
-            userEmailText.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "");
-        }
     }
 
     private void loadLists() {
@@ -105,7 +83,7 @@ public class ShoppingListController extends Controller {
             emptyState.setPadding(new Insets(30));
             Text emptyIcon = new Text("📝");
             emptyIcon.setStyle("-fx-font-size: 32px;");
-            Text emptyText = new Text("No lists yet.\nCreate your first one!");
+            Text emptyText = new Text("Create your first list!");
             emptyText.getStyleClass().add("card-subtitle");
             emptyText.setStyle("-fx-text-alignment: center;");
             emptyState.getChildren().addAll(emptyIcon, emptyText);
@@ -113,6 +91,10 @@ public class ShoppingListController extends Controller {
         } else {
             for (ShoppingList list : lists) {
                 listsContainer.getChildren().add(createListCard(list));
+            }
+            // Auto-select first list if none is selected
+            if (selectedList == null) {
+                selectList(lists.get(0));
             }
         }
     }
@@ -474,25 +456,10 @@ public class ShoppingListController extends Controller {
     }
 
     @FXML
-    public void handleLogout() {
-        sessionManager.clear();
-        loadScene(avatarInitial.getScene(), "/login.fxml");
-    }
-
-    @FXML
     public void backToHome() {
-        loadScene(avatarInitial.getScene(), "/main_screen.fxml");
+        loadScene(listsContainer.getScene(), "/main_screen.fxml");
         javafx.application.Platform.runLater(() -> {
             MainScreenController controller = applicationContext.getBean(MainScreenController.class);
-            controller.initView();
-        });
-    }
-
-    @FXML
-    public void goToDashboard() {
-        loadScene(avatarInitial.getScene(), "/dashboard.fxml");
-        javafx.application.Platform.runLater(() -> {
-            DashboardController controller = applicationContext.getBean(DashboardController.class);
             controller.initView();
         });
     }

@@ -55,6 +55,14 @@ public class WG {
         return code.toString();
     }
 
+    /**
+     * Regenerate the invite code. Call this after removing a member
+     * to prevent removed users from rejoining with the old code.
+     */
+    public void regenerateInviteCode() {
+        this.inviteCode = generateInviteCode();
+    }
+
     public boolean addRoom(Room room) {
         if (rooms.contains(room)) {
 
@@ -74,9 +82,10 @@ public class WG {
     }
 
     public boolean setAdmin(User user) {
-        if (!mitbewohner.contains(user)) {
-
-            // throw error
+        // Check if user is a member by comparing IDs (more reliable with JPA)
+        boolean isMember = mitbewohner.stream()
+                .anyMatch(m -> m.getId().equals(user.getId()));
+        if (!isMember) {
             return false;
         }
         this.admin = user;

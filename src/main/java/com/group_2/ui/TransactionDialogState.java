@@ -1,6 +1,6 @@
 package com.group_2.ui;
 
-import com.group_2.model.User;
+import com.model.User;
 import java.util.*;
 
 /**
@@ -39,8 +39,6 @@ public class TransactionDialogState {
     public void reset(User currentUser, List<User> allWgMembers) {
         this.payer = currentUser;
         this.participants = new HashSet<>(allWgMembers);
-        // Remove payer from participants by default
-        this.participants.remove(currentUser);
         this.splitMode = SplitMode.EQUAL;
         this.customValues.clear();
         this.totalAmount = 0.0;
@@ -148,23 +146,21 @@ public class TransactionDialogState {
                 return true; // Just need participants
 
             case PERCENTAGE:
-                // All participants must have a percentage
-                if (customValues.size() != participants.size())
-                    return false;
-                // Sum must equal 100%
-                double sum = customValues.values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .sum();
+                // Sum must equal 100% (empty fields count as 0)
+                double sum = 0.0;
+                for (User participant : participants) {
+                    Double value = customValues.get(participant);
+                    sum += (value != null) ? value : 0.0;
+                }
                 return Math.abs(sum - 100.0) < 0.01;
 
             case CUSTOM_AMOUNT:
-                // All participants must have an amount
-                if (customValues.size() != participants.size())
-                    return false;
-                // Sum must equal total amount
-                double totalCustom = customValues.values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .sum();
+                // Sum must equal total amount (empty fields count as 0)
+                double totalCustom = 0.0;
+                for (User participant : participants) {
+                    Double value = customValues.get(participant);
+                    totalCustom += (value != null) ? value : 0.0;
+                }
                 return Math.abs(totalCustom - totalAmount) < 0.01;
 
             default:
@@ -186,25 +182,27 @@ public class TransactionDialogState {
             return "Please select at least one participant";
 
         switch (splitMode) {
+            case EQUAL:
+                // No additional validation needed for equal split
+                break;
+
             case PERCENTAGE:
-                if (customValues.size() != participants.size()) {
-                    return "Please enter percentages for all participants";
+                double sum = 0.0;
+                for (User participant : participants) {
+                    Double value = customValues.get(participant);
+                    sum += (value != null) ? value : 0.0;
                 }
-                double sum = customValues.values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .sum();
                 if (Math.abs(sum - 100.0) >= 0.01) {
                     return String.format("Percentages must sum to 100%% (current: %.1f%%)", sum);
                 }
                 break;
 
             case CUSTOM_AMOUNT:
-                if (customValues.size() != participants.size()) {
-                    return "Please enter amounts for all participants";
+                double totalCustom = 0.0;
+                for (User participant : participants) {
+                    Double value = customValues.get(participant);
+                    totalCustom += (value != null) ? value : 0.0;
                 }
-                double totalCustom = customValues.values().stream()
-                        .mapToDouble(Double::doubleValue)
-                        .sum();
                 if (Math.abs(totalCustom - totalAmount) >= 0.01) {
                     return String.format("Custom amounts must sum to €%.2f (current: €%.2f)",
                             totalAmount, totalCustom);

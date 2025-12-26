@@ -12,45 +12,18 @@
             stylesheets="@/styles.css"
             prefWidth="1100" prefHeight="700">
 
-    <!-- Sidebar -->
-    <left>
-        <VBox styleClass="sidebar">
-            <!-- Logo/Header -->
-            <VBox styleClass="sidebar-header" spacing="5">
-                <Text text="🛒 Shopping Lists" styleClass="sidebar-logo"/>
-                <Text text="Manage shared shopping" styleClass="sidebar-subtitle"/>
-            </VBox>
-
-            <!-- Navigation Menu -->
-            <VBox styleClass="sidebar-menu" VBox.vgrow="ALWAYS">
-                <Text text="NAVIGATION" styleClass="menu-section-label"/>
-                
-                <Button text="🏠  Home" styleClass="menu-item" onAction="#backToHome"/>
-                
-                <Button text="🏘️  Dashboard" styleClass="menu-item" onAction="#goToDashboard"/>
-
-                <!-- Spacer -->
-                <Region VBox.vgrow="ALWAYS"/>
-
-                <!-- User Profile at Bottom -->
-                <HBox styleClass="user-profile-section" spacing="12" alignment="CENTER_LEFT">
-                    <StackPane styleClass="avatar">
-                        <Text fx:id="avatarInitial" text="?" styleClass="avatar-text"/>
-                    </StackPane>
-                    <VBox spacing="2">
-                        <Text fx:id="userNameText" text="User Name" styleClass="user-name"/>
-                        <Text fx:id="userEmailText" text="user@email.com" styleClass="user-email"/>
-                    </VBox>
-                </HBox>
-                
-                <Button text="🚪  Logout" styleClass="menu-item" onAction="#handleLogout"/>
-            </VBox>
-        </VBox>
-    </left>
+    <!-- Top Header -->
+    <top>
+        <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
+            <Button text="← Back" onAction="#backToHome" styleClass="navbar-back-button"/>
+            <Text text="🛒 Shopping Lists" styleClass="navbar-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
 
     <!-- Main Content Area -->
     <center>
-        <HBox spacing="20">
+        <HBox spacing="20" style="-fx-background-color: #f8fafc; -fx-padding: 25;">
             <!-- Left Panel: Shopping Lists -->
             <VBox styleClass="main-content" spacing="20" prefWidth="350">
                 <VBox styleClass="content-header" spacing="8">
@@ -72,7 +45,7 @@
                 <!-- Placeholder when no list selected -->
                 <VBox fx:id="noListSelectedView" alignment="CENTER" spacing="15" VBox.vgrow="ALWAYS">
                     <Text text="📋" style="-fx-font-size: 48px;"/>
-                    <Text text="Select a list to view items" styleClass="card-subtitle"/>
+                    <Text text="Create a new list and add items" styleClass="card-subtitle"/>
                 </VBox>
 
                 <!-- List details view -->

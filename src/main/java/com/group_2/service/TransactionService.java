@@ -115,6 +115,36 @@ public class TransactionService {
     }
 
     /**
+     * Get all transactions involving a specific user (as creditor or debtor)
+     * Sorted by creation date descending (newest first)
+     */
+    public List<Transaction> getTransactionsForUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        WG wg = user.getWg();
+        if (wg == null) {
+            return List.of();
+        }
+
+        List<Transaction> allTransactions = transactionRepository.findByWg(wg);
+
+        // Filter transactions where user is creditor or appears in splits
+        return allTransactions.stream()
+                .filter(t -> {
+                    // User is creditor
+                    if (t.getCreditor().getId().equals(userId)) {
+                        return true;
+                    }
+                    // User is debtor in any split
+                    return t.getSplits().stream()
+                            .anyMatch(split -> split.getDebtor().getId().equals(userId));
+                })
+                .sorted((t1, t2) -> t2.getTimestamp().compareTo(t1.getTimestamp())) // Newest first
+                .toList();
+    }
+
+    /**
      * Calculate cumulative balance between two users
      * Positive = otherUser owes currentUser
      * Negative = currentUser owes otherUser

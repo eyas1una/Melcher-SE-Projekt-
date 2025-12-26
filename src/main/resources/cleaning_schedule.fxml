@@ -26,7 +26,6 @@
                 <Text text="NAVIGATION" styleClass="menu-section-label"/>
                 
                 <Button text="🏠  Home" styleClass="menu-item" onAction="#backToHome"/>
-                <Button text="🏘️  Dashboard" styleClass="menu-item" onAction="#goToDashboard"/>
 
                 <Region style="-fx-pref-height: 20;"/>
                 
