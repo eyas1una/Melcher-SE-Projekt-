@@ -3,6 +3,7 @@ package com.group_2.ui;
 import com.group_2.service.CleaningScheduleService;
 import com.group_2.util.SessionManager;
 import com.model.CleaningTaskTemplate;
+import com.model.RecurrenceInterval;
 import com.model.Room;
 import com.model.User;
 import com.model.WG;
@@ -69,6 +70,8 @@ public class TemplateEditorController extends Controller {
         if (navbarController != null) {
             navbarController.setTitle("📝 Template Editor");
             navbarController.setBackDestination("/cleaning_schedule.fxml", false);
+            // Sync when back button is clicked
+            navbarController.getBackButton().setOnAction(e -> backToCleaningSchedule());
         }
         loadTemplates();
     }
@@ -163,6 +166,15 @@ public class TemplateEditorController extends Controller {
             assigneeRow.getChildren().add(rotationInfo);
         }
 
+        // Frequency display
+        HBox frequencyRow = new HBox(5);
+        frequencyRow.setAlignment(Pos.CENTER_LEFT);
+        Text freqIcon = new Text("📅");
+        freqIcon.setStyle("-fx-font-size: 11px;");
+        Text freqText = new Text(template.getRecurrenceInterval().getDisplayName());
+        freqText.setStyle("-fx-font-size: 11px; -fx-fill: #64748b;");
+        frequencyRow.getChildren().addAll(freqIcon, freqText);
+
         // Separator
         Region separator = new Region();
         separator.setPrefHeight(1);
@@ -188,7 +200,7 @@ public class TemplateEditorController extends Controller {
 
         actions.getChildren().addAll(editBtn, deleteBtn);
 
-        card.getChildren().addAll(roomName, assigneeRow, separator, actions);
+        card.getChildren().addAll(roomName, assigneeRow, frequencyRow, separator, actions);
         return card;
     }
 
@@ -258,6 +270,12 @@ public class TemplateEditorController extends Controller {
             }
         });
 
+        // Frequency selection
+        ComboBox<RecurrenceInterval> freqCombo = new ComboBox<>();
+        freqCombo.getItems().addAll(RecurrenceInterval.values());
+        freqCombo.setValue(RecurrenceInterval.WEEKLY);
+        freqCombo.setPromptText("Frequency");
+
         // Info about round-robin
         HBox infoBox = new HBox(8);
         infoBox.setAlignment(Pos.CENTER_LEFT);
@@ -271,6 +289,7 @@ public class TemplateEditorController extends Controller {
         content.getChildren().addAll(
                 new Text("Room:"), roomCombo,
                 new Text("Day:"), dayCombo,
+                new Text("Frequency:"), freqCombo,
                 infoBox);
 
         dialog.getDialogPane().setContent(content);
@@ -284,7 +303,7 @@ public class TemplateEditorController extends Controller {
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
                 return cleaningScheduleService.addTemplate(
-                        wg, roomCombo.getValue(), dayCombo.getValue());
+                        wg, roomCombo.getValue(), dayCombo.getValue(), freqCombo.getValue());
             }
             return null;
         });
@@ -332,6 +351,11 @@ public class TemplateEditorController extends Controller {
             }
         });
 
+        // Frequency selection
+        ComboBox<RecurrenceInterval> freqCombo = new ComboBox<>();
+        freqCombo.getItems().addAll(RecurrenceInterval.values());
+        freqCombo.setValue(template.getRecurrenceInterval());
+
         // Info about round-robin
         HBox infoBox = new HBox(8);
         infoBox.setAlignment(Pos.CENTER_LEFT);
@@ -344,13 +368,14 @@ public class TemplateEditorController extends Controller {
 
         content.getChildren().addAll(
                 new Text("Day of Week:"), dayCombo,
+                new Text("Frequency:"), freqCombo,
                 infoBox);
 
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == saveButtonType) {
-                cleaningScheduleService.updateTemplate(template, dayCombo.getValue());
+                cleaningScheduleService.updateTemplate(template, dayCombo.getValue(), freqCombo.getValue());
             }
             return null;
         });
@@ -396,6 +421,11 @@ public class TemplateEditorController extends Controller {
 
     @FXML
     public void backToHome() {
+        User currentUser = sessionManager.getCurrentUser();
+        if (currentUser != null && currentUser.getWg() != null) {
+            cleaningScheduleService.syncCurrentWeekWithTemplate(currentUser.getWg());
+        }
+
         loadScene(headerTitle.getScene(), "/main_screen.fxml");
         javafx.application.Platform.runLater(() -> {
             MainScreenController controller = applicationContext.getBean(MainScreenController.class);
@@ -404,7 +434,16 @@ public class TemplateEditorController extends Controller {
     }
 
     @FXML
-    public void goToCleaningSchedule() {
+    public void backToCleaningSchedule() {
+        User currentUser = sessionManager.getCurrentUser();
+        if (currentUser != null && currentUser.getWg() != null) {
+            cleaningScheduleService.syncCurrentWeekWithTemplate(currentUser.getWg());
+        }
         loadScene(headerTitle.getScene(), "/cleaning_schedule.fxml");
+    }
+
+    @FXML
+    public void goToCleaningSchedule() {
+        backToCleaningSchedule();
     }
 }

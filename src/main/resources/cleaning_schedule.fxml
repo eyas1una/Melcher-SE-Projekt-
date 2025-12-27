@@ -60,8 +60,7 @@
 
             <!-- Action Toolbar -->
             <HBox spacing="12" alignment="CENTER_LEFT" style="-fx-padding: 0 0 20 0;">
-                <Button fx:id="generateButton" text="🎲 Generate Random" onAction="#generateSchedule"
-                        style="-fx-background-color: #6366f1; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 13px;"/>
+
                 <Button text="➕ Add Task" onAction="#showAddTaskDialog"
                         style="-fx-background-color: white; -fx-text-fill: #475569; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 13px; -fx-border-color: #e2e8f0; -fx-border-radius: 8;"/>
                 

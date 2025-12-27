@@ -67,9 +67,12 @@
                             styleClass="primary-button" style="-fx-padding: 6 12; -fx-font-size: 12px;"/>
                 </HBox>
                 
-                <VBox fx:id="roomFieldsContainer" spacing="10">
-                    <!-- Room fields will be added here dynamically -->
-                </VBox>
+                <ScrollPane fx:id="roomScrollPane" fitToWidth="true" prefHeight="200" maxHeight="300" 
+                          styleClass="modern-scroll-pane">
+                    <VBox fx:id="roomFieldsContainer" spacing="10">
+                        <!-- Room fields will be added here dynamically -->
+                    </VBox>
+                </ScrollPane>
                 
                 <Text text="Add the rooms in your apartment (optional)" 
                       styleClass="list-item-subtitle"/>

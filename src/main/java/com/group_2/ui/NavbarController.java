@@ -1,6 +1,7 @@
 package com.group_2.ui;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -20,6 +21,9 @@ public class NavbarController extends Controller {
 
     @FXML
     private Text titleText;
+
+    @FXML
+    private Button backButton;
 
     private String backDestination = "/main_screen.fxml";
     private boolean initMainScreen = true;
@@ -58,5 +62,9 @@ public class NavbarController extends Controller {
                 controller.initView();
             });
         }
+    }
+
+    public Button getBackButton() {
+        return backButton;
     }
 }

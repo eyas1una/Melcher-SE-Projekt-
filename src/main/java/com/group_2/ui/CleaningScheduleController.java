@@ -33,9 +33,6 @@ public class CleaningScheduleController extends Controller {
     // Current displayed week
     private LocalDate displayedWeekStart;
 
-    @FXML
-    private Button generateButton;
-
     // Header elements
     @FXML
     private Text weekTitle;
@@ -221,8 +218,8 @@ public class CleaningScheduleController extends Controller {
 
     private VBox createRoomCard(CleaningTask task, User currentUser) {
         VBox card = new VBox(12);
-        card.setPadding(new Insets(20));
-        card.setPrefWidth(200);
+        card.setPadding(new Insets(20, 15, 20, 15));
+        card.setPrefWidth(220);
         card.setAlignment(Pos.TOP_CENTER);
 
         boolean isCompleted = task.isCompleted();
@@ -317,16 +314,16 @@ public class CleaningScheduleController extends Controller {
         // Only show reassign button for your own tasks
         if (isMyTask) {
             Button reassignBtn = new Button("👤");
-            reassignBtn.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 8; " +
-                    "-fx-padding: 6 10; -fx-cursor: hand;");
+            reassignBtn.getStyleClass().add("task-action-button");
+            reassignBtn.setMinWidth(Region.USE_PREF_SIZE);
             reassignBtn.setTooltip(new Tooltip("Reassign to someone else"));
             reassignBtn.setOnAction(e -> showReassignDialog(task));
             actions.getChildren().add(reassignBtn);
         }
 
         Button rescheduleBtn = new Button("📅");
-        rescheduleBtn.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 8; " +
-                "-fx-padding: 6 10; -fx-cursor: hand;");
+        rescheduleBtn.getStyleClass().add("task-action-button");
+        rescheduleBtn.setMinWidth(Region.USE_PREF_SIZE);
         rescheduleBtn.setTooltip(new Tooltip("Reschedule"));
         rescheduleBtn.setOnAction(e -> showRescheduleDialog(task));
 
@@ -349,23 +346,18 @@ public class CleaningScheduleController extends Controller {
         Text emptyTitle = new Text("No Tasks This Week");
         emptyTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1e293b;");
 
-        Text emptySubtitle = new Text("Generate a random schedule or add tasks manually");
+        Text emptySubtitle = new Text("Add tasks manually to create a schedule");
         emptySubtitle.setStyle("-fx-font-size: 13px; -fx-fill: #64748b; -fx-text-alignment: center;");
 
         HBox buttons = new HBox(10);
         buttons.setAlignment(Pos.CENTER);
-
-        Button generateBtn = new Button("🎲 Generate Random");
-        generateBtn.setStyle("-fx-background-color: #6366f1; -fx-text-fill: white; " +
-                "-fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;");
-        generateBtn.setOnAction(e -> generateSchedule());
 
         Button addBtn = new Button("➕ Add Task");
         addBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #475569; " +
                 "-fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;");
         addBtn.setOnAction(e -> showAddTaskDialog());
 
-        buttons.getChildren().addAll(generateBtn, addBtn);
+        buttons.getChildren().addAll(addBtn);
         emptyState.getChildren().addAll(emptyIcon, emptyTitle, emptySubtitle, buttons);
         roomCardsContainer.getChildren().add(emptyState);
     }
@@ -414,37 +406,6 @@ public class CleaningScheduleController extends Controller {
     public void goToCurrentWeek() {
         displayedWeekStart = cleaningScheduleService.getCurrentWeekStart();
         refreshView();
-    }
-
-    @FXML
-    public void generateSchedule() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
-            showAlert(Alert.AlertType.ERROR, "Error", "You must be in a WG to generate a schedule.",
-                    getOwnerWindow(weekTitle));
-            return;
-        }
-
-        WG wg = currentUser.getWg();
-        if (wg.rooms == null || wg.rooms.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "No Rooms",
-                    "Please add rooms to your WG first before generating a cleaning schedule.",
-                    getOwnerWindow(weekTitle));
-            return;
-        }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        configureDialogOwner(confirm, getOwnerWindow(weekTitle));
-        confirm.setTitle("Generate Schedule");
-        confirm.setHeaderText("Generate random cleaning schedule?");
-        confirm.setContentText("Tasks will be distributed randomly among WG members.");
-
-        confirm.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                cleaningScheduleService.generateWeeklySchedule(wg);
-                refreshView();
-            }
-        });
     }
 
     @FXML

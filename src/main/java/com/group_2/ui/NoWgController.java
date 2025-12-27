@@ -10,6 +10,7 @@ import com.model.User;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -49,6 +50,8 @@ public class NoWgController extends Controller {
     private VBox createWgForm;
     @FXML
     private TextField wgNameField;
+    @FXML
+    private ScrollPane roomScrollPane;
     @FXML
     private VBox roomFieldsContainer;
 
@@ -136,6 +139,9 @@ public class NoWgController extends Controller {
         roomRow.getChildren().addAll(roomField, removeBtn);
         roomFields.add(roomField);
         roomFieldsContainer.getChildren().add(roomRow);
+
+        // Scroll to bottom after adding a room
+        javafx.application.Platform.runLater(() -> roomScrollPane.setVvalue(1.0));
     }
 
     @FXML

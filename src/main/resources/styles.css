@@ -291,6 +291,27 @@
     -fx-background-radius: 8;
 }
 
+.task-action-button {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 12;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 18px;
+    -fx-padding: 8 12;
+    -fx-cursor: hand;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-min-width: -1;
+    /* Reset to allow pref size */
+}
+
+.task-action-button:hover {
+    -fx-background-color: #eef2ff;
+    -fx-text-fill: #6366f1;
+    -fx-border-color: #6366f1;
+    -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.2), 8, 0, 0, 2);
+}
+
 /* ===== TEXT FIELDS ===== */
 .text-field,
 .modern-text-field {
@@ -430,6 +451,17 @@
 }
 
 .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.modern-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.modern-scroll-pane>.viewport {
     -fx-background-color: transparent;
 }
 

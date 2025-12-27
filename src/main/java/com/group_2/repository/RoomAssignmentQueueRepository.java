@@ -19,7 +19,7 @@ public interface RoomAssignmentQueueRepository extends JpaRepository<RoomAssignm
     /**
      * Find the assignment queue for a specific room in a WG.
      */
-    Optional<RoomAssignmentQueue> findByWgAndRoom(WG wg, Room room);
+    List<RoomAssignmentQueue> findByWgAndRoom(WG wg, Room room);
 
     /**
      * Find all assignment queues for a WG.

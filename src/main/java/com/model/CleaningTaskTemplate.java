@@ -2,6 +2,8 @@ package com.model;
 
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 
 /**
  * Entity representing a template for cleaning tasks.
@@ -10,7 +12,7 @@ import java.time.DayOfWeek;
  * by the RoomAssignmentQueue for round-robin distribution.
  */
 @Entity
-@Table(name = "cleaning_task_template")
+@Table(name = "task_template")
 public class CleaningTaskTemplate {
 
     @Id
@@ -31,19 +33,40 @@ public class CleaningTaskTemplate {
     @Column(nullable = false)
     private int dayOfWeek;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private RecurrenceInterval recurrenceInterval = RecurrenceInterval.WEEKLY;
+
+    /**
+     * The start of the week this template was anchored to.
+     * Used to calculate cycles for bi-weekly and monthly tasks.
+     */
+    @Column(nullable = true)
+    private LocalDate baseWeekStart;
+
     public CleaningTaskTemplate() {
+        this.baseWeekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 
     public CleaningTaskTemplate(Room room, WG wg, int dayOfWeek) {
         this.room = room;
         this.wg = wg;
         this.dayOfWeek = dayOfWeek;
+        this.recurrenceInterval = RecurrenceInterval.WEEKLY;
+        this.baseWeekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
     }
 
     public CleaningTaskTemplate(Room room, WG wg, DayOfWeek dayOfWeek) {
+        this(room, wg, dayOfWeek.getValue());
+    }
+
+    public CleaningTaskTemplate(Room room, WG wg, DayOfWeek dayOfWeek, RecurrenceInterval interval,
+            LocalDate weekStart) {
         this.room = room;
         this.wg = wg;
         this.dayOfWeek = dayOfWeek.getValue();
+        this.recurrenceInterval = interval;
+        this.baseWeekStart = weekStart;
     }
 
     // Getters and Setters
@@ -81,5 +104,35 @@ public class CleaningTaskTemplate {
 
     public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek.getValue();
+    }
+
+    public RecurrenceInterval getRecurrenceInterval() {
+        return recurrenceInterval;
+    }
+
+    public void setRecurrenceInterval(RecurrenceInterval recurrenceInterval) {
+        this.recurrenceInterval = recurrenceInterval;
+    }
+
+    public LocalDate getBaseWeekStart() {
+        return baseWeekStart;
+    }
+
+    public void setBaseWeekStart(LocalDate baseWeekStart) {
+        this.baseWeekStart = baseWeekStart;
+    }
+
+    /**
+     * Ensures that new fields have default values when loading existing records
+     * from the database that were created before these fields were added.
+     */
+    @PostLoad
+    private void fillDefaults() {
+        if (recurrenceInterval == null) {
+            recurrenceInterval = RecurrenceInterval.WEEKLY;
+        }
+        if (baseWeekStart == null) {
+            baseWeekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        }
     }
 }

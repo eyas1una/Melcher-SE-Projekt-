@@ -6,6 +6,7 @@ import com.group_2.repository.RoomAssignmentQueueRepository;
 import com.group_2.repository.UserRepository;
 import com.model.CleaningTask;
 import com.model.CleaningTaskTemplate;
+import com.model.RecurrenceInterval;
 import com.model.Room;
 import com.model.RoomAssignmentQueue;
 import com.model.User;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,6 +98,11 @@ public class CleaningScheduleService {
 
         List<CleaningTask> newTasks = new ArrayList<>();
         for (CleaningTaskTemplate template : templates) {
+            // Check if this task should be generated this week based on recurrence
+            if (!shouldGenerateTaskThisWeek(template, weekStart)) {
+                continue;
+            }
+
             // Get or create queue for this room
             RoomAssignmentQueue queue = getOrCreateQueueForRoom(wg, template.getRoom(), members);
 
@@ -154,9 +161,9 @@ public class CleaningScheduleService {
      * Get existing queue or create a new one with the correct offset.
      */
     private RoomAssignmentQueue getOrCreateQueueForRoom(WG wg, Room room, List<User> members) {
-        Optional<RoomAssignmentQueue> existingQueue = queueRepository.findByWgAndRoom(wg, room);
-        if (existingQueue.isPresent()) {
-            return existingQueue.get();
+        List<RoomAssignmentQueue> queues = queueRepository.findByWgAndRoom(wg, room);
+        if (!queues.isEmpty()) {
+            return queues.get(0);
         }
 
         // Create new queue with offset based on existing queue count
@@ -213,43 +220,6 @@ public class CleaningScheduleService {
     public List<CleaningTask> getUserTasksForCurrentWeek(User user) {
         LocalDate weekStart = getCurrentWeekStart();
         return cleaningTaskRepository.findByAssigneeAndWeekStartDate(user, weekStart);
-    }
-
-    /**
-     * Generate a new weekly schedule, randomly distributing rooms among WG members
-     * and assigning each task to a random day of the week.
-     */
-    @Transactional
-    public List<CleaningTask> generateWeeklySchedule(WG wg) {
-        if (wg == null || wg.rooms == null || wg.rooms.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<User> members = wg.getMitbewohner();
-        if (members.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        LocalDate weekStart = getCurrentWeekStart();
-        java.util.Random random = new java.util.Random();
-
-        // Delete existing tasks for this week
-        List<CleaningTask> existingTasks = cleaningTaskRepository.findByWgAndWeekStartDate(wg, weekStart);
-        cleaningTaskRepository.deleteAll(existingTasks);
-
-        // Randomly distribute rooms among members with random days
-        List<CleaningTask> newTasks = new ArrayList<>();
-        List<Room> rooms = new ArrayList<>(wg.rooms);
-        java.util.Collections.shuffle(rooms, random);
-
-        for (Room room : rooms) {
-            User assignee = members.get(random.nextInt(members.size()));
-            LocalDate dueDate = weekStart.plusDays(random.nextInt(7));
-            CleaningTask task = new CleaningTask(room, assignee, wg, weekStart, dueDate);
-            newTasks.add(cleaningTaskRepository.save(task));
-        }
-
-        return newTasks;
     }
 
     /**
@@ -323,12 +293,12 @@ public class CleaningScheduleService {
      * generated now).
      */
     public User getNextAssigneeForRoom(WG wg, Room room) {
-        Optional<RoomAssignmentQueue> queueOpt = queueRepository.findByWgAndRoom(wg, room);
-        if (queueOpt.isEmpty()) {
+        List<RoomAssignmentQueue> queues = queueRepository.findByWgAndRoom(wg, room);
+        if (queues.isEmpty()) {
             return null;
         }
 
-        Long nextId = queueOpt.get().getNextAssigneeId();
+        Long nextId = queues.get(0).getNextAssigneeId();
         if (nextId == null) {
             return null;
         }
@@ -365,10 +335,9 @@ public class CleaningScheduleService {
 
         // Swap positions in the room's queue for fairness
         if (!originalAssignee.getId().equals(newAssignee.getId())) {
-            Optional<RoomAssignmentQueue> queueOpt = queueRepository.findByWgAndRoom(
-                    task.getWg(), task.getRoom());
-            if (queueOpt.isPresent()) {
-                RoomAssignmentQueue queue = queueOpt.get();
+            List<RoomAssignmentQueue> queues = queueRepository.findByWgAndRoom(task.getWg(), task.getRoom());
+            if (!queues.isEmpty()) {
+                RoomAssignmentQueue queue = queues.get(0);
                 queue.swapPositions(originalAssignee.getId(), newAssignee.getId());
                 queueRepository.save(queue);
             }
@@ -376,6 +345,7 @@ public class CleaningScheduleService {
 
         // Update the task assignment
         task.setAssignee(newAssignee);
+        task.setManualOverride(true);
         return cleaningTaskRepository.save(task);
     }
 
@@ -385,6 +355,7 @@ public class CleaningScheduleService {
     @Transactional
     public CleaningTask rescheduleTask(CleaningTask task, LocalDate newDueDate) {
         task.setDueDate(newDueDate);
+        task.setManualOverride(true);
         return cleaningTaskRepository.save(task);
     }
 
@@ -428,8 +399,9 @@ public class CleaningScheduleService {
      * No assignee needed - queue handles assignment automatically.
      */
     @Transactional
-    public CleaningTaskTemplate addTemplate(WG wg, Room room, DayOfWeek dayOfWeek) {
-        CleaningTaskTemplate template = new CleaningTaskTemplate(room, wg, dayOfWeek);
+    public CleaningTaskTemplate addTemplate(WG wg, Room room, DayOfWeek dayOfWeek, RecurrenceInterval interval) {
+        LocalDate weekStart = getCurrentWeekStart();
+        CleaningTaskTemplate template = new CleaningTaskTemplate(room, wg, dayOfWeek, interval, weekStart);
         template = templateRepository.save(template);
 
         // Create queue for this room with offset based on existing queue count
@@ -442,11 +414,12 @@ public class CleaningScheduleService {
     }
 
     /**
-     * Update an existing template (only day can be changed, assignee is
+     * Update an existing template (day and recurrence can be changed, assignee is
      * auto-managed). Also updates due dates for all existing tasks.
      */
     @Transactional
-    public CleaningTaskTemplate updateTemplate(CleaningTaskTemplate template, DayOfWeek newDay) {
+    public CleaningTaskTemplate updateTemplate(CleaningTaskTemplate template, DayOfWeek newDay,
+            RecurrenceInterval newInterval) {
         // Update due dates for all existing tasks for this room
         List<CleaningTask> tasks = cleaningTaskRepository.findByWgAndRoom(template.getWg(), template.getRoom());
         for (CleaningTask task : tasks) {
@@ -456,6 +429,10 @@ public class CleaningScheduleService {
         }
 
         template.setDayOfWeek(newDay);
+        template.setRecurrenceInterval(newInterval);
+        // Reset base week when interval changes to current week for predictable
+        // behavior
+        template.setBaseWeekStart(getCurrentWeekStart());
         return templateRepository.save(template);
     }
 
@@ -481,5 +458,86 @@ public class CleaningScheduleService {
         cleaningTaskRepository.deleteByWg(wg);
         queueRepository.deleteByWg(wg);
         templateRepository.deleteByWg(wg);
+    }
+
+    /**
+     * Syncs the current week's schedule with the default templates.
+     * Overwrites tasks that are NOT manually overridden.
+     * Preserves tasks that have manual adjustments.
+     */
+    @Transactional
+    public void syncCurrentWeekWithTemplate(WG wg) {
+        LocalDate weekStart = getCurrentWeekStart();
+        List<CleaningTask> existingTasks = cleaningTaskRepository.findByWgAndWeekStartDate(wg, weekStart);
+        List<CleaningTaskTemplate> templates = templateRepository.findByWg(wg);
+
+        // Track which rooms in the current week are accounted for
+        List<Long> roomIdsInTemplates = new ArrayList<>();
+        for (CleaningTaskTemplate t : templates) {
+            roomIdsInTemplates.add(t.getRoom().getId());
+        }
+
+        // 1. Delete tasks for rooms that are no longer in the template (if not
+        // overridden)
+        for (CleaningTask task : new ArrayList<>(existingTasks)) {
+            if (!roomIdsInTemplates.contains(task.getRoom().getId()) && !task.isManualOverride()) {
+                cleaningTaskRepository.delete(task);
+                existingTasks.remove(task);
+            }
+        }
+
+        // 2. Update or create tasks from templates
+        List<User> members = wg.getMitbewohner();
+        for (CleaningTaskTemplate template : templates) {
+            if (!shouldGenerateTaskThisWeek(template, weekStart)) {
+                // If it shouldn't be here this week, remove existing one if not overridden
+                existingTasks.stream()
+                        .filter(t -> t.getRoom().getId().equals(template.getRoom().getId()) && !t.isManualOverride())
+                        .findFirst()
+                        .ifPresent(task -> {
+                            cleaningTaskRepository.delete(task);
+                            existingTasks.remove(task);
+                        });
+                continue;
+            }
+
+            Optional<CleaningTask> existing = existingTasks.stream()
+                    .filter(t -> t.getRoom().getId().equals(template.getRoom().getId()))
+                    .findFirst();
+
+            if (existing.isPresent()) {
+                CleaningTask task = existing.get();
+                if (!task.isManualOverride()) {
+                    // Update due date if changed in template
+                    LocalDate correctDueDate = weekStart.plusDays(template.getDayOfWeek() - 1);
+                    task.setDueDate(correctDueDate);
+                    cleaningTaskRepository.save(task);
+                }
+            } else {
+                // Create missing task
+                RoomAssignmentQueue queue = getOrCreateQueueForRoom(wg, template.getRoom(), members);
+                User assignee = getNextAssigneeFromQueue(queue, members);
+                if (assignee != null) {
+                    LocalDate dueDate = weekStart.plusDays(template.getDayOfWeek() - 1);
+                    CleaningTask task = new CleaningTask(template.getRoom(), assignee, wg, weekStart, dueDate);
+                    cleaningTaskRepository.save(task);
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper to determine if a task should be generated for a specific week based
+     * on its recurrence interval and base week.
+     */
+    private boolean shouldGenerateTaskThisWeek(CleaningTaskTemplate template, LocalDate weekStart) {
+        if (template.getRecurrenceInterval() == RecurrenceInterval.WEEKLY) {
+            return true;
+        }
+
+        long weeksBetween = ChronoUnit.WEEKS.between(template.getBaseWeekStart(), weekStart);
+        int intervalWeeks = template.getRecurrenceInterval().getWeeks();
+
+        return weeksBetween % intervalWeeks == 0;
     }
 }

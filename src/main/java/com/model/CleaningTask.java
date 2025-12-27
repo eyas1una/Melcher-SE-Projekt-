@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
  * Each task is assigned to a user for a specific week.
  */
 @Entity
-@Table(name = "cleaning_task", indexes = {
-        @Index(name = "idx_cleaning_task_wg_week", columnList = "wg_id, week_start_date"),
-        @Index(name = "idx_cleaning_task_room", columnList = "room_id"),
-        @Index(name = "idx_cleaning_task_assignee", columnList = "assignee_id")
+@Table(name = "tasks", indexes = {
+        @Index(name = "idx_tasks_wg_week", columnList = "wg_id, week_start_date"),
+        @Index(name = "idx_tasks_room", columnList = "room_id"),
+        @Index(name = "idx_tasks_assignee", columnList = "assignee_id")
 })
 public class CleaningTask {
 
@@ -44,6 +44,13 @@ public class CleaningTask {
     private boolean completed = false;
 
     private LocalDateTime completedAt;
+
+    /**
+     * Flag to indicate if this task was manually modified (assignee or due date).
+     * If true, auto-generation from template will not overwrite this task.
+     */
+    @Column(nullable = true)
+    private Boolean manualOverride = false;
 
     public CleaningTask() {
     }
@@ -141,5 +148,13 @@ public class CleaningTask {
     public void markIncomplete() {
         this.completed = false;
         this.completedAt = null;
+    }
+
+    public boolean isManualOverride() {
+        return manualOverride != null && manualOverride;
+    }
+
+    public void setManualOverride(boolean manualOverride) {
+        this.manualOverride = manualOverride;
     }
 }
