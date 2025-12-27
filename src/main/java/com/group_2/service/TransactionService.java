@@ -38,6 +38,8 @@ public class TransactionService {
     /**
      * Create a new transaction with multiple debtors
      * 
+     * @param creatorId   ID of the user who is creating this transaction (gets edit
+     *                    rights)
      * @param creditorId  ID of the user who paid
      * @param debtorIds   List of user IDs who owe
      * @param percentages List of percentages (0-100) for each debtor, null for
@@ -47,7 +49,7 @@ public class TransactionService {
      * @return The created transaction
      */
     @Transactional
-    public Transaction createTransaction(Long creditorId, List<Long> debtorIds,
+    public Transaction createTransaction(Long creatorId, Long creditorId, List<Long> debtorIds,
             List<Double> percentages, Double totalAmount,
             String description) {
         // Validate inputs
@@ -59,11 +61,13 @@ public class TransactionService {
         }
 
         // Fetch entities
+        User creator = userRepository.findById(creatorId)
+                .orElseThrow(() -> new RuntimeException("Creator not found"));
         User creditor = userRepository.findById(creditorId)
                 .orElseThrow(() -> new RuntimeException("Creditor not found"));
-        WG wg = creditor.getWg();
+        WG wg = creator.getWg();
         if (wg == null) {
-            throw new RuntimeException("Creditor must be part of a WG");
+            throw new RuntimeException("Creator must be part of a WG");
         }
 
         // Handle percentages - default to equal split if not provided
@@ -84,8 +88,9 @@ public class TransactionService {
             }
         }
 
-        // Create transaction
-        Transaction transaction = new Transaction(creditor, totalAmount, description, wg);
+        // Create transaction (createdBy is the user who created it, not necessarily the
+        // creditor)
+        Transaction transaction = new Transaction(creditor, creator, totalAmount, description, wg);
         transaction = transactionRepository.save(transaction);
 
         // Create splits
@@ -241,8 +246,8 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
-        // Only the original creditor can edit the transaction
-        if (!transaction.getCreditor().getId().equals(currentUserId)) {
+        // Only the original creator can edit the transaction
+        if (!transaction.getCreatedBy().getId().equals(currentUserId)) {
             throw new RuntimeException("Only the creator of the transaction can edit it");
         }
 
@@ -314,8 +319,8 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
 
-        // Only the original creditor can delete the transaction
-        if (!transaction.getCreditor().getId().equals(currentUserId)) {
+        // Only the original creator can delete the transaction
+        if (!transaction.getCreatedBy().getId().equals(currentUserId)) {
             throw new RuntimeException("Only the creator of the transaction can delete it");
         }
 

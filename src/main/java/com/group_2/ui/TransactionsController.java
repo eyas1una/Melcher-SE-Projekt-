@@ -471,8 +471,9 @@ public class TransactionsController extends Controller {
                         + ")";
             }
 
-            // Create the transaction
+            // Create the transaction (current user is always the creator)
             transactionService.createTransaction(
+                    currentUser.getId(), // creator
                     payerId,
                     List.of(debtorId),
                     null, // Equal split (100% to single debtor)
@@ -642,7 +643,8 @@ public class TransactionsController extends Controller {
 
             // Transaction 1: Current user settles debt with debtorTo
             transactionService.createTransaction(
-                    currentUser.getId(),
+                    currentUser.getId(), // creator
+                    currentUser.getId(), // creditor (payer)
                     List.of(debtorTo.getId()),
                     null,
                     amount,
@@ -650,7 +652,8 @@ public class TransactionsController extends Controller {
 
             // Transaction 2: Credit source settles their debt with current user
             transactionService.createTransaction(
-                    creditSource.getId(),
+                    currentUser.getId(), // creator (current user is creating this on behalf of credit source)
+                    creditSource.getId(), // creditor (credit source is the payer)
                     List.of(currentUser.getId()),
                     null,
                     amount,

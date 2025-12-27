@@ -39,7 +39,7 @@ public class StandingOrderService {
      * Create a new standing order
      */
     @Transactional
-    public StandingOrder createStandingOrder(User creditor, WG wg, Double totalAmount,
+    public StandingOrder createStandingOrder(User creator, User creditor, WG wg, Double totalAmount,
             String description, StandingOrderFrequency frequency,
             LocalDate startDate, List<Long> debtorIds, List<Double> percentages,
             Integer monthlyDay, Boolean monthlyLastDay) {
@@ -81,8 +81,8 @@ public class StandingOrderService {
         // Build debtor data JSON
         String debtorData = buildDebtorDataJson(debtorIds, percentages);
 
-        // Create order with monthly preferences
-        StandingOrder order = new StandingOrder(creditor, wg, totalAmount, description,
+        // Create order with monthly preferences (creator gets edit rights)
+        StandingOrder order = new StandingOrder(creditor, creator, wg, totalAmount, description,
                 frequency, nextExecution, debtorData, monthlyDay, monthlyLastDay);
 
         order = standingOrderRepository.save(order);
@@ -154,10 +154,11 @@ public class StandingOrderService {
         List<Double> percentages = new ArrayList<>();
         parseDebtorData(order.getDebtorData(), debtorIds, percentages);
 
-        // Create the transaction
+        // Create the transaction (createdBy is whoever created the standing order)
         String description = order.getDescription() + " (Standing Order)";
         transactionService.createTransaction(
-                order.getCreditor().getId(),
+                order.getCreatedBy().getId(), // creator of the transaction
+                order.getCreditor().getId(), // creditor (payer)
                 debtorIds,
                 percentages.isEmpty() ? null : percentages,
                 order.getTotalAmount(),
@@ -215,8 +216,8 @@ public class StandingOrderService {
         StandingOrder order = standingOrderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Standing order not found"));
 
-        // Only the original creditor can edit the standing order
-        if (!order.getCreditor().getId().equals(currentUserId)) {
+        // Only the original creator can edit the standing order
+        if (!order.getCreatedBy().getId().equals(currentUserId)) {
             throw new RuntimeException("Only the creator of the standing order can edit it");
         }
 

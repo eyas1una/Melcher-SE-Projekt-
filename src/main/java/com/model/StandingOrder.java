@@ -24,6 +24,10 @@ public class StandingOrder {
     private User creditor;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "created_by_id", nullable = false)
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "wg_id", nullable = false)
     private WG wg;
 
@@ -73,9 +77,10 @@ public class StandingOrder {
         this.isActive = true;
     }
 
-    public StandingOrder(User creditor, WG wg, Double totalAmount, String description,
+    public StandingOrder(User creditor, User createdBy, WG wg, Double totalAmount, String description,
             StandingOrderFrequency frequency, LocalDate nextExecution, String debtorData) {
         this.creditor = creditor;
+        this.createdBy = createdBy;
         this.wg = wg;
         this.totalAmount = totalAmount;
         this.description = description;
@@ -87,10 +92,11 @@ public class StandingOrder {
         this.monthlyLastDay = false;
     }
 
-    public StandingOrder(User creditor, WG wg, Double totalAmount, String description,
+    public StandingOrder(User creditor, User createdBy, WG wg, Double totalAmount, String description,
             StandingOrderFrequency frequency, LocalDate nextExecution, String debtorData,
             Integer monthlyDay, Boolean monthlyLastDay) {
         this.creditor = creditor;
+        this.createdBy = createdBy;
         this.wg = wg;
         this.totalAmount = totalAmount;
         this.description = description;
@@ -114,6 +120,14 @@ public class StandingOrder {
 
     public void setCreditor(User creditor) {
         this.creditor = creditor;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 
     public WG getWg() {

@@ -728,11 +728,12 @@ public class TransactionDialogController {
 
         try {
             if (state.isStandingOrder()) {
-                // Create standing order
+                // Create standing order (current user is the creator, payer is the creditor)
                 User currentUser = sessionManager.getCurrentUser();
                 WG wg = currentUser.getWg();
                 standingOrderService.createStandingOrder(
-                        state.getPayer(),
+                        currentUser, // creator (gets edit rights)
+                        state.getPayer(), // creditor (payer)
                         wg,
                         state.getTotalAmount(),
                         state.getDescription(),
@@ -743,9 +744,12 @@ public class TransactionDialogController {
                         state.getMonthlyDay(),
                         state.isMonthlyLastDay());
             } else {
-                // Create immediate transaction
+                // Create immediate transaction (current user is the creator, payer is the
+                // creditor)
+                User currentUser = sessionManager.getCurrentUser();
                 transactionService.createTransaction(
-                        state.getPayer().getId(),
+                        currentUser.getId(), // creator (gets edit rights)
+                        state.getPayer().getId(), // creditor (payer)
                         debtorIds,
                         state.getSplitMode() == TransactionDialogState.SplitMode.EQUAL ? null : percentages,
                         state.getTotalAmount(),

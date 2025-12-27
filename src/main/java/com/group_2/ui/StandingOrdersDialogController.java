@@ -139,7 +139,7 @@ public class StandingOrdersDialogController {
                     User currentUser = sessionManager.getCurrentUser();
 
                     // Only show edit/delete for orders created by current user
-                    if (currentUser != null && order.getCreditor().getId().equals(currentUser.getId())) {
+                    if (currentUser != null && order.getCreatedBy().getId().equals(currentUser.getId())) {
                         HBox buttons = new HBox(5, editBtn, deleteBtn);
                         setGraphic(buttons);
                     } else {

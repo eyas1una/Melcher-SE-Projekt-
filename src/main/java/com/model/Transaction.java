@@ -20,6 +20,10 @@ public class Transaction {
     @JoinColumn(name = "creditor_id", nullable = false)
     private User creditor;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "created_by_id", nullable = false)
+    private User createdBy;
+
     @Column(nullable = false)
     private Double totalAmount;
 
@@ -40,8 +44,9 @@ public class Transaction {
         this.timestamp = LocalDateTime.now();
     }
 
-    public Transaction(User creditor, Double totalAmount, String description, WG wg) {
+    public Transaction(User creditor, User createdBy, Double totalAmount, String description, WG wg) {
         this.creditor = creditor;
+        this.createdBy = createdBy;
         this.totalAmount = totalAmount;
         this.description = description;
         this.wg = wg;
@@ -59,6 +64,14 @@ public class Transaction {
 
     public void setCreditor(User creditor) {
         this.creditor = creditor;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 
     public Double getTotalAmount() {

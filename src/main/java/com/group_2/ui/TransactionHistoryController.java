@@ -170,7 +170,7 @@ public class TransactionHistoryController extends Controller {
                     User currentUser = sessionManager.getCurrentUser();
 
                     // Only show edit/delete for transactions created by current user
-                    if (currentUser != null && transaction.getCreditor().getId().equals(currentUser.getId())) {
+                    if (currentUser != null && transaction.getCreatedBy().getId().equals(currentUser.getId())) {
                         HBox buttons = new HBox(5, editBtn, deleteBtn);
                         setGraphic(buttons);
                     } else {
@@ -187,8 +187,8 @@ public class TransactionHistoryController extends Controller {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     Transaction transaction = row.getItem();
                     User currentUser = sessionManager.getCurrentUser();
-                    // Only allow edit if current user is the creditor
-                    if (currentUser != null && transaction.getCreditor().getId().equals(currentUser.getId())) {
+                    // Only allow edit if current user is the creator
+                    if (currentUser != null && transaction.getCreatedBy().getId().equals(currentUser.getId())) {
                         showEditTransactionDialog(transaction);
                     }
                 }
