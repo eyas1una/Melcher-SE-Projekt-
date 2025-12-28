@@ -67,19 +67,34 @@
                         </HBox>
                     </VBox>
 
-                    <!-- Items List -->
-                    <VBox styleClass="card" spacing="15" VBox.vgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT">
-                            <Text text="Items" styleClass="card-title"/>
-                            <Region HBox.hgrow="ALWAYS"/>
-                            <Text fx:id="itemCountText" text="0 items" styleClass="card-subtitle"/>
-                        </HBox>
-                        <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
-                            <VBox fx:id="itemsContainer" spacing="8">
-                                <!-- Items will be added here dynamically -->
+                    <!-- All Items Container - Single Scrollable Area -->
+                    <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+                        <VBox spacing="20" style="-fx-padding: 5;">
+                            <!-- Pending Items Section -->
+                            <VBox styleClass="card" spacing="15">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Text text="🛒 Items" styleClass="card-title"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Text fx:id="itemCountText" text="0 items" styleClass="card-subtitle"/>
+                                </HBox>
+                                <VBox fx:id="itemsContainer" spacing="8">
+                                    <!-- Pending items will be added here dynamically -->
+                                </VBox>
                             </VBox>
-                        </ScrollPane>
-                    </VBox>
+
+                            <!-- Bought Items Section -->
+                            <VBox fx:id="boughtSection" styleClass="card" spacing="15" style="-fx-background-color: #f0fdf4;">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Text text="✅ Purchased" styleClass="card-title" style="-fx-fill: #16a34a;"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Text fx:id="boughtCountText" text="0 items" styleClass="card-subtitle"/>
+                                </HBox>
+                                <VBox fx:id="boughtItemsContainer" spacing="8">
+                                    <!-- Bought items will be added here dynamically -->
+                                </VBox>
+                            </VBox>
+                        </VBox>
+                    </ScrollPane>
 
                     <!-- List Actions -->
                     <HBox spacing="15">

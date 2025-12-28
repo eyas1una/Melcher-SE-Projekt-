@@ -117,4 +117,12 @@ public class ShoppingListService {
         item.setName(newName);
         return itemRepository.save(item);
     }
+
+    /**
+     * Toggle the bought status of an item.
+     */
+    public ShoppingListItem toggleBought(ShoppingListItem item) {
+        item.setBought(!Boolean.TRUE.equals(item.getBought()));
+        return itemRepository.save(item);
+    }
 }

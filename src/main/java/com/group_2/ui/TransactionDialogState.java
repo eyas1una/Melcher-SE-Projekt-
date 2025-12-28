@@ -196,6 +196,12 @@ public class TransactionDialogState {
         if (participants.isEmpty())
             return false;
 
+        // Check that payer is not the only debtor (must involve at least one other
+        // person)
+        if (participants.size() == 1 && participants.contains(payer)) {
+            return false;
+        }
+
         // Mode-specific validation
         switch (splitMode) {
             case EQUAL:
@@ -242,6 +248,11 @@ public class TransactionDialogState {
             return "Please enter an amount greater than 0";
         if (participants.isEmpty())
             return "Please select at least one participant";
+
+        // Check that payer is not the only debtor
+        if (participants.size() == 1 && participants.contains(payer)) {
+            return "The payer cannot be the only debtor. Please add at least one other person.";
+        }
 
         switch (splitMode) {
             case EQUAL:

@@ -459,16 +459,12 @@ public class TransactionsController extends Controller {
                 // Current user is paying off their debt
                 payerId = currentUser.getId();
                 debtorId = otherUser.getId();
-                description = "Settlement via " + paymentMethod + " (paid to " +
-                        otherUser.getName() + (otherUser.getSurname() != null ? " " + otherUser.getSurname() : "")
-                        + ")";
+                description = "Settlement via " + paymentMethod;
             } else {
                 // Other user is paying off their debt to current user
                 payerId = otherUser.getId();
                 debtorId = currentUser.getId();
-                description = "Settlement via " + paymentMethod + " (received from " +
-                        otherUser.getName() + (otherUser.getSurname() != null ? " " + otherUser.getSurname() : "")
-                        + ")";
+                description = "Settlement via " + paymentMethod;
             }
 
             // Create the transaction (current user is always the creator)
@@ -648,7 +644,7 @@ public class TransactionsController extends Controller {
                     List.of(debtorTo.getId()),
                     null,
                     amount,
-                    "Credit Transfer from " + creditSourceName + " (settled debt)");
+                    "Settlement via Credit Transfer (settled debt)");
 
             // Transaction 2: Credit source settles their debt with current user
             transactionService.createTransaction(
@@ -657,7 +653,7 @@ public class TransactionsController extends Controller {
                     List.of(currentUser.getId()),
                     null,
                     amount,
-                    "Credit Transfer to " + debtorName + " (used credit)");
+                    "Settlement via Credit Transfer (used credit)");
 
             // Refresh displays
             updateBalanceDisplay();

@@ -166,10 +166,14 @@ public class CleaningScheduleController extends Controller {
         pill.setCursor(javafx.scene.Cursor.HAND);
 
         boolean isMyTask = task.getAssignee().getId().equals(currentUser.getId());
-        String bgColor = task.isCompleted() ? "#dcfce7" : (isMyTask ? "#eef2ff" : "#f1f5f9");
-        String textColor = task.isCompleted() ? "#15803d" : (isMyTask ? "#4338ca" : "#475569");
+        // User's own tasks get a distinct orange/amber highlight
+        String bgColor = task.isCompleted() ? "#dcfce7" : (isMyTask ? "#fef3c7" : "#f1f5f9");
+        String textColor = task.isCompleted() ? "#15803d" : (isMyTask ? "#b45309" : "#475569");
 
-        pill.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 6;");
+        pill.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 6;" +
+                (isMyTask && !task.isCompleted()
+                        ? " -fx-border-color: #f59e0b; -fx-border-width: 1.5; -fx-border-radius: 6;"
+                        : ""));
 
         Text roomIcon = new Text(task.isCompleted() ? "✓" : "🚪");
         roomIcon.setStyle("-fx-font-size: 10px;");
@@ -225,13 +229,16 @@ public class CleaningScheduleController extends Controller {
         boolean isCompleted = task.isCompleted();
         boolean isMyTask = task.getAssignee().getId().equals(currentUser.getId());
 
-        String bgColor = isCompleted ? "#f0fdf4" : "white";
-        String borderColor = isCompleted ? "#86efac" : (isMyTask ? "#a5b4fc" : "#e2e8f0");
+        // User's own tasks get a distinct orange/amber highlight
+        String bgColor = isCompleted ? "#f0fdf4" : (isMyTask ? "#fffbeb" : "white");
+        String borderColor = isCompleted ? "#86efac" : (isMyTask ? "#f59e0b" : "#e2e8f0");
+        String borderWidth = isMyTask && !isCompleted ? "3" : "2";
+
         card.setStyle("-fx-background-color: " + bgColor + "; " +
                 "-fx-background-radius: 16; " +
                 "-fx-border-color: " + borderColor + "; " +
                 "-fx-border-radius: 16; " +
-                "-fx-border-width: 2; " +
+                "-fx-border-width: " + borderWidth + "; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);");
 
         // Room icon

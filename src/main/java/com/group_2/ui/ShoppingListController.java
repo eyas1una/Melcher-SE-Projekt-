@@ -51,6 +51,12 @@ public class ShoppingListController extends Controller {
     private Text itemCountText;
     @FXML
     private Button deleteListButton;
+    @FXML
+    private VBox boughtItemsContainer;
+    @FXML
+    private Text boughtCountText;
+    @FXML
+    private VBox boughtSection;
 
     // Navbar
     @FXML
@@ -184,10 +190,32 @@ public class ShoppingListController extends Controller {
             return;
 
         itemsContainer.getChildren().clear();
-        List<ShoppingListItem> items = shoppingListService.getItemsForList(selectedList);
-        itemCountText.setText(items.size() + " items");
+        boughtItemsContainer.getChildren().clear();
 
-        if (items.isEmpty()) {
+        List<ShoppingListItem> items = shoppingListService.getItemsForList(selectedList);
+
+        // Separate pending and bought items
+        List<ShoppingListItem> pendingItems = new ArrayList<>();
+        List<ShoppingListItem> boughtItems = new ArrayList<>();
+
+        for (ShoppingListItem item : items) {
+            if (Boolean.TRUE.equals(item.getBought())) {
+                boughtItems.add(item);
+            } else {
+                pendingItems.add(item);
+            }
+        }
+
+        // Update counts
+        itemCountText.setText(pendingItems.size() + " items");
+        boughtCountText.setText(boughtItems.size() + " items");
+
+        // Show/hide bought section based on whether there are bought items
+        boughtSection.setVisible(!boughtItems.isEmpty());
+        boughtSection.setManaged(!boughtItems.isEmpty());
+
+        // Display pending items
+        if (pendingItems.isEmpty()) {
             VBox emptyState = new VBox(10);
             emptyState.setAlignment(Pos.CENTER);
             emptyState.setPadding(new Insets(20));
@@ -196,29 +224,59 @@ public class ShoppingListController extends Controller {
             emptyState.getChildren().add(emptyText);
             itemsContainer.getChildren().add(emptyState);
         } else {
-            for (ShoppingListItem item : items) {
-                itemsContainer.getChildren().add(createItemRow(item));
+            for (ShoppingListItem item : pendingItems) {
+                itemsContainer.getChildren().add(createItemRow(item, false));
             }
+        }
+
+        // Display bought items
+        for (ShoppingListItem item : boughtItems) {
+            boughtItemsContainer.getChildren().add(createItemRow(item, true));
         }
     }
 
-    private HBox createItemRow(ShoppingListItem item) {
+    private HBox createItemRow(ShoppingListItem item, boolean isBought) {
         User currentUser = sessionManager.getCurrentUser();
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
         row.getStyleClass().add("list-item");
         row.setPadding(new Insets(10, 12, 10, 12));
 
-        // Checkbox style indicator
-        StackPane checkBox = new StackPane();
-        checkBox.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 5; " +
-                "-fx-pref-width: 24; -fx-pref-height: 24; -fx-min-width: 24; -fx-min-height: 24;");
+        if (isBought) {
+            row.setStyle("-fx-background-color: #f0fdf4; -fx-background-radius: 8;");
+        }
+
+        // Circular checkbox
+        Button checkBox = new Button();
+        checkBox.setPrefSize(28, 28);
+        checkBox.setMinSize(28, 28);
+        checkBox.setMaxSize(28, 28);
+
+        if (isBought) {
+            // Checked state - green with checkmark
+            checkBox.setText("✓");
+            checkBox.setStyle("-fx-background-color: #22c55e; -fx-background-radius: 14; " +
+                    "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand;");
+        } else {
+            // Unchecked state - empty circle
+            checkBox.setText("");
+            checkBox.setStyle("-fx-background-color: white; -fx-border-color: #d1d5db; " +
+                    "-fx-border-radius: 14; -fx-background-radius: 14; -fx-cursor: hand;");
+        }
+
+        // Toggle bought on click
+        checkBox.setOnAction(e -> toggleItemBought(item));
 
         // Item info
         VBox info = new VBox(2);
         HBox.setHgrow(info, Priority.ALWAYS);
         Text nameText = new Text(item.getName());
         nameText.getStyleClass().add("list-item-title");
+
+        if (isBought) {
+            // Strikethrough and grayed out for bought items
+            nameText.setStyle("-fx-strikethrough: true; -fx-fill: #9ca3af;");
+        }
 
         boolean isOwnItem = currentUser != null && item.getCreator().getId().equals(currentUser.getId());
         Text creatorText = new Text("Added by " + (isOwnItem ? "you" : item.getCreator().getName()));
@@ -228,11 +286,23 @@ public class ShoppingListController extends Controller {
         // Delete button
         Button deleteBtn = new Button("✕");
         deleteBtn.getStyleClass().add("icon-button");
-        deleteBtn.setStyle("-fx-text-fill: #ef4444;");
+        deleteBtn.setStyle("-fx-text-fill: #ef4444; -fx-cursor: hand;");
         deleteBtn.setOnAction(e -> removeItem(item));
 
         row.getChildren().addAll(checkBox, info, deleteBtn);
         return row;
+    }
+
+    private void toggleItemBought(ShoppingListItem item) {
+        shoppingListService.toggleBought(item);
+
+        // Refresh
+        Optional<ShoppingList> refreshedList = shoppingListService.getList(selectedList.getId());
+        refreshedList.ifPresent(list -> {
+            this.selectedList = list;
+            loadItems();
+            loadLists(); // Update item counts in left panel
+        });
     }
 
     @FXML

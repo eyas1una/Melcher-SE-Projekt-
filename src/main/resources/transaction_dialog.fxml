@@ -170,14 +170,14 @@
                 <!-- Percentage Split Content -->
                 <VBox fx:id="percentageSplitContent" spacing="12" visible="false" managed="false">
                     <Text text="Enter percentage for each person." style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
-                    <VBox fx:id="percentageSplitParticipantsBox" spacing="8"/>
+                    <VBox fx:id="percentageSplitParticipantsBox" spacing="8" style="-fx-background-color: #f9fafb; -fx-padding: 12; -fx-background-radius: 8;"/>
                     <Text fx:id="percentageSplitSummary" text="Total: 0%" style="-fx-font-size: 13px; -fx-fill: #6b7280; -fx-font-weight: 500;"/>
                 </VBox>
 
                 <!-- Custom Amount Split Content -->
                 <VBox fx:id="customAmountSplitContent" spacing="12" visible="false" managed="false">
                     <Text text="Enter custom amount for each person." style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
-                    <VBox fx:id="customAmountSplitParticipantsBox" spacing="8"/>
+                    <VBox fx:id="customAmountSplitParticipantsBox" spacing="8" style="-fx-background-color: #f9fafb; -fx-padding: 12; -fx-background-radius: 8;"/>
                     <Text fx:id="customAmountSplitSummary" text="Remaining: €0.00" style="-fx-font-size: 13px; -fx-fill: #6b7280; -fx-font-weight: 500;"/>
                 </VBox>
             </VBox>

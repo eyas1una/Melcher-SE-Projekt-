@@ -24,6 +24,9 @@ public class ShoppingListItem {
     @JoinColumn(name = "shopping_list_id", nullable = false)
     private ShoppingList shoppingList;
 
+    @Column(nullable = false)
+    private Boolean bought = false;
+
     public ShoppingListItem() {
     }
 
@@ -31,6 +34,7 @@ public class ShoppingListItem {
         this.name = name;
         this.creator = creator;
         this.shoppingList = shoppingList;
+        this.bought = false;
     }
 
     // Getters and Setters
@@ -60,5 +64,13 @@ public class ShoppingListItem {
 
     public void setShoppingList(ShoppingList shoppingList) {
         this.shoppingList = shoppingList;
+    }
+
+    public Boolean getBought() {
+        return bought;
+    }
+
+    public void setBought(Boolean bought) {
+        this.bought = bought;
     }
 }

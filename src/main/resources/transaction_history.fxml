@@ -37,17 +37,48 @@
                         <Text text="Transaction Overview" style="-fx-font-size: 14px; -fx-fill: rgba(255,255,255,0.9); -fx-font-weight: 500;"/>
                         <Text fx:id="transactionCountText" text="Loading..." 
                               style="-fx-font-size: 42px; -fx-font-weight: bold; -fx-fill: white;"/>
-                        <Text text="Total transactions recorded" style="-fx-font-size: 12px; -fx-fill: rgba(255,255,255,0.7);"/>
+                        <Text text="Transactions matching your filters" style="-fx-font-size: 12px; -fx-fill: rgba(255,255,255,0.7);"/>
+                    </VBox>
+
+                    <!-- Filter Bar -->
+                    <VBox styleClass="card" spacing="15">
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <Text text="📅 Filter by:" styleClass="card-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="clearFiltersButton" text="↺ Clear Filters" styleClass="secondary-button" onAction="#clearFilters"/>
+                        </HBox>
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <VBox spacing="5">
+                                <Text text="Year" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <ComboBox fx:id="yearFilter" promptText="Year" prefWidth="100"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Text text="Month" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <ComboBox fx:id="monthFilter" promptText="Month" prefWidth="120"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Text text="Payer" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <ComboBox fx:id="payerFilter" promptText="All Payers" prefWidth="130"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Text text="Debtor" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <ComboBox fx:id="debtorFilter" promptText="All Debtors" prefWidth="130"/>
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Text text="🔍 Search Description" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <TextField fx:id="searchField" promptText="Type to search..." styleClass="modern-text-field"/>
+                            </VBox>
+                        </HBox>
                     </VBox>
 
                     <!-- Table Container -->
                     <VBox styleClass="card" spacing="20">
                         <HBox alignment="CENTER_LEFT">
-                            <Text text="📜 All Transactions" styleClass="card-title"/>
+                            <Text text="📜 Transactions" styleClass="card-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
                         </HBox>
                         
-                        <Text text="Complete history of all WG transactions" styleClass="card-subtitle"/>
+                        <Text text="Filtered transaction history" styleClass="card-subtitle"/>
                         
                         <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="table-view" fixedCellSize="50">
                             <columns>

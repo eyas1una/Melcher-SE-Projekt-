@@ -458,6 +458,14 @@ public class TransactionDialogController {
             return false;
         }
 
+        // Check that payer is not the only debtor
+        if (state.getParticipants().size() == 1 && state.getParticipants().contains(state.getPayer())) {
+            step1ValidationError.setText("The payer cannot be the only debtor. Please add at least one other person.");
+            step1ValidationError.setVisible(true);
+            step1ValidationError.setManaged(true);
+            return false;
+        }
+
         return true;
     }
 
@@ -781,17 +789,18 @@ public class TransactionDialogController {
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         Text nameText = new Text(user.getName() +
-                (user.getSurname() != null ? " " + user.getSurname() : ""));
-        nameText.setStyle("-fx-font-size: 14px;");
-        nameText.setWrappingWidth(150);
+                (user.getSurname() != null ? " " + user.getSurname() : "") + ":");
+        nameText.setStyle("-fx-font-size: 12px;");
+        nameText.setWrappingWidth(120);
 
         TextField percentField = new TextField();
-        percentField.setPromptText("%");
-        percentField.setPrefWidth(80);
+        percentField.setPromptText("0.0");
+        percentField.setPrefWidth(70);
         percentField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 6;");
 
         Text percentSign = new Text("%");
+        percentSign.setStyle("-fx-font-size: 12px;");
 
         // X button to remove participant
         Button removeButton = new Button("X");
@@ -843,17 +852,18 @@ public class TransactionDialogController {
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         Text nameText = new Text(user.getName() +
-                (user.getSurname() != null ? " " + user.getSurname() : ""));
-        nameText.setStyle("-fx-font-size: 14px;");
-        nameText.setWrappingWidth(150);
-
-        Text euroSign = new Text("€");
+                (user.getSurname() != null ? " " + user.getSurname() : "") + ":");
+        nameText.setStyle("-fx-font-size: 12px;");
+        nameText.setWrappingWidth(120);
 
         TextField amountField = new TextField();
-        amountField.setPromptText("€");
-        amountField.setPrefWidth(100);
+        amountField.setPromptText("0.00");
+        amountField.setPrefWidth(80);
         amountField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 6;");
+
+        Text euroSign = new Text("€");
+        euroSign.setStyle("-fx-font-size: 12px;");
 
         // X button to remove participant
         Button removeButton = new Button("X");
@@ -896,7 +906,7 @@ public class TransactionDialogController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        row.getChildren().addAll(nameText, spacer, euroSign, amountField, removeButton);
+        row.getChildren().addAll(nameText, spacer, amountField, euroSign, removeButton);
         return row;
     }
 
@@ -904,7 +914,7 @@ public class TransactionDialogController {
         int count = state.getParticipants().size();
         if (count > 0 && state.getTotalAmount() > 0) {
             double perPerson = state.getTotalAmount() / count;
-            equalSplitSummary.setText(String.format("Each person pays %s", currencyFormat.format(perPerson)));
+            equalSplitSummary.setText(String.format("Each person pays %.2f€", perPerson));
         } else {
             equalSplitSummary.setText("");
         }
@@ -953,18 +963,18 @@ public class TransactionDialogController {
         String remainingStyle;
 
         if (Math.abs(remaining) < 0.01) {
-            remainingText = String.format("%s left", currencyFormat.format(remaining));
+            remainingText = String.format("%.2f€ left", remaining);
             remainingStyle = "-fx-fill: #10b981; -fx-font-weight: 600;";
         } else if (remaining < 0) {
-            remainingText = String.format("%s left", currencyFormat.format(remaining));
+            remainingText = String.format("%.2f€ left", remaining);
             remainingStyle = "-fx-fill: #ef4444; -fx-font-weight: 600;";
         } else {
-            remainingText = String.format("%s left", currencyFormat.format(remaining));
+            remainingText = String.format("%.2f€ left", remaining);
             remainingStyle = "-fx-fill: #6b7280; -fx-font-weight: 500;";
         }
 
-        customAmountSplitSummary.setText(String.format("Total: %s of %s \n %s",
-                currencyFormat.format(total), currencyFormat.format(totalAmount), remainingText));
+        customAmountSplitSummary.setText(String.format("Total: %.2f€ of %.2f€\n%s",
+                total, totalAmount, remainingText));
         customAmountSplitSummary.setStyle(remainingStyle);
     }
 }

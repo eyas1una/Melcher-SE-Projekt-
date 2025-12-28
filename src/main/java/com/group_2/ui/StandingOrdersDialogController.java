@@ -289,7 +289,7 @@ public class StandingOrdersDialogController {
         VBox content = new VBox(15);
         content.setPadding(new javafx.geometry.Insets(20));
         content.setStyle("-fx-background-color: white;");
-        content.setPrefWidth(450);
+        content.setPrefWidth(500);
 
         // Description field
         javafx.scene.text.Text descLabel = new javafx.scene.text.Text("Description");
@@ -299,7 +299,7 @@ public class StandingOrdersDialogController {
                 "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
 
         // Amount field
-        javafx.scene.text.Text amountLabel = new javafx.scene.text.Text("Amount (€)");
+        javafx.scene.text.Text amountLabel = new javafx.scene.text.Text("Total Amount (€)");
         amountLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
         TextField amountField = new TextField(String.format("%.2f", order.getTotalAmount()));
         amountField.setStyle(
@@ -352,17 +352,235 @@ public class StandingOrdersDialogController {
         dayBox.setVisible(!lastDayCheckbox.isSelected());
         dayBox.setManaged(!lastDayCheckbox.isSelected());
 
-        // Current debtors info
-        javafx.scene.text.Text debtorsLabel = new javafx.scene.text.Text(
-                "Debtors: " + parseDebtorNames(order.getDebtorData()));
-        debtorsLabel.setStyle("-fx-font-size: 12px; -fx-fill: #6b7280;");
+        content.getChildren().addAll(descLabel, descField, amountLabel, amountField, freqLabel, freqComboBox,
+                monthlyOptions);
 
-        content.getChildren().addAll(
-                descLabel, descField,
-                amountLabel, amountField,
-                freqLabel, freqComboBox,
-                monthlyOptions,
-                debtorsLabel);
+        // Parse existing debtor data
+        List<Long> originalDebtorIds = new java.util.ArrayList<>();
+        List<Double> originalPercentages = new java.util.ArrayList<>();
+        parseDebtorDataForEdit(order.getDebtorData(), originalDebtorIds, originalPercentages);
+
+        // Split editing - only show if multiple debtors
+        java.util.Map<Long, TextField> splitFields = new java.util.HashMap<>();
+        final String[] currentMode = { "AMOUNT" };
+        VBox splitsContainer = new VBox(8);
+        javafx.scene.text.Text validationLabel = new javafx.scene.text.Text("");
+
+        if (originalDebtorIds.size() > 1) {
+            javafx.scene.text.Text splitsLabel = new javafx.scene.text.Text("Split Options");
+            splitsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+            content.getChildren().add(splitsLabel);
+
+            // Mode selector
+            HBox modeSelector = new HBox(10);
+            modeSelector.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            ToggleGroup modeGroup = new ToggleGroup();
+            RadioButton equalBtn = new RadioButton("Equal");
+            equalBtn.setToggleGroup(modeGroup);
+            RadioButton percentBtn = new RadioButton("Percentage");
+            percentBtn.setToggleGroup(modeGroup);
+            RadioButton amountBtn = new RadioButton("Custom Amount");
+            amountBtn.setToggleGroup(modeGroup);
+            amountBtn.setSelected(true);
+
+            modeSelector.getChildren().addAll(equalBtn, percentBtn, amountBtn);
+            content.getChildren().add(modeSelector);
+
+            splitsContainer.setStyle("-fx-background-color: #f9fafb; -fx-padding: 10; -fx-background-radius: 8;");
+            content.getChildren().add(splitsContainer);
+
+            validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #6b7280;");
+            content.getChildren().add(validationLabel);
+
+            // Build a map of userId -> User for names
+            java.util.Map<Long, User> userMap = new java.util.HashMap<>();
+            for (Long userId : originalDebtorIds) {
+                userRepository.findById(userId).ifPresent(u -> userMap.put(userId, u));
+            }
+
+            // Function to rebuild split fields
+            Runnable rebuildSplitFields = () -> {
+                splitsContainer.getChildren().clear();
+                splitFields.clear();
+
+                double total;
+                try {
+                    total = Double.parseDouble(amountField.getText().replace(",", "."));
+                } catch (NumberFormatException ex) {
+                    total = order.getTotalAmount();
+                }
+
+                if (currentMode[0].equals("EQUAL")) {
+                    double equalAmount = total / originalDebtorIds.size();
+                    for (int i = 0; i < originalDebtorIds.size(); i++) {
+                        Long userId = originalDebtorIds.get(i);
+                        User user = userMap.get(userId);
+                        String name = user != null
+                                ? user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "")
+                                : "User " + userId;
+
+                        HBox row = new HBox(10);
+                        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        javafx.scene.text.Text nameText = new javafx.scene.text.Text(
+                                name + ": " + String.format("%.2f", equalAmount) + "€");
+                        nameText.setStyle("-fx-font-size: 12px;");
+                        row.getChildren().add(nameText);
+                        splitsContainer.getChildren().add(row);
+                    }
+                    validationLabel.setText("✓ Equal split");
+                    validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;");
+                } else if (currentMode[0].equals("PERCENT")) {
+                    for (int i = 0; i < originalDebtorIds.size(); i++) {
+                        Long userId = originalDebtorIds.get(i);
+                        User user = userMap.get(userId);
+                        String name = user != null
+                                ? user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "")
+                                : "User " + userId;
+                        Double pct = i < originalPercentages.size() ? originalPercentages.get(i)
+                                : 100.0 / originalDebtorIds.size();
+
+                        HBox row = new HBox(10);
+                        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        javafx.scene.text.Text nameText = new javafx.scene.text.Text(name + ":");
+                        nameText.setStyle("-fx-font-size: 12px;");
+                        nameText.setWrappingWidth(120);
+
+                        TextField field = new TextField(String.format("%.1f", pct));
+                        field.setStyle(
+                                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-padding: 6;");
+                        field.setPrefWidth(70);
+                        splitFields.put(userId, field);
+
+                        // Live validation listener
+                        field.textProperty().addListener((obs, oldVal, newVal) -> {
+                            try {
+                                double sum = 0;
+                                for (TextField f : splitFields.values()) {
+                                    sum += Double.parseDouble(f.getText().replace(",", "."));
+                                }
+                                double remaining = 100.0 - sum;
+                                String style;
+                                if (Math.abs(remaining) < 0.01) {
+                                    style = "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;";
+                                } else if (remaining < 0) {
+                                    style = "-fx-font-size: 11px; -fx-fill: #ef4444; -fx-font-weight: 600;";
+                                } else {
+                                    style = "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                                }
+                                validationLabel
+                                        .setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
+                                validationLabel.setStyle(style);
+                            } catch (NumberFormatException ex) {
+                                validationLabel.setText("⚠ Invalid number");
+                                validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #ef4444;");
+                            }
+                        });
+
+                        javafx.scene.text.Text percentSign = new javafx.scene.text.Text("%");
+                        percentSign.setStyle("-fx-font-size: 12px;");
+
+                        row.getChildren().addAll(nameText, field, percentSign);
+                        splitsContainer.getChildren().add(row);
+                    }
+                    double sum = originalPercentages.stream().mapToDouble(Double::doubleValue).sum();
+                    double remaining = 100.0 - sum;
+                    String style = Math.abs(remaining) < 0.01
+                            ? "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;"
+                            : "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                    validationLabel.setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
+                    validationLabel.setStyle(style);
+                } else { // AMOUNT
+                    for (int i = 0; i < originalDebtorIds.size(); i++) {
+                        Long userId = originalDebtorIds.get(i);
+                        User user = userMap.get(userId);
+                        String name = user != null
+                                ? user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "")
+                                : "User " + userId;
+                        Double pct = i < originalPercentages.size() ? originalPercentages.get(i)
+                                : 100.0 / originalDebtorIds.size();
+                        double amount = (pct / 100.0) * total;
+
+                        HBox row = new HBox(10);
+                        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        javafx.scene.text.Text nameText = new javafx.scene.text.Text(name + ":");
+                        nameText.setStyle("-fx-font-size: 12px;");
+                        nameText.setWrappingWidth(120);
+
+                        TextField field = new TextField(String.format("%.2f", amount));
+                        field.setStyle(
+                                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-padding: 6;");
+                        field.setPrefWidth(80);
+                        splitFields.put(userId, field);
+
+                        final double totalFinal = total;
+                        field.textProperty().addListener((obs, oldVal, newVal) -> {
+                            try {
+                                double totalAmt = Double.parseDouble(amountField.getText().replace(",", "."));
+                                double sum = 0;
+                                for (TextField f : splitFields.values()) {
+                                    sum += Double.parseDouble(f.getText().replace(",", "."));
+                                }
+                                double remaining = totalAmt - sum;
+                                String style;
+                                if (Math.abs(remaining) < 0.01) {
+                                    style = "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;";
+                                } else if (remaining < 0) {
+                                    style = "-fx-font-size: 11px; -fx-fill: #ef4444; -fx-font-weight: 600;";
+                                } else {
+                                    style = "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                                }
+                                validationLabel.setText(
+                                        String.format("Total: %.2f€ of %.2f€\n%.2f€ left", sum, totalAmt, remaining));
+                                validationLabel.setStyle(style);
+                            } catch (NumberFormatException ex) {
+                                validationLabel.setText("⚠ Invalid number");
+                                validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #ef4444;");
+                            }
+                        });
+
+                        javafx.scene.text.Text euroSign = new javafx.scene.text.Text("€");
+                        euroSign.setStyle("-fx-font-size: 12px;");
+
+                        row.getChildren().addAll(nameText, field, euroSign);
+                        splitsContainer.getChildren().add(row);
+                    }
+                    double sum = 0;
+                    for (int i = 0; i < originalDebtorIds.size(); i++) {
+                        Double pct = i < originalPercentages.size() ? originalPercentages.get(i)
+                                : 100.0 / originalDebtorIds.size();
+                        sum += (pct / 100.0) * total;
+                    }
+                    double remaining = total - sum;
+                    String style = Math.abs(remaining) < 0.01
+                            ? "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;"
+                            : "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                    validationLabel.setText(String.format("Total: %.2f€ of %.2f€\n%.2f€ left", sum, total, remaining));
+                    validationLabel.setStyle(style);
+                }
+            };
+
+            equalBtn.setOnAction(e -> {
+                currentMode[0] = "EQUAL";
+                rebuildSplitFields.run();
+            });
+            percentBtn.setOnAction(e -> {
+                currentMode[0] = "PERCENT";
+                rebuildSplitFields.run();
+            });
+            amountBtn.setOnAction(e -> {
+                currentMode[0] = "AMOUNT";
+                rebuildSplitFields.run();
+            });
+
+            rebuildSplitFields.run();
+        } else {
+            // Single debtor info
+            javafx.scene.text.Text debtorsLabel = new javafx.scene.text.Text(
+                    "Debtor: " + parseDebtorNames(order.getDebtorData()));
+            debtorsLabel.setStyle("-fx-font-size: 12px; -fx-fill: #6b7280;");
+            content.getChildren().add(debtorsLabel);
+        }
 
         dialog.getDialogPane().setContent(content);
 
@@ -404,16 +622,57 @@ public class StandingOrdersDialogController {
                     }
                 }
 
-                // Parse existing debtor data to get IDs and percentages
+                // Calculate new percentages based on mode
                 List<Long> debtorIds = new java.util.ArrayList<>();
                 List<Double> percentages = new java.util.ArrayList<>();
-                parseDebtorDataForEdit(order.getDebtorData(), debtorIds, percentages);
+
+                if (originalDebtorIds.size() > 1) {
+                    if (currentMode[0].equals("EQUAL")) {
+                        double equalPercent = 100.0 / originalDebtorIds.size();
+                        for (Long userId : originalDebtorIds) {
+                            debtorIds.add(userId);
+                            percentages.add(equalPercent);
+                        }
+                    } else if (currentMode[0].equals("PERCENT")) {
+                        double sum = 0;
+                        for (Long userId : originalDebtorIds) {
+                            TextField field = splitFields.get(userId);
+                            double pct = Double.parseDouble(field.getText().replace(",", "."));
+                            sum += pct;
+                            debtorIds.add(userId);
+                            percentages.add(pct);
+                        }
+                        if (Math.abs(sum - 100.0) > 0.1) {
+                            throw new IllegalArgumentException(
+                                    String.format("Percentages must sum to 100%% (current: %.1f%%)", sum));
+                        }
+                    } else { // AMOUNT
+                        double totalSplit = 0;
+                        for (Long userId : originalDebtorIds) {
+                            TextField field = splitFields.get(userId);
+                            totalSplit += Double.parseDouble(field.getText().replace(",", "."));
+                        }
+                        if (Math.abs(totalSplit - newAmount) > 0.01) {
+                            throw new IllegalArgumentException(String
+                                    .format("Split amounts (€%.2f) must equal total (€%.2f)", totalSplit, newAmount));
+                        }
+                        for (Long userId : originalDebtorIds) {
+                            TextField field = splitFields.get(userId);
+                            double amount = Double.parseDouble(field.getText().replace(",", "."));
+                            debtorIds.add(userId);
+                            percentages.add((amount / newAmount) * 100.0);
+                        }
+                    }
+                } else {
+                    debtorIds.addAll(originalDebtorIds);
+                    percentages.addAll(originalPercentages);
+                }
 
                 // Update the standing order
                 standingOrderService.updateStandingOrder(
                         order.getId(),
                         sessionManager.getCurrentUser().getId(),
-                        order.getCreditor(), // Keep same creditor
+                        order.getCreditor(),
                         newAmount,
                         newDescription,
                         newFrequency,
@@ -446,7 +705,7 @@ public class StandingOrdersDialogController {
                 }
                 error.setTitle("Error");
                 error.setHeaderText("Invalid input");
-                error.setContentText("Please enter valid numbers for amount and day.");
+                error.setContentText("Please enter valid numbers.");
                 error.showAndWait();
             } catch (Exception e) {
                 Alert error = new Alert(Alert.AlertType.ERROR);

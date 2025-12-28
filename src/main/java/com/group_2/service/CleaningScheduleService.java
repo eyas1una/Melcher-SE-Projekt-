@@ -83,10 +83,17 @@ public class CleaningScheduleService {
     /**
      * Generate only the missing tasks from templates for a specific week.
      * Checks which templates don't have a corresponding task yet and creates them.
+     * Only generates tasks for current week or future weeks, not past weeks.
      */
     @Transactional
     public List<CleaningTask> generateMissingTasksFromTemplate(WG wg, LocalDate weekStart,
             List<CleaningTask> existingTasks) {
+        // Don't generate tasks for past weeks
+        LocalDate currentWeekStart = getCurrentWeekStart();
+        if (weekStart.isBefore(currentWeekStart)) {
+            return new ArrayList<>();
+        }
+
         List<CleaningTaskTemplate> templates = templateRepository.findByWg(wg);
         if (templates.isEmpty()) {
             return new ArrayList<>();
@@ -438,17 +445,23 @@ public class CleaningScheduleService {
 
     /**
      * Update an existing template (day and recurrence can be changed, assignee is
-     * auto-managed). Also updates due dates for all existing tasks.
+     * auto-managed). Only updates due dates for current and future tasks, not past
+     * ones.
      */
     @Transactional
     public CleaningTaskTemplate updateTemplate(CleaningTaskTemplate template, DayOfWeek newDay,
             RecurrenceInterval newInterval) {
-        // Update due dates for all existing tasks for this room
+        LocalDate currentWeekStart = getCurrentWeekStart();
+
+        // Update due dates only for current and future tasks, not past ones
         List<CleaningTask> tasks = cleaningTaskRepository.findByWgAndRoom(template.getWg(), template.getRoom());
         for (CleaningTask task : tasks) {
-            LocalDate newDueDate = task.getWeekStartDate().plusDays(newDay.getValue() - 1);
-            task.setDueDate(newDueDate);
-            cleaningTaskRepository.save(task);
+            // Only update tasks from current week onwards
+            if (!task.getWeekStartDate().isBefore(currentWeekStart)) {
+                LocalDate newDueDate = task.getWeekStartDate().plusDays(newDay.getValue() - 1);
+                task.setDueDate(newDueDate);
+                cleaningTaskRepository.save(task);
+            }
         }
 
         template.setDayOfWeek(newDay);
@@ -461,24 +474,40 @@ public class CleaningScheduleService {
 
     /**
      * Delete a single template and its associated queue.
-     * Also deletes all existing tasks for this room across all weeks.
+     * Only deletes current and future tasks for this room, preserves past tasks.
      */
     @Transactional
     public void deleteTemplate(CleaningTaskTemplate template) {
-        // Delete all existing tasks for this room across all weeks
-        cleaningTaskRepository.deleteByWgAndRoom(template.getWg(), template.getRoom());
+        LocalDate currentWeekStart = getCurrentWeekStart();
+
+        // Delete only current and future tasks for this room, preserve past tasks
+        List<CleaningTask> allTasks = cleaningTaskRepository.findByWgAndRoom(template.getWg(), template.getRoom());
+        for (CleaningTask task : allTasks) {
+            if (!task.getWeekStartDate().isBefore(currentWeekStart)) {
+                cleaningTaskRepository.delete(task);
+            }
+        }
+
         queueRepository.deleteByRoom(template.getRoom());
         templateRepository.delete(template);
     }
 
     /**
      * Clear all templates and queues for a WG.
-     * Also deletes all tasks across all weeks.
+     * Only deletes current and future tasks, preserves past tasks.
      */
     @Transactional
     public void clearTemplates(WG wg) {
-        // Delete all tasks for this WG across all weeks
-        cleaningTaskRepository.deleteByWg(wg);
+        LocalDate currentWeekStart = getCurrentWeekStart();
+
+        // Delete only current and future tasks for this WG, preserve past tasks
+        List<CleaningTask> allTasks = cleaningTaskRepository.findByWg(wg);
+        for (CleaningTask task : allTasks) {
+            if (!task.getWeekStartDate().isBefore(currentWeekStart)) {
+                cleaningTaskRepository.delete(task);
+            }
+        }
+
         queueRepository.deleteByWg(wg);
         templateRepository.deleteByWg(wg);
     }

@@ -26,7 +26,7 @@ public class Main {
         return (args) -> {
 
             System.out.println("All operations completed successfully.");
-            System.out.println("Access H2 Console at: http://localhost:8080/h2-console");
+            System.out.println("Access H2 Console at: http://localdahost:8080/h2-console");
         };
     }
 }
