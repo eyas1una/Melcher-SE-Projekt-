@@ -127,10 +127,8 @@ public class NoWgController extends Controller {
         roomField.getStyleClass().add("modern-text-field");
         roomField.setPrefWidth(300);
 
-        Button removeBtn = new Button("✕");
-        removeBtn.getStyleClass().add("secondary-button");
-        removeBtn.setStyle(
-                "-fx-padding: 8 12; -fx-font-size: 12px; -fx-background-color: #ef4444; -fx-text-fill: white;");
+        Button removeBtn = new Button("Remove");
+        removeBtn.getStyleClass().addAll("secondary-button", "secondary-button-danger");
         removeBtn.setOnAction(e -> {
             roomFields.remove(roomField);
             roomFieldsContainer.getChildren().remove(roomRow);

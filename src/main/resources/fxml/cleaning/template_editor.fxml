@@ -19,44 +19,44 @@
 
     <!-- Main Content -->
     <center>
-        <VBox style="-fx-background-color: #f8fafc; -fx-padding: 25;">
+        <VBox styleClass="cleaning-page">
             
             <!-- Header with Actions -->
-            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 15 0;">
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="cleaning-header">
                 <VBox spacing="5">
                     <Text fx:id="headerTitle" text="Default Weekly Template" 
-                          style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                          styleClass="text-title-cleaning"/>
                     <Text text="Define tasks that repeat every week" 
-                          style="-fx-font-size: 13px; -fx-fill: #64748b;"/>
+                          styleClass="text-subtitle-cleaning"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
                 
                 <VBox alignment="CENTER" spacing="2" 
-                      style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1);">
+                      styleClass="cleaning-stat-card">
                     <Text fx:id="templateCountText" text="0" 
-                          style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #6366f1;"/>
-                    <Text text="Tasks" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                          styleClass="text-stat-primary"/>
+                    <Text text="Tasks" styleClass="text-caption-muted"/>
                 </VBox>
             </HBox>
 
             <!-- Action Toolbar -->
-            <HBox spacing="12" alignment="CENTER_LEFT" style="-fx-padding: 0 0 20 0;">
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="cleaning-toolbar">
                 <Button text="➕ Add Task" onAction="#showAddTemplateDialog"
-                        style="-fx-background-color: #6366f1; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 13px;"/>
+                        styleClass="btn btn-primary"/>
                 <Button text="🗑️ Clear All" onAction="#clearAllTemplates"
-                        style="-fx-background-color: white; -fx-text-fill: #dc2626; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 13px; -fx-border-color: #fecaca; -fx-border-radius: 8;"/>
+                        styleClass="btn btn-danger"/>
                 
                 <Region HBox.hgrow="ALWAYS"/>
                 
                 <Button text="✅ Save \&amp; Apply" onAction="#saveAndApplyTemplate"
-                        style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                        styleClass="btn btn-success"/>
                 
                 <!-- Info Badge -->
                 <HBox spacing="8" alignment="CENTER" 
-                      style="-fx-background-color: #eef2ff; -fx-background-radius: 8; -fx-padding: 10 16;">
-                    <Text text="ℹ️" style="-fx-font-size: 14px;"/>
+                      styleClass="info-badge">
+                    <Text text="ℹ️" styleClass="info-badge-icon"/>
                     <Text text="This template applies to every new week" 
-                          style="-fx-font-size: 12px; -fx-fill: #4338ca;"/>
+                          styleClass="info-badge-text"/>
                 </HBox>
             </HBox>
 
@@ -65,38 +65,38 @@
                 <HBox spacing="10" alignment="TOP_LEFT">
                     
                     <!-- Monday -->
-                    <VBox fx:id="mondayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="160" minWidth="160">
-                        <Text text="Monday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <VBox fx:id="mondayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Monday" styleClass="template-day-title"/>
                     </VBox>
                     
                     <!-- Tuesday -->
-                    <VBox fx:id="tuesdayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="160" minWidth="160">
-                        <Text text="Tuesday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <VBox fx:id="tuesdayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Tuesday" styleClass="template-day-title"/>
                     </VBox>
                     
                     <!-- Wednesday -->
-                    <VBox fx:id="wednesdayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="160" minWidth="160">
-                        <Text text="Wednesday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <VBox fx:id="wednesdayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Wednesday" styleClass="template-day-title"/>
                     </VBox>
                     
                     <!-- Thursday -->
-                    <VBox fx:id="thursdayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="160" minWidth="160">
-                        <Text text="Thursday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <VBox fx:id="thursdayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Thursday" styleClass="template-day-title"/>
                     </VBox>
                     
                     <!-- Friday -->
-                    <VBox fx:id="fridayColumn" spacing="10" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15;" prefWidth="160" minWidth="160">
-                        <Text text="Friday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                    <VBox fx:id="fridayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Friday" styleClass="template-day-title"/>
                     </VBox>
                     
                     <!-- Saturday -->
-                    <VBox fx:id="saturdayColumn" spacing="10" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 15; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" prefWidth="160" minWidth="160">
-                        <Text text="Saturday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                    <VBox fx:id="saturdayColumn" spacing="10" styleClass="template-day-card-muted" prefWidth="160" minWidth="160">
+                        <Text text="Saturday" styleClass="template-day-title-muted"/>
                     </VBox>
                     
                     <!-- Sunday -->
-                    <VBox fx:id="sundayColumn" spacing="10" style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 15; -fx-border-color: #e2e8f0; -fx-border-radius: 12;" prefWidth="160" minWidth="160">
-                        <Text text="Sunday" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                    <VBox fx:id="sundayColumn" spacing="10" styleClass="template-day-card-muted" prefWidth="160" minWidth="160">
+                        <Text text="Sunday" styleClass="template-day-title-muted"/>
                     </VBox>
                     
                 </HBox>

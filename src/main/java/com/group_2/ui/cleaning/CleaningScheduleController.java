@@ -1,9 +1,10 @@
 package com.group_2.ui.cleaning;
 
+import com.group_2.dto.cleaning.RoomDTO;
 import com.group_2.model.User;
 import com.group_2.model.WG;
-import com.group_2.model.cleaning.Room;
 import com.group_2.service.cleaning.CleaningScheduleService;
+import com.group_2.service.core.HouseholdSetupService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.NavbarController;
 import com.group_2.util.SessionManager;
@@ -30,6 +31,7 @@ import java.util.Locale;
 public class CleaningScheduleController extends Controller {
 
     private final CleaningScheduleService cleaningScheduleService;
+    private final HouseholdSetupService householdSetupService;
     private final SessionManager sessionManager;
 
     // Current displayed week
@@ -55,8 +57,10 @@ public class CleaningScheduleController extends Controller {
     @FXML
     private NavbarController navbarController;
 
-    public CleaningScheduleController(CleaningScheduleService cleaningScheduleService, SessionManager sessionManager) {
+    public CleaningScheduleController(CleaningScheduleService cleaningScheduleService,
+            HouseholdSetupService householdSetupService, SessionManager sessionManager) {
         this.cleaningScheduleService = cleaningScheduleService;
+        this.householdSetupService = householdSetupService;
         this.sessionManager = sessionManager;
     }
 
@@ -119,25 +123,31 @@ public class CleaningScheduleController extends Controller {
         boolean isToday = day.equals(today);
         boolean isWeekend = day.getDayOfWeek().getValue() >= 6;
 
-        // Style based on day type
-        String bgColor = isToday ? "#eef2ff" : (isWeekend ? "#f8fafc" : "white");
-        String borderColor = isToday ? "#6366f1" : "#e2e8f0";
-        cell.setStyle("-fx-background-color: " + bgColor + "; " + "-fx-border-color: " + borderColor + "; "
-                + "-fx-border-width: 1;");
+        // Apply CSS classes based on day type
+        cell.getStyleClass().add("calendar-cell");
+        if (isToday) {
+            cell.getStyleClass().add("calendar-cell-today");
+        } else if (isWeekend) {
+            cell.getStyleClass().add("calendar-cell-weekend");
+        }
 
         // Day number header
         HBox header = new HBox(5);
         header.setAlignment(Pos.CENTER_LEFT);
         Text dayNumber = new Text(String.valueOf(day.getDayOfMonth()));
-        dayNumber.setStyle(
-                "-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: " + (isToday ? "#6366f1" : "#1e293b") + ";");
+        dayNumber.getStyleClass().add("calendar-day-number");
+        if (isToday) {
+            dayNumber.getStyleClass().add("calendar-day-number-today");
+        } else if (isWeekend) {
+            dayNumber.getStyleClass().add("calendar-day-number-weekend");
+        }
         header.getChildren().add(dayNumber);
 
         if (isToday) {
             StackPane todayBadge = new StackPane();
-            todayBadge.setStyle("-fx-background-color: #6366f1; -fx-background-radius: 8; -fx-padding: 2 6;");
+            todayBadge.getStyleClass().add("calendar-today-badge");
             Text todayText = new Text("Today");
-            todayText.setStyle("-fx-font-size: 9px; -fx-fill: white;");
+            todayText.getStyleClass().add("calendar-today-badge-text");
             todayBadge.getChildren().add(todayText);
             header.getChildren().add(todayBadge);
         }
@@ -167,20 +177,28 @@ public class CleaningScheduleController extends Controller {
         pill.setCursor(javafx.scene.Cursor.HAND);
 
         boolean isMyTask = task.assigneeId() != null && task.assigneeId().equals(currentUser.getId());
-        // User's own tasks get a distinct orange/amber highlight
-        String bgColor = task.completed() ? "#dcfce7" : (isMyTask ? "#fef3c7" : "#f1f5f9");
-        String textColor = task.completed() ? "#15803d" : (isMyTask ? "#b45309" : "#475569");
 
-        pill.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 6;"
-                + (isMyTask && !task.completed()
-                        ? " -fx-border-color: #f59e0b; -fx-border-width: 1.5; -fx-border-radius: 6;"
-                        : ""));
+        // Apply CSS classes based on task state
+        if (task.completed()) {
+            pill.getStyleClass().add("task-pill-done");
+        } else if (isMyTask) {
+            pill.getStyleClass().addAll("task-pill-pending", "task-pill-pending-mine");
+        } else {
+            pill.getStyleClass().add("task-pill-pending");
+        }
 
         Text roomIcon = new Text(task.completed() ? "✓" : "🚪");
-        roomIcon.setStyle("-fx-font-size: 10px;");
+        roomIcon.getStyleClass().add("task-pill-icon");
 
         Text roomName = new Text(truncate(task.roomName(), 10));
-        roomName.setStyle("-fx-font-size: 10px; -fx-fill: " + textColor + ";");
+        roomName.getStyleClass().add("task-pill-text");
+        if (task.completed()) {
+            roomName.getStyleClass().add("task-pill-text-done");
+        } else if (isMyTask) {
+            roomName.getStyleClass().add("task-pill-text-pending-mine");
+        } else {
+            roomName.getStyleClass().add("task-pill-text-pending");
+        }
 
         pill.getChildren().addAll(roomIcon, roomName);
 
@@ -230,30 +248,31 @@ public class CleaningScheduleController extends Controller {
         boolean isCompleted = task.completed();
         boolean isMyTask = task.assigneeId() != null && task.assigneeId().equals(currentUser.getId());
 
-        // User's own tasks get a distinct orange/amber highlight
-        String bgColor = isCompleted ? "#f0fdf4" : (isMyTask ? "#fffbeb" : "white");
-        String borderColor = isCompleted ? "#86efac" : (isMyTask ? "#f59e0b" : "#e2e8f0");
-        String borderWidth = isMyTask && !isCompleted ? "3" : "2";
-
-        card.setStyle("-fx-background-color: " + bgColor + "; " + "-fx-background-radius: 16; " + "-fx-border-color: "
-                + borderColor + "; " + "-fx-border-radius: 16; " + "-fx-border-width: " + borderWidth + "; "
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0, 0, 2);");
+        // Apply CSS classes based on task state
+        card.getStyleClass().add("task-card");
+        if (isCompleted) {
+            card.getStyleClass().add("task-card-completed");
+        } else if (isMyTask) {
+            card.getStyleClass().add("task-card-my-task");
+        }
 
         // Room icon
         StackPane iconPane = new StackPane();
-        String iconBg = isCompleted ? "linear-gradient(to bottom right, #10b981, #059669)"
-                : "linear-gradient(to bottom right, #6366f1, #8b5cf6)";
-        iconPane.setStyle("-fx-background-color: " + iconBg + "; " + "-fx-background-radius: 14; "
-                + "-fx-pref-width: 56; -fx-pref-height: 56; " + "-fx-min-width: 56; -fx-min-height: 56;");
+        iconPane.getStyleClass().add("task-icon-pane");
+        if (isCompleted) {
+            iconPane.getStyleClass().add("task-icon-pane-completed");
+        } else if (isMyTask) {
+            iconPane.getStyleClass().add("task-icon-pane-my-task");
+        }
         Text iconText = new Text(isCompleted ? "✓" : "🚪");
-        iconText.setStyle("-fx-font-size: 24px;");
+        iconText.getStyleClass().add("task-icon-text");
         iconPane.getChildren().add(iconText);
 
         // Room name
         Text roomName = new Text(task.roomName());
-        roomName.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1e293b;");
+        roomName.getStyleClass().add("task-room-name");
         if (isCompleted) {
-            roomName.setStyle(roomName.getStyle() + " -fx-strikethrough: true;");
+            roomName.getStyleClass().add("task-room-name-completed");
         }
 
         // Assignee
@@ -261,19 +280,20 @@ public class CleaningScheduleController extends Controller {
         assigneeBox.setAlignment(Pos.CENTER);
 
         StackPane assigneeAvatar = new StackPane();
-        assigneeAvatar.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 10; "
-                + "-fx-pref-width: 20; -fx-pref-height: 20;");
+        assigneeAvatar.getStyleClass().add("task-assignee-avatar");
         String assigneeInitial = task.assigneeName() != null && !task.assigneeName().isEmpty()
                 ? task.assigneeName().substring(0, 1).toUpperCase()
                 : "?";
         Text avatarText = new Text(assigneeInitial);
-        avatarText.setStyle("-fx-font-size: 10px; -fx-fill: #64748b;");
+        avatarText.getStyleClass().add("task-assignee-avatar-text");
         assigneeAvatar.getChildren().add(avatarText);
 
         String assigneeName = isMyTask ? "You" : task.assigneeName();
         Text assigneeText = new Text(assigneeName);
-        assigneeText.setStyle("-fx-font-size: 12px; -fx-fill: " + (isMyTask ? "#4338ca" : "#64748b") + "; "
-                + (isMyTask ? "-fx-font-weight: bold;" : ""));
+        assigneeText.getStyleClass().add("task-assignee-text");
+        if (isMyTask) {
+            assigneeText.getStyleClass().add("task-assignee-text-mine");
+        }
 
         assigneeBox.getChildren().addAll(assigneeAvatar, assigneeText);
 
@@ -282,18 +302,18 @@ public class CleaningScheduleController extends Controller {
         String dayName = dueDate.getDayOfWeek().toString().substring(0, 1)
                 + dueDate.getDayOfWeek().toString().substring(1).toLowerCase();
         Text dueDateText = new Text("📅 " + dayName + ", " + dueDate.getDayOfMonth());
-        dueDateText.setStyle("-fx-font-size: 11px; -fx-fill: #64748b;");
+        dueDateText.getStyleClass().add("task-due-date");
 
         // Status badge
         HBox statusBadge = new HBox(4);
         statusBadge.setAlignment(Pos.CENTER);
         statusBadge.setPadding(new Insets(4, 10, 4, 10));
-        String badgeBg = isCompleted ? "#dcfce7" : "#fef3c7";
-        String badgeColor = isCompleted ? "#15803d" : "#b45309";
-        statusBadge.setStyle("-fx-background-color: " + badgeBg + "; -fx-background-radius: 12;");
+        statusBadge.getStyleClass().add("status-badge");
+        statusBadge.getStyleClass().add(isCompleted ? "status-badge-completed" : "status-badge-pending");
 
         Text statusText = new Text(isCompleted ? "✓ Completed" : "⏳ Pending");
-        statusText.setStyle("-fx-font-size: 11px; -fx-fill: " + badgeColor + "; -fx-font-weight: bold;");
+        statusText.getStyleClass().add("status-badge-text");
+        statusText.getStyleClass().add(isCompleted ? "status-badge-text-completed" : "status-badge-text-pending");
         statusBadge.getChildren().add(statusText);
 
         // Action buttons
@@ -301,9 +321,10 @@ public class CleaningScheduleController extends Controller {
         actions.setAlignment(Pos.CENTER);
 
         Button completeBtn = new Button(isCompleted ? "↩ Undo" : "✓ Done");
-        completeBtn.setStyle("-fx-background-color: " + (isCompleted ? "#f1f5f9" : "#10b981") + "; " + "-fx-text-fill: "
-                + (isCompleted ? "#475569" : "white") + "; "
-                + "-fx-background-radius: 8; -fx-padding: 6 12; -fx-font-size: 11px; -fx-cursor: hand;");
+        completeBtn.getStyleClass().add("complete-button");
+        if (isCompleted) {
+            completeBtn.getStyleClass().add("complete-button-done");
+        }
         completeBtn.setOnAction(e -> {
             if (isCompleted) {
                 cleaningScheduleService.markTaskIncomplete(task.id());
@@ -342,23 +363,22 @@ public class CleaningScheduleController extends Controller {
         emptyState.setAlignment(Pos.CENTER);
         emptyState.setPadding(new Insets(40));
         emptyState.setPrefWidth(400);
-        emptyState.setStyle("-fx-background-color: white; -fx-background-radius: 16;");
+        emptyState.getStyleClass().add("empty-state-card");
 
         Text emptyIcon = new Text("📋");
-        emptyIcon.setStyle("-fx-font-size: 48px;");
+        emptyIcon.getStyleClass().add("empty-state-icon-large");
 
         Text emptyTitle = new Text("No Tasks This Week");
-        emptyTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1e293b;");
+        emptyTitle.getStyleClass().add("empty-state-title");
 
         Text emptySubtitle = new Text("Add tasks manually to create a schedule");
-        emptySubtitle.setStyle("-fx-font-size: 13px; -fx-fill: #64748b; -fx-text-alignment: center;");
+        emptySubtitle.getStyleClass().add("empty-state-subtitle");
 
         HBox buttons = new HBox(10);
         buttons.setAlignment(Pos.CENTER);
 
         Button addBtn = new Button("➕ Add Task");
-        addBtn.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #475569; "
-                + "-fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;");
+        addBtn.getStyleClass().add("secondary-button");
         addBtn.setOnAction(e -> showAddTaskDialog());
 
         buttons.getChildren().addAll(addBtn);
@@ -420,7 +440,8 @@ public class CleaningScheduleController extends Controller {
         }
 
         WG wg = currentUser.getWg();
-        if (wg.rooms == null || wg.rooms.isEmpty()) {
+        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wg);
+        if (rooms.isEmpty()) {
             showWarningAlert("No Rooms", "Please add rooms first.", getOwnerWindow(weekTitle));
             return;
         }
@@ -437,17 +458,17 @@ public class CleaningScheduleController extends Controller {
         content.setPadding(new Insets(20));
 
         // Room selection
-        ComboBox<Room> roomCombo = new ComboBox<>();
-        roomCombo.getItems().addAll(wg.rooms);
+        ComboBox<RoomDTO> roomCombo = new ComboBox<>();
+        roomCombo.getItems().addAll(rooms);
         roomCombo.setPromptText("Select a room");
-        roomCombo.setConverter(new javafx.util.StringConverter<Room>() {
+        roomCombo.setConverter(new javafx.util.StringConverter<RoomDTO>() {
             @Override
-            public String toString(Room room) {
-                return room != null ? room.getName() : "";
+            public String toString(RoomDTO room) {
+                return room != null ? room.name() : "";
             }
 
             @Override
-            public Room fromString(String string) {
+            public RoomDTO fromString(String string) {
                 return null;
             }
         });
@@ -480,7 +501,8 @@ public class CleaningScheduleController extends Controller {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
-                return cleaningScheduleService.assignTaskDTO(roomCombo.getValue(), assigneeCombo.getValue(), wg);
+                return cleaningScheduleService.assignTaskByIds(roomCombo.getValue().id(),
+                        assigneeCombo.getValue().getId(), wg);
             }
             return null;
         });
@@ -544,7 +566,7 @@ public class CleaningScheduleController extends Controller {
         content.setPadding(new Insets(20));
 
         Text label = new Text("Select new day:");
-        label.setStyle("-fx-font-size: 13px;");
+        label.getStyleClass().add("normal-text");
         content.getChildren().add(label);
 
         ToggleGroup group = new ToggleGroup();

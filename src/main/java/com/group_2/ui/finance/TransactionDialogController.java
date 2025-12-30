@@ -124,6 +124,17 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     @FXML
     public void initialize() {
+        // Ensure dialog overlay uses shared stylesheet and fills the parent when shown
+        String stylesheet = getClass().getResource("/css/styles.css").toExternalForm();
+        if (!dialogOverlay.getStylesheets().contains(stylesheet)) {
+            dialogOverlay.getStylesheets().add(stylesheet);
+        }
+        if (!dialogOverlay.getStyleClass().contains("dialog-overlay")) {
+            dialogOverlay.getStyleClass().add("dialog-overlay");
+        }
+        dialogOverlay.setPickOnBounds(true);
+        dialogOverlay.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
         // Setup toggle groups
         splitModeToggleGroup = new ToggleGroup();
         equalSplitRadio.setToggleGroup(splitModeToggleGroup);
@@ -143,10 +154,20 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
                 LocalDate today = LocalDate.now();
                 if (date.isBefore(today)) {
                     setDisable(true);
-                    setStyle("-fx-background-color: #e0e0e0; -fx-text-fill: #999999;");
+                    if (!getStyleClass().contains("date-cell-disabled")) {
+                        getStyleClass().add("date-cell-disabled");
+                    }
+                } else {
+                    setDisable(false);
+                    getStyleClass().remove("date-cell-disabled");
                 }
             }
         });
+
+        // Shared label styles for split summaries
+        equalSplitSummary.getStyleClass().add("validation-label");
+        percentageSplitSummary.getStyleClass().add("validation-label");
+        customAmountSplitSummary.getStyleClass().add("validation-label");
     }
 
     public void showDialog() {
@@ -499,7 +520,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
             RadioButton radio = new RadioButton(
                     member.getName() + (member.getSurname() != null ? " " + member.getSurname() : ""));
             radio.setToggleGroup(creditorToggleGroup);
-            radio.setStyle("-fx-font-size: 14px; -fx-padding: 8;");
+            radio.getStyleClass().add("option-toggle");
 
             // Select current user by default
             if (member.getId().equals(sessionManager.getCurrentUser().getId())) {
@@ -524,7 +545,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
             CheckBox checkbox = new CheckBox(
                     member.getName() + (member.getSurname() != null ? " " + member.getSurname() : ""));
             checkbox.setSelected(state.isParticipant(member));
-            checkbox.setStyle("-fx-font-size: 14px; -fx-padding: 8;");
+            checkbox.getStyleClass().add("option-toggle");
 
             checkbox.setOnAction(e -> {
                 if (checkbox.isSelected()) {
@@ -579,12 +600,16 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         boolean allSelected = state.getParticipants().size() == allWgMembers.size();
         if (allSelected) {
             selectAllDebtorsButton.setText("Deselect All");
-            selectAllDebtorsButton.setStyle(
-                    "-fx-background-color: #fef2f2; -fx-text-fill: #ef4444; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-weight: 500; -fx-font-size: 12px; -fx-border-color: #ef4444; -fx-border-radius: 6;");
+            selectAllDebtorsButton.getStyleClass().removeAll("select-all-button-inactive");
+            if (!selectAllDebtorsButton.getStyleClass().contains("select-all-button-active")) {
+                selectAllDebtorsButton.getStyleClass().add("select-all-button-active");
+            }
         } else {
             selectAllDebtorsButton.setText("Select All");
-            selectAllDebtorsButton.setStyle(
-                    "-fx-background-color: #eff6ff; -fx-text-fill: #3b82f6; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-weight: 500; -fx-font-size: 12px; -fx-border-color: #3b82f6; -fx-border-radius: 6;");
+            selectAllDebtorsButton.getStyleClass().removeAll("select-all-button-active");
+            if (!selectAllDebtorsButton.getStyleClass().contains("select-all-button-inactive")) {
+                selectAllDebtorsButton.getStyleClass().add("select-all-button-inactive");
+            }
         }
     }
 
@@ -755,22 +780,20 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         Text nameText = new Text(user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "") + ":");
-        nameText.setStyle("-fx-font-size: 12px;");
+        nameText.getStyleClass().add("text-small");
         nameText.setWrappingWidth(120);
 
         TextField percentField = new TextField();
         percentField.setPromptText("0.0");
         percentField.setPrefWidth(70);
-        percentField.setStyle(
-                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 6;");
+        percentField.getStyleClass().add("input-compact");
 
         Text percentSign = new Text("%");
-        percentSign.setStyle("-fx-font-size: 12px;");
+        percentSign.getStyleClass().add("unit-sign");
 
         // X button to remove participant
         Button removeButton = new Button("X");
-        removeButton.setStyle(
-                "-fx-background-color: #fef2f2; -fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2 6; -fx-background-radius: 4; -fx-border-color: #fecaca; -fx-border-radius: 4;");
+        removeButton.getStyleClass().add("split-remove-button");
         removeButton.setOnAction(e -> {
             state.removeParticipant(user);
             percentageSplitParticipantsBox.getChildren().remove(row);
@@ -817,22 +840,20 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         Text nameText = new Text(user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "") + ":");
-        nameText.setStyle("-fx-font-size: 12px;");
+        nameText.getStyleClass().add("text-small");
         nameText.setWrappingWidth(120);
 
         TextField amountField = new TextField();
         amountField.setPromptText("0.00");
         amountField.setPrefWidth(80);
-        amountField.setStyle(
-                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-background-radius: 4; -fx-padding: 6;");
+        amountField.getStyleClass().add("input-compact");
 
         Text euroSign = new Text("€");
-        euroSign.setStyle("-fx-font-size: 12px;");
+        euroSign.getStyleClass().add("unit-sign");
 
         // X button to remove participant
         Button removeButton = new Button("X");
-        removeButton.setStyle(
-                "-fx-background-color: #fef2f2; -fx-text-fill: #ef4444; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 2 6; -fx-background-radius: 4; -fx-border-color: #fecaca; -fx-border-radius: 4;");
+        removeButton.getStyleClass().add("split-remove-button");
         removeButton.setOnAction(e -> {
             state.removeParticipant(user);
             customAmountSplitParticipantsBox.getChildren().remove(row);
@@ -876,9 +897,12 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     private void updateEqualSplitSummary() {
         int count = state.getParticipants().size();
+        equalSplitSummary.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                "validation-label-muted");
         if (count > 0 && state.getTotalAmount() > 0) {
             double perPerson = state.getTotalAmount() / count;
             equalSplitSummary.setText(String.format("Each person pays %.2f€", perPerson));
+            equalSplitSummary.getStyleClass().add("validation-label-muted");
         } else {
             equalSplitSummary.setText("");
         }
@@ -895,21 +919,24 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
         double remaining = 100.0 - total;
         String remainingText;
-        String remainingStyle;
 
+        percentageSplitSummary.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                "validation-label-muted");
         if (Math.abs(remaining) < 0.01) {
             remainingText = String.format("%.1f%% left", remaining);
-            remainingStyle = "-fx-fill: #10b981; -fx-font-weight: 600;";
+            percentageSplitSummary.getStyleClass().add("validation-label-success");
         } else if (remaining < 0) {
             remainingText = String.format("%.1f%% left", remaining);
-            remainingStyle = "-fx-fill: #ef4444; -fx-font-weight: 600;";
+            percentageSplitSummary.getStyleClass().add("validation-label-error");
         } else {
             remainingText = String.format("%.1f%% left", remaining);
-            remainingStyle = "-fx-fill: #6b7280; -fx-font-weight: 500;";
+            percentageSplitSummary.getStyleClass().add("validation-label-muted");
         }
 
-        percentageSplitSummary.setText(String.format("Total: %.1f%% of 100%% \n %s", total, remainingText));
-        percentageSplitSummary.setStyle(remainingStyle);
+        if (!percentageSplitSummary.getStyleClass().contains("validation-label")) {
+            percentageSplitSummary.getStyleClass().add("validation-label");
+        }
+        percentageSplitSummary.setText(String.format("Total: %.1f%% of 100%%\n%s", total, remainingText));
     }
 
     private void updateCustomAmountSummary() {
@@ -924,20 +951,23 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         double totalAmount = state.getTotalAmount();
         double remaining = totalAmount - total;
         String remainingText;
-        String remainingStyle;
 
+        customAmountSplitSummary.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                "validation-label-muted");
         if (Math.abs(remaining) < 0.01) {
             remainingText = String.format("%.2f€ left", remaining);
-            remainingStyle = "-fx-fill: #10b981; -fx-font-weight: 600;";
+            customAmountSplitSummary.getStyleClass().add("validation-label-success");
         } else if (remaining < 0) {
             remainingText = String.format("%.2f€ left", remaining);
-            remainingStyle = "-fx-fill: #ef4444; -fx-font-weight: 600;";
+            customAmountSplitSummary.getStyleClass().add("validation-label-error");
         } else {
             remainingText = String.format("%.2f€ left", remaining);
-            remainingStyle = "-fx-fill: #6b7280; -fx-font-weight: 500;";
+            customAmountSplitSummary.getStyleClass().add("validation-label-muted");
         }
 
+        if (!customAmountSplitSummary.getStyleClass().contains("validation-label")) {
+            customAmountSplitSummary.getStyleClass().add("validation-label");
+        }
         customAmountSplitSummary.setText(String.format("Total: %.2f€ of %.2f€\n%s", total, totalAmount, remainingText));
-        customAmountSplitSummary.setStyle(remainingStyle);
     }
 }

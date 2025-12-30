@@ -24,7 +24,7 @@
         <!-- Main Content -->
         <center>
             <ScrollPane fitToWidth="true" styleClass="scroll-pane">
-                <VBox styleClass="main-content" spacing="30" style="-fx-padding: 30;">
+                <VBox styleClass="main-content" spacing="16" >
                     
                     <!-- Page Header -->
                     <VBox styleClass="content-header" spacing="8">
@@ -32,13 +32,8 @@
                         <Text text="View all your past transactions with your flatmates" styleClass="page-subtitle"/>
                     </VBox>
 
-                    <!-- Info Card -->
-                    <VBox styleClass="card" spacing="15" style="-fx-background-color: linear-gradient(to bottom right, #3b82f6, #2563eb); -fx-padding: 25;">
-                        <Text text="Transaction Overview" style="-fx-font-size: 14px; -fx-fill: rgba(255,255,255,0.9); -fx-font-weight: 500;"/>
-                        <Text fx:id="transactionCountText" text="Loading..." 
-                              style="-fx-font-size: 42px; -fx-font-weight: bold; -fx-fill: white;"/>
-                        <Text text="Transactions matching your filters" style="-fx-font-size: 12px; -fx-fill: rgba(255,255,255,0.7);"/>
-                    </VBox>
+                    <!-- Hidden counter placeholder (used by controller) -->
+                    <Text fx:id="transactionCountText" text="" visible="false" managed="false"/>
 
                     <!-- Filter Bar -->
                     <VBox styleClass="card" spacing="15">
@@ -49,23 +44,23 @@
                         </HBox>
                         <HBox spacing="15" alignment="CENTER_LEFT">
                             <VBox spacing="5">
-                                <Text text="Year" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <Text text="Year" styleClass="dialog-label-secondary"/>
                                 <ComboBox fx:id="yearFilter" promptText="Year" prefWidth="100"/>
                             </VBox>
                             <VBox spacing="5">
-                                <Text text="Month" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <Text text="Month" styleClass="dialog-label-secondary"/>
                                 <ComboBox fx:id="monthFilter" promptText="Month" prefWidth="120"/>
                             </VBox>
                             <VBox spacing="5">
-                                <Text text="Payer" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <Text text="Payer" styleClass="dialog-label-secondary"/>
                                 <ComboBox fx:id="payerFilter" promptText="All Payers" prefWidth="130"/>
                             </VBox>
                             <VBox spacing="5">
-                                <Text text="Debtor" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <Text text="Debtor" styleClass="dialog-label-secondary"/>
                                 <ComboBox fx:id="debtorFilter" promptText="All Debtors" prefWidth="130"/>
                             </VBox>
                             <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Text text="🔍 Search Description" style="-fx-font-size: 11px; -fx-fill: #6b7280;"/>
+                                <Text text="🔍 Search Description" styleClass="dialog-label-secondary"/>
                                 <TextField fx:id="searchField" promptText="Type to search..." styleClass="modern-text-field"/>
                             </VBox>
                         </HBox>

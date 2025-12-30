@@ -23,7 +23,7 @@
         <!-- Main Content -->
         <center>
             <ScrollPane fitToWidth="true" styleClass="scroll-pane">
-                <VBox styleClass="main-content" spacing="30" style="-fx-padding: 30;">
+                <VBox styleClass="main-content" spacing="30">
                     
                     <!-- Page Header -->
                     <VBox styleClass="content-header" spacing="8">
@@ -32,11 +32,11 @@
                     </VBox>
 
                     <!-- Total Balance Card -->
-                    <VBox fx:id="balanceCard" styleClass="card" spacing="15" style="-fx-background-color: linear-gradient(to bottom right, #3b82f6, #2563eb); -fx-padding: 25;">
-                        <Text text="Your Total Balance" style="-fx-font-size: 14px; -fx-fill: rgba(255,255,255,0.9); -fx-font-weight: 500;"/>
+                    <VBox fx:id="balanceCard" styleClass="finance-card-primary" spacing="15">
+                        <Text text="Your Total Balance" styleClass="finance-card-header"/>
                         <Text fx:id="totalBalanceText" text="€0.00" 
-                              style="-fx-font-size: 42px; -fx-font-weight: bold; -fx-fill: white;"/>
-                        <Text text="Sum of all balances with WG members" style="-fx-font-size: 12px; -fx-fill: rgba(255,255,255,0.7);"/>
+                              styleClass="finance-card-title"/>
+                        <Text text="Sum of all balances with WG members" styleClass="finance-card-subtitle"/>
                     </VBox>
 
                     <!-- Balance Sheet Table -->
@@ -45,12 +45,12 @@
                             <Text text="💳 Balance Sheet" styleClass="card-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
                             <Button text="🔄 Standing Orders" onAction="#showStandingOrders" 
-                                    style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                                    styleClass="finance-pill"/>
                             <Region prefWidth="10"/>
                             <Button text="📜 History" onAction="#navigateToHistory" 
-                                    style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                                    styleClass="finance-pill"/>
                             <Region prefWidth="10"/>
-                            <Button text="+ Add Transaction" styleClass="primary-button" onAction="#showAddTransactionDialog" style="-fx-padding: 10 20;"/>
+                            <Button text="+ Add Transaction" styleClass="primary-button" onAction="#showAddTransactionDialog" />
                         </HBox>
                         
                         <Text text="Your balances with each WG member" styleClass="card-subtitle"/>

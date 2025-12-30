@@ -1,11 +1,12 @@
 package com.group_2.ui.cleaning;
 
 import com.group_2.dto.cleaning.CleaningTaskTemplateDTO;
+import com.group_2.dto.cleaning.RoomDTO;
 import com.group_2.model.User;
 import com.group_2.model.WG;
 import com.group_2.model.cleaning.RecurrenceInterval;
-import com.group_2.model.cleaning.Room;
 import com.group_2.service.cleaning.CleaningScheduleService;
+import com.group_2.service.core.HouseholdSetupService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.MainScreenController;
 import com.group_2.ui.core.NavbarController;
@@ -34,6 +35,7 @@ import java.util.List;
 public class TemplateEditorController extends Controller {
 
     private final CleaningScheduleService cleaningScheduleService;
+    private final HouseholdSetupService householdSetupService;
     private final SessionManager sessionManager;
 
     @Autowired
@@ -95,8 +97,10 @@ public class TemplateEditorController extends Controller {
         }
     }
 
-    public TemplateEditorController(CleaningScheduleService cleaningScheduleService, SessionManager sessionManager) {
+    public TemplateEditorController(CleaningScheduleService cleaningScheduleService,
+            HouseholdSetupService householdSetupService, SessionManager sessionManager) {
         this.cleaningScheduleService = cleaningScheduleService;
+        this.householdSetupService = householdSetupService;
         this.sessionManager = sessionManager;
     }
 
@@ -191,33 +195,33 @@ public class TemplateEditorController extends Controller {
     private VBox createTemplateCard(WorkingTemplate template, WG wg) {
         VBox card = new VBox(8);
         card.setPadding(new Insets(12));
-        card.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 10;");
+        card.getStyleClass().add("template-card");
 
         // Room name header
         Text roomName = new Text(template.roomName);
-        roomName.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1e293b;");
+        roomName.getStyleClass().add("template-room-name");
         roomName.setWrappingWidth(130);
 
         // Show round-robin info
         HBox assigneeRow = new HBox(5);
         assigneeRow.setAlignment(Pos.CENTER_LEFT);
         Text rotationInfo = new Text("🔄 Round-robin");
-        rotationInfo.setStyle("-fx-font-size: 11px; -fx-fill: #64748b;");
+        rotationInfo.getStyleClass().add("template-info-text");
         assigneeRow.getChildren().add(rotationInfo);
 
         // Frequency display
         HBox frequencyRow = new HBox(5);
         frequencyRow.setAlignment(Pos.CENTER_LEFT);
         Text freqIcon = new Text("📅");
-        freqIcon.setStyle("-fx-font-size: 11px;");
+        freqIcon.getStyleClass().add("template-icon");
         Text freqText = new Text(template.recurrenceInterval.getDisplayName());
-        freqText.setStyle("-fx-font-size: 11px; -fx-fill: #64748b;");
+        freqText.getStyleClass().add("template-info-text");
         frequencyRow.getChildren().addAll(freqIcon, freqText);
 
         // Separator
         Region separator = new Region();
         separator.setPrefHeight(1);
-        separator.setStyle("-fx-background-color: #e2e8f0;");
+        separator.getStyleClass().add("divider-line");
 
         // Action buttons
         VBox actions = new VBox(6);
@@ -225,15 +229,13 @@ public class TemplateEditorController extends Controller {
 
         Button editBtn = new Button("✏️ Edit Day");
         editBtn.setMaxWidth(Double.MAX_VALUE);
-        editBtn.setStyle("-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-font-size: 12px; "
-                + "-fx-cursor: hand; -fx-padding: 8 12; -fx-background-radius: 6;");
+        editBtn.getStyleClass().addAll("small-action-button", "edit-button");
         editBtn.setTooltip(new Tooltip("Edit day of week"));
         editBtn.setOnAction(e -> showEditTemplateDialog(template));
 
         Button deleteBtn = new Button("🗑️ Delete");
         deleteBtn.setMaxWidth(Double.MAX_VALUE);
-        deleteBtn.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-font-size: 12px; "
-                + "-fx-cursor: hand; -fx-padding: 8 12; -fx-background-radius: 6;");
+        deleteBtn.getStyleClass().addAll("small-action-button", "delete-button-small");
         deleteBtn.setTooltip(new Tooltip("Delete this task"));
         deleteBtn.setOnAction(e -> deleteTemplate(template));
 
@@ -252,7 +254,8 @@ public class TemplateEditorController extends Controller {
         }
 
         WG wg = currentUser.getWg();
-        if (wg.rooms == null || wg.rooms.isEmpty()) {
+        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wg);
+        if (rooms.isEmpty()) {
             showWarningAlert("No Rooms", "Please add rooms first in the Dashboard.", getOwnerWindow(headerTitle));
             return;
         }
@@ -274,17 +277,17 @@ public class TemplateEditorController extends Controller {
         content.setPadding(new Insets(20));
 
         // Room selection
-        ComboBox<Room> roomCombo = new ComboBox<>();
-        roomCombo.getItems().addAll(wg.rooms);
+        ComboBox<RoomDTO> roomCombo = new ComboBox<>();
+        roomCombo.getItems().addAll(rooms);
         roomCombo.setPromptText("Select a room");
-        roomCombo.setConverter(new javafx.util.StringConverter<Room>() {
+        roomCombo.setConverter(new javafx.util.StringConverter<RoomDTO>() {
             @Override
-            public String toString(Room room) {
-                return room != null ? room.getName() : "";
+            public String toString(RoomDTO room) {
+                return room != null ? room.name() : "";
             }
 
             @Override
-            public Room fromString(String s) {
+            public RoomDTO fromString(String s) {
                 return null;
             }
         });
@@ -316,11 +319,11 @@ public class TemplateEditorController extends Controller {
         // Info about round-robin
         HBox infoBox = new HBox(8);
         infoBox.setAlignment(Pos.CENTER_LEFT);
-        infoBox.setStyle("-fx-background-color: #f0fdf4; -fx-background-radius: 8; -fx-padding: 10;");
+        infoBox.getStyleClass().add("info-box-success");
         Text infoIcon = new Text("🔄");
-        infoIcon.setStyle("-fx-font-size: 14px;");
+        infoIcon.getStyleClass().add("info-box-success-icon");
         Text infoText = new Text("Assignees rotate automatically each week");
-        infoText.setStyle("-fx-font-size: 12px; -fx-fill: #166534;");
+        infoText.getStyleClass().add("info-box-success-text");
         infoBox.getChildren().addAll(infoIcon, infoText);
 
         content.getChildren().addAll(new Text("Room:"), roomCombo, new Text("Day:"), dayCombo, new Text("Frequency:"),
@@ -336,8 +339,8 @@ public class TemplateEditorController extends Controller {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == addButtonType) {
-                Room selectedRoom = roomCombo.getValue();
-                return new WorkingTemplate(selectedRoom.getId(), selectedRoom.getName(), dayCombo.getValue(),
+                RoomDTO selectedRoom = roomCombo.getValue();
+                return new WorkingTemplate(selectedRoom.id(), selectedRoom.name(), dayCombo.getValue(),
                         freqCombo.getValue());
             }
             return null;
@@ -350,7 +353,8 @@ public class TemplateEditorController extends Controller {
         });
     }
 
-    private void updateAddButton(Dialog<?> dialog, ButtonType btnType, ComboBox<Room> room, ComboBox<DayOfWeek> day) {
+    private void updateAddButton(Dialog<?> dialog, ButtonType btnType, ComboBox<RoomDTO> room,
+            ComboBox<DayOfWeek> day) {
         dialog.getDialogPane().lookupButton(btnType).setDisable(room.getValue() == null || day.getValue() == null);
     }
 
@@ -396,11 +400,11 @@ public class TemplateEditorController extends Controller {
         // Info about round-robin
         HBox infoBox = new HBox(8);
         infoBox.setAlignment(Pos.CENTER_LEFT);
-        infoBox.setStyle("-fx-background-color: #f0fdf4; -fx-background-radius: 8; -fx-padding: 10;");
+        infoBox.getStyleClass().add("info-box-success");
         Text infoIcon = new Text("🔄");
-        infoIcon.setStyle("-fx-font-size: 14px;");
+        infoIcon.getStyleClass().add("info-box-success-icon");
         Text infoText = new Text("Assignees rotate automatically - no need to change");
-        infoText.setStyle("-fx-font-size: 12px; -fx-fill: #166534;");
+        infoText.getStyleClass().add("info-box-success-text");
         infoBox.getChildren().addAll(infoIcon, infoText);
 
         content.getChildren().addAll(new Text("Day of Week:"), dayCombo, new Text("Frequency:"), freqCombo, infoBox);

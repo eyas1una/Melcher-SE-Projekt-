@@ -1,4 +1,4 @@
-package com.group_2.ui.finance;
+﻿package com.group_2.ui.finance;
 
 import com.group_2.dto.finance.TransactionDTO;
 import com.group_2.dto.finance.TransactionSplitDTO;
@@ -69,7 +69,7 @@ public class TransactionHistoryController extends Controller {
     @FXML
     private TextField searchField;
 
-    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
+    private DecimalFormat currencyFormat = new DecimalFormat("â‚¬#,##0.00");
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -116,15 +116,16 @@ public class TransactionHistoryController extends Controller {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
-                    setStyle("");
+                    getStyleClass().removeAll("amount-positive", "amount-default");
                 } else {
                     setText(item);
                     // Color positive amounts in green, keep others default
                     TransactionDTO transaction = getTableView().getItems().get(getIndex());
+                    getStyleClass().removeAll("amount-positive", "amount-default");
                     if (transaction.totalAmount() > 0) {
-                        setStyle("-fx-text-fill: #10b981; -fx-font-weight: 600;");
+                        getStyleClass().add("amount-positive");
                     } else {
-                        setStyle("-fx-font-weight: 600;");
+                        getStyleClass().add("amount-default");
                     }
                 }
             }
@@ -154,19 +155,17 @@ public class TransactionHistoryController extends Controller {
 
         // Setup actions column with edit and delete buttons
         actionsColumn.setCellFactory(col -> new TableCell<TransactionDTO, Void>() {
-            private final Button editBtn = new Button("✏️ Edit");
-            private final Button deleteBtn = new Button("🗑️");
+            private final Button editBtn = new Button("âœï¸ Edit");
+            private final Button deleteBtn = new Button("ðŸ—‘ï¸");
 
             {
-                editBtn.setStyle(
-                        "-fx-background-color: #dbeafe; -fx-text-fill: #2563eb; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 5 8;");
+                editBtn.getStyleClass().addAll("table-action-button", "table-edit-button");
                 editBtn.setOnAction(e -> {
                     TransactionDTO transaction = getTableView().getItems().get(getIndex());
                     showEditTransactionDialog(transaction);
                 });
 
-                deleteBtn.setStyle(
-                        "-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 5 8;");
+                deleteBtn.getStyleClass().addAll("table-action-button", "table-delete-button");
                 deleteBtn.setOnAction(e -> {
                     TransactionDTO transaction = getTableView().getItems().get(getIndex());
                     confirmAndDeleteTransaction(transaction);
@@ -412,35 +411,37 @@ public class TransactionHistoryController extends Controller {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Edit Transaction");
         dialog.initOwner(historyTable.getScene().getWindow());
+        String stylesheet = getClass().getResource("/css/styles.css").toExternalForm();
+        if (!dialog.getDialogPane().getStylesheets().contains(stylesheet)) {
+            dialog.getDialogPane().getStylesheets().add(stylesheet);
+        }
 
         // Create dialog content
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
-        content.setStyle("-fx-background-color: white;");
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(500);
 
         // Description field
         Text descLabel = new Text("Description");
-        descLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        descLabel.getStyleClass().add("form-label-bold");
         TextField descField = new TextField(transaction.description());
-        descField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        descField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         // Total Amount field
-        Text amountLabel = new Text("Total Amount (€)");
-        amountLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        Text amountLabel = new Text("Total Amount (â‚¬)");
+        amountLabel.getStyleClass().add("form-label-bold");
         TextField amountField = new TextField(String.format("%.2f", transaction.totalAmount()));
-        amountField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        amountField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         // Creditor info
         Text creditorInfo = new Text("Creditor: " + transaction.creditorName());
-        creditorInfo.setStyle("-fx-font-size: 12px; -fx-fill: #6b7280;");
+        creditorInfo.getStyleClass().add("dialog-label-secondary");
 
         // Date info
         Text dateInfo = new Text("Created: " + transaction.timestamp().format(dateFormatter) + " at "
                 + transaction.timestamp().format(timeFormatter));
-        dateInfo.setStyle("-fx-font-size: 11px; -fx-fill: #9ca3af;");
+        dateInfo.getStyleClass().add("info-text-muted");
 
         content.getChildren().addAll(descLabel, descField, amountLabel, amountField, creditorInfo, dateInfo);
 
@@ -454,7 +455,7 @@ public class TransactionHistoryController extends Controller {
 
         if (splits.size() > 1) {
             Text splitsLabel = new Text("Split Options");
-            splitsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+            splitsLabel.getStyleClass().add("form-label-bold");
             content.getChildren().add(splitsLabel);
 
             // Mode selector
@@ -473,10 +474,10 @@ public class TransactionHistoryController extends Controller {
             modeSelector.getChildren().addAll(equalBtn, percentBtn, amountBtn);
             content.getChildren().add(modeSelector);
 
-            splitsContainer.setStyle("-fx-background-color: #f9fafb; -fx-padding: 10; -fx-background-radius: 8;");
+            splitsContainer.getStyleClass().add("splits-container");
             content.getChildren().add(splitsContainer);
 
-            validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #dc2626;");
+            validationLabel.getStyleClass().add("validation-label");
             content.getChildren().add(validationLabel);
 
             // Function to rebuild split fields based on mode
@@ -496,24 +497,25 @@ public class TransactionHistoryController extends Controller {
                     for (TransactionSplitDTO split : splits) {
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                        Text nameText = new Text(split.debtorName() + ": " + String.format("%.2f", equalAmount) + "€");
-                        nameText.setStyle("-fx-font-size: 12px;");
+                        Text nameText = new Text(split.debtorName() + ": " + String.format("%.2f", equalAmount) + "â‚¬");
+                        nameText.getStyleClass().add("text-small");
                         row.getChildren().add(nameText);
                         splitsContainer.getChildren().add(row);
                     }
-                    validationLabel.setText("✓ Equal split");
-                    validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #16a34a;");
+                    validationLabel.setText("âœ“ Equal split");
+                    validationLabel.getStyleClass().removeAll("validation-label-error", "validation-label-muted",
+                            "validation-label-success");
+                    validationLabel.getStyleClass().addAll("validation-label", "validation-label-success");
                 } else if (currentMode[0].equals("PERCENT")) {
                     for (TransactionSplitDTO split : splits) {
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                         Text nameText = new Text(split.debtorName() + ":");
-                        nameText.setStyle("-fx-font-size: 12px;");
+                        nameText.getStyleClass().add("text-small");
                         nameText.setWrappingWidth(120);
 
                         TextField field = new TextField(String.format("%.1f", split.percentage()));
-                        field.setStyle(
-                                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-padding: 6;");
+                        field.getStyleClass().add("input-compact");
                         field.setPrefWidth(70);
                         splitFields.put(split.debtorId(), field);
 
@@ -525,25 +527,30 @@ public class TransactionHistoryController extends Controller {
                                     sum += Double.parseDouble(f.getText().replace(",", "."));
                                 }
                                 double remaining = 100.0 - sum;
-                                String style;
+                                validationLabel.getStyleClass().removeAll("validation-label-success",
+                                        "validation-label-error", "validation-label-muted");
                                 if (Math.abs(remaining) < 0.01) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;";
+                                    validationLabel.getStyleClass().add("validation-label-success");
                                 } else if (remaining < 0) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #ef4444; -fx-font-weight: 600;";
+                                    validationLabel.getStyleClass().add("validation-label-error");
                                 } else {
-                                    style = "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                                    validationLabel.getStyleClass().add("validation-label-muted");
                                 }
                                 validationLabel
                                         .setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
-                                validationLabel.setStyle(style);
+                                if (!validationLabel.getStyleClass().contains("validation-label")) {
+                                    validationLabel.getStyleClass().add("validation-label");
+                                }
                             } catch (NumberFormatException ex) {
-                                validationLabel.setText("⚠ Invalid number");
-                                validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #ef4444;");
+                                validationLabel.setText("Invalid number");
+                                validationLabel.getStyleClass().removeAll("validation-label-success",
+                                        "validation-label-muted");
+                                validationLabel.getStyleClass().addAll("validation-label", "validation-label-error");
                             }
                         });
 
                         Text percentSign = new Text("%");
-                        percentSign.setStyle("-fx-font-size: 12px;");
+                        percentSign.getStyleClass().add("unit-sign");
 
                         row.getChildren().addAll(nameText, field, percentSign);
                         splitsContainer.getChildren().add(row);
@@ -551,65 +558,13 @@ public class TransactionHistoryController extends Controller {
                     // Initial calculation
                     double sum = splits.stream().mapToDouble(TransactionSplitDTO::percentage).sum();
                     double remaining = 100.0 - sum;
-                    String style = Math.abs(remaining) < 0.01
-                            ? "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;"
-                            : "-fx-font-size: 11px; -fx-fill: #6b7280;";
-                    validationLabel.setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
-                    validationLabel.setStyle(style);
-                } else { // AMOUNT mode
-                    for (TransactionSplitDTO split : splits) {
-                        HBox row = new HBox(10);
-                        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                        Text nameText = new Text(split.debtorName() + ":");
-                        nameText.setStyle("-fx-font-size: 12px;");
-                        nameText.setWrappingWidth(120);
-
-                        TextField field = new TextField(String.format("%.2f", split.amount()));
-                        field.setStyle(
-                                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-padding: 6;");
-                        field.setPrefWidth(80);
-                        splitFields.put(split.debtorId(), field);
-
-                        // Add listener for live validation
-                        field.textProperty().addListener((obs, oldVal, newVal) -> {
-                            try {
-                                double totalAmt = Double.parseDouble(amountField.getText().replace(",", "."));
-                                double sum = 0;
-                                for (TextField f : splitFields.values()) {
-                                    sum += Double.parseDouble(f.getText().replace(",", "."));
-                                }
-                                double remaining = totalAmt - sum;
-                                String style;
-                                if (Math.abs(remaining) < 0.01) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;";
-                                } else if (remaining < 0) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #ef4444; -fx-font-weight: 600;";
-                                } else {
-                                    style = "-fx-font-size: 11px; -fx-fill: #6b7280;";
-                                }
-                                validationLabel.setText(
-                                        String.format("Total: %.2f€ of %.2f€\n%.2f€ left", sum, totalAmt, remaining));
-                                validationLabel.setStyle(style);
-                            } catch (NumberFormatException ex) {
-                                validationLabel.setText("⚠ Invalid number");
-                                validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #ef4444;");
-                            }
-                        });
-
-                        Text euroSign = new Text("€");
-                        euroSign.setStyle("-fx-font-size: 12px;");
-
-                        row.getChildren().addAll(nameText, field, euroSign);
-                        splitsContainer.getChildren().add(row);
+                    validationLabel.setText(String.format("Total: %.2f EUR of %.2f EUR\n%.2f EUR left", sum, total, remaining));
+                    validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error", "validation-label-muted");
+                    if (Math.abs(remaining) < 0.01) {
+                        validationLabel.getStyleClass().addAll("validation-label", "validation-label-success");
+                    } else {
+                        validationLabel.getStyleClass().addAll("validation-label", "validation-label-muted");
                     }
-                    // Initial calculation
-                    double sum = splits.stream().mapToDouble(TransactionSplitDTO::amount).sum();
-                    double remaining = total - sum;
-                    String style = Math.abs(remaining) < 0.01
-                            ? "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;"
-                            : "-fx-font-size: 11px; -fx-fill: #6b7280;";
-                    validationLabel.setText(String.format("Total: %.2f€ of %.2f€\n%.2f€ left", sum, total, remaining));
-                    validationLabel.setStyle(style);
                 }
             };
 
@@ -634,14 +589,13 @@ public class TransactionHistoryController extends Controller {
         dialog.getDialogPane().setContent(content);
 
         // Add buttons
-        ButtonType saveButton = new ButtonType("💾 Save Changes", ButtonBar.ButtonData.OK_DONE);
+        ButtonType saveButton = new ButtonType("ðŸ’¾ Save Changes", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
 
         // Style the save button
         Button saveBtn = (Button) dialog.getDialogPane().lookupButton(saveButton);
-        saveBtn.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; "
-                + "-fx-padding: 10 24; -fx-font-weight: bold; -fx-cursor: hand;");
+        saveBtn.getStyleClass().addAll("confirm-button", "confirm-button-success");
 
         // Handle result
         Optional<ButtonType> result = dialog.showAndWait();
@@ -688,7 +642,7 @@ public class TransactionHistoryController extends Controller {
                         }
                         if (Math.abs(totalSplitAmount - newAmount) > 0.01) {
                             throw new IllegalArgumentException(String.format(
-                                    "Split amounts (€%.2f) must equal total (€%.2f)", totalSplitAmount, newAmount));
+                                    "Split amounts (â‚¬%.2f) must equal total (â‚¬%.2f)", totalSplitAmount, newAmount));
                         }
                         for (TransactionSplitDTO split : splits) {
                             TextField field = splitFields.get(split.debtorId());
@@ -771,3 +725,6 @@ public class TransactionHistoryController extends Controller {
         }
     }
 }
+
+
+

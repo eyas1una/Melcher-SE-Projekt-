@@ -11,87 +11,88 @@
            fx:id="dialogOverlay"
            visible="false"
            managed="false"
-           style="-fx-background-color: rgba(0,0,0,0.6);"
+           styleClass="dialog-overlay"
+           stylesheets="@/css/styles.css"
            alignment="CENTER">
 
     <!-- STEP 1: Select Creditor & Debtors -->
-    <VBox fx:id="step1Screen" styleClass="card" spacing="0"
-          style="-fx-max-width: 500; -fx-max-height: 600; -fx-padding: 0; -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 4);">
+    <VBox fx:id="step1Screen" styleClass="card dialog-surface" spacing="0"
+          StackPane.alignment="CENTER" maxWidth="950" maxHeight="650" prefWidth="820">
         
         <!-- Header -->
-        <HBox alignment="CENTER" spacing="15" style="-fx-padding: 20 24; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0; -fx-background-color: #f9fafb; -fx-background-radius: 16 16 0 0;">
+        <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
             <Button text="✕" onAction="#closeDialog"
-                    style="-fx-background-color: transparent; -fx-text-fill: #6b7280; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 4;"/>
-            <Text text="Step 1: Select Participants" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-fill: #111827;"/>
+                    styleClass="dialog-close-button"/>
+            <Text text="Step 1: Select Participants" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
         </HBox>
 
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background: white;">
-            <VBox spacing="20" style="-fx-padding: 20 24;">
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" >
+            <VBox spacing="20" styleClass="dialog-body">
                 
                 <!-- Select Creditor Section -->
                 <VBox spacing="12">
-                    <Text text="Who paid?" style="-fx-font-size: 15px; -fx-font-weight: 600; -fx-fill: #111827;"/>
-                    <Text text="Select the person who paid for this expense" style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
+                    <Text text="Who paid?" styleClass="dialog-text-emphasis"/>
+                    <Text text="Select the person who paid for this expense" styleClass="dialog-text-secondary"/>
                     <VBox fx:id="creditorListBox" spacing="8"/>
                 </VBox>
 
-                <Separator style="-fx-background-color: #e5e7eb;"/>
+                <Separator/>
 
                 <!-- Select Debtors Section -->
                 <VBox spacing="12">
-                    <Text text="Who owes?" style="-fx-font-size: 15px; -fx-font-weight: 600; -fx-fill: #111827;"/>
-                    <Text text="Select all people who should pay for this expense" style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
+                    <Text text="Who owes?" styleClass="dialog-text-emphasis"/>
+                    <Text text="Select all people who should pay for this expense" styleClass="dialog-text-secondary"/>
                     <Button fx:id="selectAllDebtorsButton" text="Select All" onAction="#handleSelectAllDebtors"
-                            style="-fx-background-color: #eff6ff; -fx-text-fill: #3b82f6; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-weight: 500; -fx-font-size: 12px; -fx-border-color: #3b82f6; -fx-border-radius: 6;"/>
+                            styleClass="dialog-badge"/>
                     <VBox fx:id="debtorListBox" spacing="8"/>
                 </VBox>
 
                 <!-- Validation Error -->
                 <Text fx:id="step1ValidationError" text="" visible="false" managed="false"
-                      style="-fx-font-size: 12px; -fx-fill: #ef4444; -fx-font-weight: 500;"/>
+                      styleClass="dialog-label-error"/>
             </VBox>
         </ScrollPane>
 
         <!-- Footer with Next Button -->
-        <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 16 24; -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;">
+        <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="dialog-footer">
             <Button fx:id="step1NextButton" text="Next →" onAction="#goToStep2"
-                    style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                    styleClass="dialog-footer-button-primary"/>
         </HBox>
     </VBox>
 
     <!-- STEP 2: Description & Amount -->  
-    <VBox fx:id="step2Screen" visible="false" managed="false" styleClass="card" spacing="0"
-          style="-fx-max-width: 550; -fx-max-height: 700; -fx-padding: 0; -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 4);">
+    <VBox fx:id="step2Screen" visible="false" managed="false" styleClass="card dialog-surface" spacing="0"
+          StackPane.alignment="CENTER" maxWidth="950" maxHeight="650" prefWidth="820">
         
         <!-- Header -->
-        <HBox alignment="CENTER" spacing="15" style="-fx-padding: 20 24; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0; -fx-background-color: #f9fafb; -fx-background-radius: 16 16 0 0;">
+        <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
             <Button text="✕" onAction="#closeDialog"
-                    style="-fx-background-color: transparent; -fx-text-fill: #6b7280; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 4;"/>
-            <Text text="Step 2: Transaction Details" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-fill: #111827;"/>
+                    styleClass="dialog-close-button"/>
+            <Text text="Step 2: Transaction Details" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
         </HBox>
 
-        <VBox spacing="20" style="-fx-padding: 20 24;" VBox.vgrow="ALWAYS">
+        <VBox spacing="20" styleClass="dialog-body" VBox.vgrow="ALWAYS">
             <!-- Summary -->
-            <VBox spacing="6" style="-fx-background-color: #eff6ff; -fx-padding: 12; -fx-background-radius: 8;">
-                <Text fx:id="step2Summary" text="" style="-fx-font-size: 13px; -fx-fill: #1e40af; -fx-font-weight: 500;" wrappingWidth="420"/>
+            <VBox spacing="6" styleClass="dialog-highlight-box">
+                <Text fx:id="step2Summary" text="" styleClass="dialog-text-primary" wrappingWidth="420"/>
             </VBox>
 
             <!-- Description -->
             <VBox spacing="8">
-                <Text text="Description" style="-fx-font-size: 14px; -fx-fill: #111827; -fx-font-weight: 600;"/>
+                <Text text="Description" styleClass="dialog-text-emphasis"/>
                 <TextField fx:id="descriptionField" promptText="e.g., Groceries, Dinner, Movie tickets..." 
-                           style="-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 14px;"/>
+                           styleClass="dialog-field dialog-field-small"/>
             </VBox>
 
             <!-- Amount -->
             <VBox spacing="8">
-                <Text text="Total Amount" style="-fx-font-size: 14px; -fx-fill: #111827; -fx-font-weight: 600;"/>
+                <Text text="Total Amount" styleClass="dialog-text-emphasis"/>
                 <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Text text="€" style="-fx-font-size: 18px; -fx-fill: #6b7280; -fx-font-weight: 600;"/>
+                    <Text text="€" styleClass="dialog-text-emphasis"/>
                     <TextField fx:id="amountField" promptText="0.00" HBox.hgrow="ALWAYS"
-                               style="-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12; -fx-font-size: 16px;"/>
+                               styleClass="dialog-field dialog-field-large"/>
                 </HBox>
             </VBox>
 
@@ -99,96 +100,96 @@
             <VBox spacing="8">
                 <CheckBox fx:id="standingOrderCheckbox" text="Make this a standing order (recurring)"
                           onAction="#handleStandingOrderToggle"
-                          style="-fx-font-size: 14px; -fx-font-weight: 500;"/>
+                          styleClass="dialog-text-emphasis"/>
                 <HBox fx:id="standingOrderOptionsBox" spacing="12" alignment="CENTER_LEFT" 
-                      visible="false" managed="false" style="-fx-padding: 8 0 0 24;">
+                      visible="false" managed="false" >
                     <VBox spacing="4">
-                        <Text text="Frequency" style="-fx-font-size: 12px; -fx-fill: #6b7280;"/>
+                        <Text text="Frequency" styleClass="dialog-label-secondary"/>
                         <ComboBox fx:id="frequencyComboBox" promptText="Select..."
                                   onAction="#handleFrequencyChange"
-                                  style="-fx-pref-width: 150; -fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6;"/>
+                                  styleClass="dialog-field" prefWidth="150"/>
                     </VBox>
                     <VBox fx:id="startDateBox" spacing="4" visible="false" managed="false">
-                        <Text fx:id="startDateLabel" text="Start Date" style="-fx-font-size: 12px; -fx-fill: #6b7280;"/>
+                        <Text fx:id="startDateLabel" text="Start Date" styleClass="dialog-label-secondary"/>
                         <DatePicker fx:id="startDatePicker" promptText="Select..."
-                                    style="-fx-pref-width: 130; -fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6;"/>
+                                    styleClass="dialog-field" prefWidth="130"/>
                     </VBox>
                     <VBox fx:id="monthlyLastDayBox" spacing="4" alignment="CENTER_LEFT" visible="false" managed="false">
-                        <Text text=" " style="-fx-font-size: 12px;"/>
+                        <Text text=" " styleClass="dialog-label-muted"/>
                         <CheckBox fx:id="monthlyLastDayCheckbox" text="Last day of month"
                                   onAction="#handleMonthlyLastDayToggle"
-                                  style="-fx-font-size: 12px;"/>
+                                  styleClass="dialog-label-muted"/>
                     </VBox>
                 </HBox>
             </VBox>
 
             <!-- Validation Error -->
             <Text fx:id="step2ValidationError" text="" visible="false" managed="false"
-                  style="-fx-font-size: 12px; -fx-fill: #ef4444; -fx-font-weight: 500;"/>
+                  styleClass="dialog-label-error"/>
         </VBox>
 
         <!-- Footer with Back/Next Buttons -->
-        <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 16 24; -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;">
+        <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="dialog-footer">
             <Button text="← Back" onAction="#goToStep1"
-                    style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                    styleClass="dialog-footer-button-light"/>
             <Button fx:id="step2NextButton" text="Next →" onAction="#goToStep3"
-                    style="-fx-background-color: #3b82f6; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                    styleClass="dialog-footer-button-primary"/>
         </HBox>
     </VBox>
 
     <!-- STEP 3: Split Options -->
-    <VBox fx:id="step3Screen" visible="false" managed="false" styleClass="card" spacing="0"
-          style="-fx-max-width: 500; -fx-max-height: 600; -fx-padding: 0; -fx-background-color: white; -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 4);">
+    <VBox fx:id="step3Screen" visible="false" managed="false" styleClass="card dialog-surface" spacing="0"
+          StackPane.alignment="CENTER" maxWidth="950" maxHeight="650" prefWidth="820">
         
         <!-- Header -->
-        <HBox alignment="CENTER" spacing="15" style="-fx-padding: 20 24; -fx-border-color: #e5e7eb; -fx-border-width: 0 0 1 0; -fx-background-color: #f9fafb; -fx-background-radius: 16 16 0 0;">
+        <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
             <Button text="✕" onAction="#closeDialog"
-                    style="-fx-background-color: transparent; -fx-text-fill: #6b7280; -fx-font-size: 20px; -fx-cursor: hand; -fx-padding: 4;"/>
-            <Text text="Step 3: Split Options" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-fill: #111827;"/>
+                    styleClass="dialog-close-button"/>
+            <Text text="Step 3: Split Options" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
         </HBox>
 
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background: white;">
-            <VBox spacing="20" style="-fx-padding: 20 24;">
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" >
+            <VBox spacing="20" styleClass="dialog-body">
                 <!-- Split Mode Selection -->
                 <VBox spacing="12">
-                    <Text text="How should this be split?" style="-fx-font-size: 14px; -fx-fill: #111827; -fx-font-weight: 600;"/>
+                    <Text text="How should this be split?" styleClass="dialog-text-emphasis"/>
                     <RadioButton fx:id="equalSplitRadio" text="Split equally" selected="true"
-                                 onAction="#handleSplitModeChange" style="-fx-font-size: 14px; -fx-font-weight: 500;"/>
+                                 onAction="#handleSplitModeChange" styleClass="dialog-text-emphasis"/>
                     <RadioButton fx:id="percentageSplitRadio" text="Split by percentage"
-                                 onAction="#handleSplitModeChange" style="-fx-font-size: 14px; -fx-font-weight: 500;"/>
+                                 onAction="#handleSplitModeChange" styleClass="dialog-text-emphasis"/>
                     <RadioButton fx:id="customAmountSplitRadio" text="Split by custom amounts"
-                                 onAction="#handleSplitModeChange" style="-fx-font-size: 14px; -fx-font-weight: 500;"/>
+                                 onAction="#handleSplitModeChange" styleClass="dialog-text-emphasis"/>
                 </VBox>
 
                 <!-- Equal Split Content -->
                 <VBox fx:id="equalSplitContent" spacing="12">
-                    <Text text="Each person will pay an equal share." style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
-                    <Text fx:id="equalSplitSummary" text="" style="-fx-font-size: 13px; -fx-fill: #111827; -fx-font-weight: 600;"/>
+                    <Text text="Each person will pay an equal share." styleClass="dialog-text-secondary"/>
+                    <Text fx:id="equalSplitSummary" text="" styleClass="dialog-text-emphasis"/>
                 </VBox>
 
                 <!-- Percentage Split Content -->
                 <VBox fx:id="percentageSplitContent" spacing="12" visible="false" managed="false">
-                    <Text text="Enter percentage for each person." style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
-                    <VBox fx:id="percentageSplitParticipantsBox" spacing="8" style="-fx-background-color: #f9fafb; -fx-padding: 12; -fx-background-radius: 8;"/>
-                    <Text fx:id="percentageSplitSummary" text="Total: 0%" style="-fx-font-size: 13px; -fx-fill: #6b7280; -fx-font-weight: 500;"/>
+                    <Text text="Enter percentage for each person." styleClass="dialog-text-secondary"/>
+                    <VBox fx:id="percentageSplitParticipantsBox" spacing="8" styleClass="dialog-highlight-box"/>
+                    <Text fx:id="percentageSplitSummary" text="Total: 0%" styleClass="dialog-text-secondary"/>
                 </VBox>
 
                 <!-- Custom Amount Split Content -->
                 <VBox fx:id="customAmountSplitContent" spacing="12" visible="false" managed="false">
-                    <Text text="Enter custom amount for each person." style="-fx-font-size: 13px; -fx-fill: #6b7280;"/>
-                    <VBox fx:id="customAmountSplitParticipantsBox" spacing="8" style="-fx-background-color: #f9fafb; -fx-padding: 12; -fx-background-radius: 8;"/>
-                    <Text fx:id="customAmountSplitSummary" text="Remaining: €0.00" style="-fx-font-size: 13px; -fx-fill: #6b7280; -fx-font-weight: 500;"/>
+                    <Text text="Enter custom amount for each person." styleClass="dialog-text-secondary"/>
+                    <VBox fx:id="customAmountSplitParticipantsBox" spacing="8" styleClass="dialog-highlight-box"/>
+                    <Text fx:id="customAmountSplitSummary" text="Remaining: €0.00" styleClass="dialog-text-secondary"/>
                 </VBox>
             </VBox>
         </ScrollPane>
 
         <!-- Footer with Back/Save Buttons -->
-        <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 16 24; -fx-border-color: #e5e7eb; -fx-border-width: 1 0 0 0;">
+        <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="dialog-footer">
             <Button text="← Back" onAction="#goToStep2"
-                    style="-fx-background-color: #f3f4f6; -fx-text-fill: #374151; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                    styleClass="dialog-footer-button-light"/>
             <Button fx:id="saveButton" text="Save Transaction" onAction="#saveTransaction"
-                    style="-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 24; -fx-cursor: hand; -fx-font-weight: 600; -fx-font-size: 13px;"/>
+                    styleClass="dialog-footer-button-primary"/>
         </HBox>
     </VBox>
 

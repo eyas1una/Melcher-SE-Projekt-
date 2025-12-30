@@ -3,6 +3,7 @@ package com.group_2.dto.cleaning;
 import com.group_2.model.User;
 import com.group_2.model.cleaning.CleaningTask;
 import com.group_2.model.cleaning.CleaningTaskTemplate;
+import com.group_2.model.cleaning.Room;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -55,6 +56,23 @@ public class CleaningMapper {
         if (templates != null) {
             for (CleaningTaskTemplate template : templates) {
                 dtos.add(toTemplateDTO(template));
+            }
+        }
+        return dtos;
+    }
+
+    public RoomDTO toRoomDTO(Room room) {
+        if (room == null) {
+            return null;
+        }
+        return new RoomDTO(room.getId(), room.getName());
+    }
+
+    public List<RoomDTO> toRoomDTOList(List<Room> rooms) {
+        List<RoomDTO> dtos = new ArrayList<>();
+        if (rooms != null) {
+            for (Room room : rooms) {
+                dtos.add(toRoomDTO(room));
             }
         }
         return dtos;

@@ -19,24 +19,21 @@
 
     <!-- Main Content Area - Calendar View -->
     <center>
-        <VBox style="-fx-background-color: #f8fafc; -fx-padding: 25;">
+        <VBox styleClass="cleaning-page">
             
             <!-- Header Row with Week Navigation -->
-            <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 0 0 15 0;">
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="cleaning-header">
                 <!-- Week Navigation -->
                 <HBox spacing="12" alignment="CENTER_LEFT">
-                    <Button text="◀" styleClass="icon-button" onAction="#previousWeek"
-                            style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8 12; -fx-cursor: hand;"/>
+                    <Button text="◀" styleClass="icon-button nav-button-light" onAction="#previousWeek"/>
                     <VBox spacing="2" alignment="CENTER_LEFT">
                         <Text fx:id="weekTitle" text="Week 52, 2024" 
-                              style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                              styleClass="text-title-cleaning"/>
                         <Text fx:id="weekDateRange" text="December 23 - December 29" 
-                              style="-fx-font-size: 13px; -fx-fill: #64748b;"/>
+                              styleClass="text-subtitle-cleaning"/>
                     </VBox>
-                    <Button text="▶" styleClass="icon-button" onAction="#nextWeek"
-                            style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8 12; -fx-cursor: hand;"/>
-                    <Button text="📅 Today" styleClass="secondary-button" onAction="#goToCurrentWeek"
-                            style="-fx-background-color: #6366f1; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="▶" styleClass="icon-button nav-button-light" onAction="#nextWeek"/>
+                    <Button text="📅 Today" styleClass="nav-button-primary" onAction="#goToCurrentWeek"/>
                 </HBox>
                 
                 <Region HBox.hgrow="ALWAYS"/>
@@ -44,30 +41,30 @@
                 <!-- Progress Stats -->
                 <HBox spacing="15" alignment="CENTER">
                     <VBox alignment="CENTER" spacing="2" 
-                          style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1);">
+                          styleClass="cleaning-stat-card">
                         <Text fx:id="completedTasksText" text="0/0" 
-                              style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #10b981;"/>
-                        <Text text="Completed" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                              styleClass="text-stat-green"/>
+                        <Text text="Completed" styleClass="text-caption-muted"/>
                     </VBox>
                     <VBox alignment="CENTER" spacing="2" 
-                          style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 12 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1);">
+                          styleClass="cleaning-stat-card">
                         <Text fx:id="myTasksCountText" text="0" 
-                              style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #6366f1;"/>
-                        <Text text="My Tasks" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                              styleClass="text-stat-primary"/>
+                        <Text text="My Tasks" styleClass="text-caption-muted"/>
                     </VBox>
                 </HBox>
             </HBox>
 
             <!-- Action Toolbar -->
-            <HBox spacing="12" alignment="CENTER_LEFT" style="-fx-padding: 0 0 20 0;">
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="cleaning-toolbar">
 
                 <Button text="➕ Add Task" onAction="#showAddTaskDialog"
-                        style="-fx-background-color: white; -fx-text-fill: #475569; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 13px; -fx-border-color: #e2e8f0; -fx-border-radius: 8;"/>
+                        styleClass="action-button-light"/>
                 
-                <Region style="-fx-pref-width: 20;"/>
+                <Region prefWidth="20"/>
                 
                 <Button text="📝 Edit Template" onAction="#openTemplateEditor"
-                        style="-fx-background-color: white; -fx-text-fill: #475569; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand; -fx-font-size: 13px; -fx-border-color: #e2e8f0; -fx-border-radius: 8;"/>
+                        styleClass="action-button-light"/>
             </HBox>
 
 
@@ -78,25 +75,25 @@
                     <!-- Day Headers -->
                     <HBox styleClass="calendar-header" spacing="0">
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Mon" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                            <Text text="Mon" styleClass="day-label"/>
                         </StackPane>
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Tue" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                            <Text text="Tue" styleClass="day-label"/>
                         </StackPane>
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Wed" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                            <Text text="Wed" styleClass="day-label"/>
                         </StackPane>
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Thu" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                            <Text text="Thu" styleClass="day-label"/>
                         </StackPane>
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Fri" style="-fx-font-weight: bold; -fx-fill: #64748b;"/>
+                            <Text text="Fri" styleClass="day-label"/>
                         </StackPane>
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Sat" style="-fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                            <Text text="Sat" styleClass="day-label-muted"/>
                         </StackPane>
                         <StackPane styleClass="calendar-day-header" prefWidth="130" prefHeight="40">
-                            <Text text="Sun" style="-fx-font-weight: bold; -fx-fill: #94a3b8;"/>
+                            <Text text="Sun" styleClass="day-label-muted"/>
                         </StackPane>
                     </HBox>
 
@@ -106,9 +103,9 @@
                     </HBox>
 
                     <!-- Tasks by Room Section -->
-                    <VBox spacing="15" style="-fx-padding: 25 0 0 0;">
+                    <VBox spacing="15" styleClass="section-top">
                         <Text text="📋 All Cleaning Tasks" 
-                              style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+                              styleClass="section-title-cleaning"/>
                         
                         <HBox fx:id="roomCardsContainer" spacing="15" alignment="TOP_LEFT">
                             <!-- Room task cards will be added dynamically -->

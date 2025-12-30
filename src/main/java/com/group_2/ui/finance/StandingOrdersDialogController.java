@@ -71,6 +71,17 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
 
     @FXML
     public void initialize() {
+        // Ensure dialog overlay uses shared stylesheet and fills the parent when shown
+        String stylesheet = getClass().getResource("/css/styles.css").toExternalForm();
+        if (!dialogOverlay.getStylesheets().contains(stylesheet)) {
+            dialogOverlay.getStylesheets().add(stylesheet);
+        }
+        if (!dialogOverlay.getStyleClass().contains("dialog-overlay")) {
+            dialogOverlay.getStyleClass().add("dialog-overlay");
+        }
+        dialogOverlay.setPickOnBounds(true);
+        dialogOverlay.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
         setupTable();
     }
 
@@ -103,19 +114,17 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
             return new SimpleStringProperty(nextDate);
         });
         actionsColumn.setCellFactory(col -> new TableCell<StandingOrderDTO, Void>() {
-            private final Button editBtn = new Button("✏️ Edit");
-            private final Button deleteBtn = new Button("🗑️");
+            private final Button editBtn = new Button("Edit");
+            private final Button deleteBtn = new Button("Delete");
 
             {
-                editBtn.setStyle(
-                        "-fx-background-color: #dbeafe; -fx-text-fill: #2563eb; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 5 8;");
+                editBtn.getStyleClass().addAll("table-action-button", "table-edit-button");
                 editBtn.setOnAction(e -> {
                     StandingOrderDTO order = getTableView().getItems().get(getIndex());
                     showEditDialog(order);
                 });
 
-                deleteBtn.setStyle(
-                        "-fx-background-color: #fee2e2; -fx-text-fill: #dc2626; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 5 8;");
+                deleteBtn.getStyleClass().addAll("table-action-button", "table-delete-button");
                 deleteBtn.setOnAction(e -> {
                     StandingOrderDTO order = getTableView().getItems().get(getIndex());
                     confirmAndDelete(order);
@@ -263,11 +272,15 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
         if (dialogOverlay.getScene() != null) {
             dialog.initOwner(dialogOverlay.getScene().getWindow());
         }
+        String stylesheet = getClass().getResource("/css/styles.css").toExternalForm();
+        if (!dialog.getDialogPane().getStylesheets().contains(stylesheet)) {
+            dialog.getDialogPane().getStylesheets().add(stylesheet);
+        }
 
         // Create dialog content
         VBox content = new VBox(15);
         content.setPadding(new javafx.geometry.Insets(20));
-        content.setStyle("-fx-background-color: white;");
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(500);
 
         // Defaults for create mode
@@ -290,25 +303,22 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
 
         // Description field
         javafx.scene.text.Text descLabel = new javafx.scene.text.Text("Description");
-        descLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        descLabel.getStyleClass().add("form-label-bold");
         TextField descField = new TextField(defaultDesc);
-        descField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        descField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         // Amount field
         javafx.scene.text.Text amountLabel = new javafx.scene.text.Text("Total Amount (€)");
-        amountLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        amountLabel.getStyleClass().add("form-label-bold");
         TextField amountField = new TextField(String.format("%.2f", defaultAmount));
-        amountField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        amountField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         // Frequency selection
         javafx.scene.text.Text freqLabel = new javafx.scene.text.Text("Frequency");
-        freqLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        freqLabel.getStyleClass().add("form-label-bold");
         ComboBox<String> freqComboBox = new ComboBox<>();
         freqComboBox.getItems().addAll("Weekly", "Bi-weekly", "Monthly");
-        freqComboBox.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6;");
+        freqComboBox.getStyleClass().add("dialog-field");
 
         // Set current frequency
         if (defaultFreq != null) {
@@ -327,11 +337,10 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
         lastDayCheckbox.setSelected(Boolean.TRUE.equals(defaultMonthlyLastDay));
 
         javafx.scene.text.Text dayLabel = new javafx.scene.text.Text("Day of month (1-31):");
-        dayLabel.setStyle("-fx-font-size: 12px;");
+        dayLabel.getStyleClass().add("text-small");
         TextField dayField = new TextField(defaultMonthlyDay != null ? defaultMonthlyDay.toString() : "1");
         dayField.setPrefWidth(60);
-        dayField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        dayField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         HBox dayBox = new HBox(10, dayLabel, dayField);
         dayBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -369,7 +378,7 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
 
         if (originalDebtorIds.size() > 1) {
             javafx.scene.text.Text splitsLabel = new javafx.scene.text.Text("Split Options");
-            splitsLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+            splitsLabel.getStyleClass().add("form-label-bold");
             content.getChildren().add(splitsLabel);
 
             // Mode selector
@@ -388,10 +397,10 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
             modeSelector.getChildren().addAll(equalBtn, percentBtn, amountBtn);
             content.getChildren().add(modeSelector);
 
-            splitsContainer.setStyle("-fx-background-color: #f9fafb; -fx-padding: 10; -fx-background-radius: 8;");
+            splitsContainer.getStyleClass().add("splits-container");
             content.getChildren().add(splitsContainer);
 
-            validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #6b7280;");
+            validationLabel.getStyleClass().add("validation-label");
             content.getChildren().add(validationLabel);
 
             // Build a map of userId -> display name
@@ -410,6 +419,12 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                     total = amountFallback;
                 }
 
+                validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                        "validation-label-muted");
+                if (!validationLabel.getStyleClass().contains("validation-label")) {
+                    validationLabel.getStyleClass().add("validation-label");
+                }
+
                 if (currentMode[0].equals("EQUAL")) {
                     double equalAmount = total / originalDebtorIds.size();
                     for (int i = 0; i < originalDebtorIds.size(); i++) {
@@ -419,13 +434,13 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                         javafx.scene.text.Text nameText = new javafx.scene.text.Text(
-                                name + ": " + String.format("%.2f", equalAmount) + "€");
-                        nameText.setStyle("-fx-font-size: 12px;");
+                                name + ": " + String.format("%.2f", equalAmount) + " €");
+                        nameText.getStyleClass().add("text-small");
                         row.getChildren().add(nameText);
                         splitsContainer.getChildren().add(row);
                     }
-                    validationLabel.setText("✓ Equal split");
-                    validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;");
+                    validationLabel.setText("Equal split");
+                    validationLabel.getStyleClass().add("validation-label-success");
                 } else if (currentMode[0].equals("PERCENT")) {
                     for (int i = 0; i < originalDebtorIds.size(); i++) {
                         Long userId = originalDebtorIds.get(i);
@@ -436,12 +451,11 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                         javafx.scene.text.Text nameText = new javafx.scene.text.Text(name + ":");
-                        nameText.setStyle("-fx-font-size: 12px;");
+                        nameText.getStyleClass().add("text-small");
                         nameText.setWrappingWidth(120);
 
                         TextField field = new TextField(String.format("%.1f", pct));
-                        field.setStyle(
-                                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-padding: 6;");
+                        field.getStyleClass().add("input-compact");
                         field.setPrefWidth(70);
                         splitFields.put(userId, field);
 
@@ -453,36 +467,46 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                                     sum += Double.parseDouble(f.getText().replace(",", "."));
                                 }
                                 double remaining = 100.0 - sum;
-                                String style;
+                                validationLabel.getStyleClass().removeAll("validation-label-success",
+                                        "validation-label-error", "validation-label-muted");
                                 if (Math.abs(remaining) < 0.01) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;";
+                                    validationLabel.getStyleClass().add("validation-label-success");
                                 } else if (remaining < 0) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #ef4444; -fx-font-weight: 600;";
+                                    validationLabel.getStyleClass().add("validation-label-error");
                                 } else {
-                                    style = "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                                    validationLabel.getStyleClass().add("validation-label-muted");
                                 }
-                                validationLabel
-                                        .setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
-                                validationLabel.setStyle(style);
+                                validationLabel.setText(
+                                        String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
+                                if (!validationLabel.getStyleClass().contains("validation-label")) {
+                                    validationLabel.getStyleClass().add("validation-label");
+                                }
                             } catch (NumberFormatException ex) {
-                                validationLabel.setText("⚠ Invalid number");
-                                validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #ef4444;");
+                                validationLabel.setText("Invalid number");
+                                validationLabel.getStyleClass().removeAll("validation-label-success",
+                                        "validation-label-muted");
+                                validationLabel.getStyleClass().addAll("validation-label", "validation-label-error");
                             }
                         });
 
                         javafx.scene.text.Text percentSign = new javafx.scene.text.Text("%");
-                        percentSign.setStyle("-fx-font-size: 12px;");
+                        percentSign.getStyleClass().add("unit-sign");
 
                         row.getChildren().addAll(nameText, field, percentSign);
                         splitsContainer.getChildren().add(row);
                     }
                     double sum = originalPercentages.stream().mapToDouble(Double::doubleValue).sum();
                     double remaining = 100.0 - sum;
-                    String style = Math.abs(remaining) < 0.01
-                            ? "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;"
-                            : "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                    validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                            "validation-label-muted");
                     validationLabel.setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
-                    validationLabel.setStyle(style);
+                    if (Math.abs(remaining) < 0.01) {
+                        validationLabel.getStyleClass().add("validation-label-success");
+                    } else if (remaining < 0) {
+                        validationLabel.getStyleClass().add("validation-label-error");
+                    } else {
+                        validationLabel.getStyleClass().add("validation-label-muted");
+                    }
                 } else { // AMOUNT
                     for (int i = 0; i < originalDebtorIds.size(); i++) {
                         Long userId = originalDebtorIds.get(i);
@@ -494,12 +518,11 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                         javafx.scene.text.Text nameText = new javafx.scene.text.Text(name + ":");
-                        nameText.setStyle("-fx-font-size: 12px;");
+                        nameText.getStyleClass().add("text-small");
                         nameText.setWrappingWidth(120);
 
                         TextField field = new TextField(String.format("%.2f", amount));
-                        field.setStyle(
-                                "-fx-background-color: white; -fx-border-color: #e5e7eb; -fx-border-radius: 4; -fx-padding: 6;");
+                        field.getStyleClass().add("input-compact");
                         field.setPrefWidth(80);
                         splitFields.put(userId, field);
 
@@ -511,25 +534,30 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                                     sum += Double.parseDouble(f.getText().replace(",", "."));
                                 }
                                 double remaining = totalAmt - sum;
-                                String style;
+                                validationLabel.getStyleClass().removeAll("validation-label-success",
+                                        "validation-label-error", "validation-label-muted");
                                 if (Math.abs(remaining) < 0.01) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;";
+                                    validationLabel.getStyleClass().add("validation-label-success");
                                 } else if (remaining < 0) {
-                                    style = "-fx-font-size: 11px; -fx-fill: #ef4444; -fx-font-weight: 600;";
+                                    validationLabel.getStyleClass().add("validation-label-error");
                                 } else {
-                                    style = "-fx-font-size: 11px; -fx-fill: #6b7280;";
+                                    validationLabel.getStyleClass().add("validation-label-muted");
                                 }
-                                validationLabel.setText(
-                                        String.format("Total: %.2f€ of %.2f€\n%.2f€ left", sum, totalAmt, remaining));
-                                validationLabel.setStyle(style);
+                                validationLabel.setText(String.format("Total: %.2f € of %.2f €\n%.2f € left", sum,
+                                        totalAmt, remaining));
+                                if (!validationLabel.getStyleClass().contains("validation-label")) {
+                                    validationLabel.getStyleClass().add("validation-label");
+                                }
                             } catch (NumberFormatException ex) {
-                                validationLabel.setText("⚠ Invalid number");
-                                validationLabel.setStyle("-fx-font-size: 11px; -fx-fill: #ef4444;");
+                                validationLabel.setText("Invalid number");
+                                validationLabel.getStyleClass().removeAll("validation-label-success",
+                                        "validation-label-muted");
+                                validationLabel.getStyleClass().addAll("validation-label", "validation-label-error");
                             }
                         });
 
                         javafx.scene.text.Text euroSign = new javafx.scene.text.Text("€");
-                        euroSign.setStyle("-fx-font-size: 12px;");
+                        euroSign.getStyleClass().add("unit-sign");
 
                         row.getChildren().addAll(nameText, field, euroSign);
                         splitsContainer.getChildren().add(row);
@@ -541,11 +569,17 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                         sum += (pct / 100.0) * total;
                     }
                     double remaining = total - sum;
-                    String style = Math.abs(remaining) < 0.01
-                            ? "-fx-font-size: 11px; -fx-fill: #10b981; -fx-font-weight: 600;"
-                            : "-fx-font-size: 11px; -fx-fill: #6b7280;";
-                    validationLabel.setText(String.format("Total: %.2f€ of %.2f€\n%.2f€ left", sum, total, remaining));
-                    validationLabel.setStyle(style);
+                    validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                            "validation-label-muted");
+                    validationLabel
+                            .setText(String.format("Total: %.2f € of %.2f €\n%.2f € left", sum, total, remaining));
+                    if (Math.abs(remaining) < 0.01) {
+                        validationLabel.getStyleClass().add("validation-label-success");
+                    } else if (remaining < 0) {
+                        validationLabel.getStyleClass().add("validation-label-error");
+                    } else {
+                        validationLabel.getStyleClass().add("validation-label-muted");
+                    }
                 }
             };
 
@@ -567,21 +601,20 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
             // Single debtor info
             String debtorText = defaultDebtors.isEmpty() ? "None" : parseDebtorNames(defaultDebtors);
             javafx.scene.text.Text debtorsLabel = new javafx.scene.text.Text("Debtor: " + debtorText);
-            debtorsLabel.setStyle("-fx-font-size: 12px; -fx-fill: #6b7280;");
+            debtorsLabel.getStyleClass().add("dialog-label-secondary");
             content.getChildren().add(debtorsLabel);
         }
 
         dialog.getDialogPane().setContent(content);
 
         // Add buttons
-        ButtonType saveButton = new ButtonType("💾 Save Changes", ButtonBar.ButtonData.OK_DONE);
+        ButtonType saveButton = new ButtonType("Save Changes", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
 
         // Style the save button
         Button saveBtn = (Button) dialog.getDialogPane().lookupButton(saveButton);
-        saveBtn.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; "
-                + "-fx-padding: 10 24; -fx-font-weight: bold; -fx-cursor: hand;");
+        saveBtn.getStyleClass().addAll("confirm-button", "confirm-button-success");
 
         // Handle result
         Optional<ButtonType> result = dialog.showAndWait();

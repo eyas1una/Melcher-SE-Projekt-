@@ -1,108 +1,51 @@
 # Refactoring Status
 
-Scope: tracking incremental cleanup against `REFACTORING_PLAYBOOK.md`.
+Scope: unbiased snapshot of structural debt and refactor priorities with focus on separation of responsibilities, eliminating redundancy, and aligning to the existing layered rules.
 
----
+## Current Snapshot
+- Layers exist (JavaFX UI -> services -> repositories), but controllers still orchestrate business flows and data shaping.
+- DTO mappers are present, yet services often return entities to the UI and mix mapping with persistence, blurring boundaries.
+- Domain entities expose mutable state directly (e.g., WG fields), making invariants hard to enforce. No automated tests were found.
 
-## Open Findings
+## Key Findings
+### Architecture and Separation
+- Finance UI controllers (`src/main/java/com/group_2/ui/finance/TransactionsController.java`, `TransactionHistoryController.java`) are very large and include business workflows (settlements, credit transfers, validation, filtering) that belong in services/facades. They also construct dialogs and perform data shaping inline, creating redundancy.
+- Services mix concerns: `src/main/java/com/group_2/service/finance/TransactionService.java` and `src/main/java/com/group_2/service/shopping/ShoppingListService.java` both handle persistence and DTO assembly. There is no clear application/service layer boundary versus presentation adapters.
+- `src/main/java/com/group_2/util/SessionManager.java` stores the full `User` entity, leading to stale state, hidden lazy-loading risks, and tight coupling of UI to JPA. Controllers manually refresh it in places instead of using a centralized session view model.
+- Navigation and controller hand-offs are repeated (`applicationContext.getBean` after `loadScene` in multiple controllers) instead of a central navigation/helper, increasing coupling between controllers.
 
-### Domains Not Yet Migrated to DTOs
-- [x] ~~Shopping domain~~ Done
-- [ ] **[LOW]** `Room` entity still imported in several UI controllers.
+### Domain Model and Invariants
+- `src/main/java/com/group_2/model/WG.java` exposes public fields (`name`, `rooms`, `mitbewohner`) and uses EAGER collections; services mutate fields directly (`WGService`), bypassing invariants. Entities lack `equals/hashCode`, making list operations unreliable.
+- Authentication is ad-hoc and insecure: `src/main/java/com/group_2/service/core/UserService.java` scans all users with plaintext passwords for login and duplicate checks. No hashing, dedicated queries, or validation exist.
+- Finance and cleaning services rely on direct access to `wg.mitbewohner` and other public collections, so membership checks are implicit or absent.
 
-### UI Redundancies
-- [ ] **[MEDIUM]** Inline styles scattered across controllers (100+ `.setStyle()` calls).  
-  *Fix:* Extract to CSS classes and apply via `getStyleClass().add()`.
+### Finance Domain
+- `src/main/java/com/group_2/service/finance/TransactionService.java` does not validate that creditor/debtors belong to the same WG and performs repeated repository lookups per debtor (N+1). Permission checks rely on controller-side logic.
+- Settlement/credit-transfer flows are implemented in `TransactionsController` as multiple transaction creations rather than an atomic, validated domain operation. There is no shared abstraction for “settlement” versus “expense”, risking inconsistent balances.
+- `src/main/java/com/group_2/dto/finance/FinanceMapper.java` performs repository access and JSON parsing inside the mapper, mixing data access, mapping, and parsing concerns; parse errors are swallowed.
 
-### Code Quality
-- [ ] **[LOW]** Potential duplicate logic in controllers (form validation, dialog setup, etc.).  
-  *Fix:* Audit for patterns and extract to utilities or base controller methods.
+### Cleaning Domain
+- `src/main/java/com/group_2/service/cleaning/CleaningScheduleService.java` is very large and handles scheduling rules, queue maintenance, template management, membership sync, and DTO conversion in one class. This makes it hard to test, reason about, or extend. Time handling is hard-coded to `LocalDate.now()`, hindering deterministic testing.
+- Controllers (`CleaningScheduleController`, `TemplateEditorController`) still pull entities/SessionManager data directly and rebuild UI state themselves, rather than consuming small view models.
 
----
+### UI Layer and Redundancy
+- Dialog construction, currency formatting, and icon/text handling are repeated across finance controllers; there is no shared dialog/formatter component. Several files show garbled glyphs (currency/icons) due to encoding issues.
+- UI relies on JPA entities from `SessionManager` instead of DTOs/view models, tying the view to persistence models and complicating caching/refresh.
 
-## Next Actions
+### Quality and Operations
+- No automated tests detected (unit, integration, or UI), so changes to scheduling/balances are unguarded.
+- Global config uses `spring.jpa.hibernate.ddl-auto=update` without profile separation, which is risky beyond local development.
 
-1. ~~**Migrate Shopping domain to DTOs**~~ Done
-   - Created `ShoppingListDTO`, `ShoppingListItemDTO`, `ShoppingMapper`
-   - `ShoppingListController` now fully uses DTOs
+## Prioritized Refactors
+1) Introduce clear application facades per domain (finance, cleaning, shopping) that the UI calls; move settlement, credit-transfer, and filtering logic out of controllers into services with explicit commands/queries.
+2) Encapsulate domain models (private fields, accessors, invariants) and enforce WG membership checks in finance/cleaning operations. Replace direct `wg.mitbewohner` access with validated methods; add lazy fetch where appropriate.
+3) Split `CleaningScheduleService` into smaller services (template management, queue/assignment engine, calendar/query service) with injected clock/time providers for testability.
+4) Create a finance service for settlements vs. expenses with atomic transactional methods; consolidate DTO creation/mapping there to avoid controller duplication.
+5) Introduce a session/view-model boundary: store only user/session IDs, fetch fresh data per use, and have controllers consume DTOs instead of entities.
+6) Harden authentication: hashed passwords, repository-level queries for login and uniqueness, validation of inputs, and removal of plaintext comparisons.
+7) Centralize shared UI utilities (dialogs, currency formatting, navigation) to remove duplicated UI glue code and fix encoding issues in finance/cleaning controllers and FXML.
+8) Add tests around critical flows (balance calculations, settlement commands, cleaning task generation/rotation, sharing logic) using mocks or an in-memory DB to lock behavior before further refactors.
 
-2. **Remove remaining `Room` entity usage from UI**  
-   - `CleaningScheduleController`, `SettingsController`, `NoWgController`, `TemplateEditorController` still use `Room`
-   - Create `RoomDTO` or expose room data via existing service methods
-
-3. **Extract inline styles to CSS**  
-   - 100+ `.setStyle()` calls scattered across controllers
-   - Move to `styles.css` using `.getStyleClass().add()`
-
-4. **Audit duplicate logic in controllers**  
-   - Form validation, dialog setup patterns appear repeated
-   - Extract to utilities or base `Controller` methods
-
-5. **(Optional) Create `UserDTO` / `WgDTO`**  
-   - `User` and `WG` imports remain in most controllers (used for session/auth context)
-   - Lower priority since these are core identity objects
-
----
-
-## Completed
-*(Items move here once verified working)*
-
-- [x] FXML files reorganized into domain subfolders (`/core/`, `/cleaning/`, `/finance/`, `/shopping/`).
-- [x] `loadScene()` paths updated to reflect new FXML locations.
-- [x] Controller `initView()` refactored to parameterless pattern with `SessionManager` injection.
-- [x] **[HIGH]** `StandingOrdersDialogController` now uses `UserService.getDisplayName()` instead of calling `UserRepository` directly.
-- [x] **[MEDIUM]** `NoWgController` now uses `HouseholdSetupService` instead of `RoomService` (cleaning domain).
-- [x] **[MEDIUM]** `SettingsController` now uses `HouseholdSetupService` instead of `RoomService` (cleaning domain).
-- [x] **Audit complete** – No remaining layering or cross-domain violations found.
-- [x] **[MEDIUM]** Alert dialogs centralized in base `Controller` class with typed methods:
-  - `showSuccessAlert()`, `showErrorAlert()`, `showWarningAlert()`, `showConfirmDialog()`
-  - Deprecated `showAlert()` methods kept for backward compatibility
-  - All controllers updated to use new typed methods
-  - Unused `Alert`/`ButtonType` imports removed from refactored controllers
-- [x] **[LOW]** SLF4J logging implemented – all `System.out/err.println` calls replaced:
-  - `StandingOrderService.java` – 4 calls converted to `log.info()` and `log.error()`
-  - `TransactionsController.java` – 2 calls converted to `log.error()` with stack trace
-  - `Main.java` – 2 calls converted to `log.info()`
-  - Logback provided by Spring Boot starters (no additional dependencies needed)
-- [x] **[HIGH]** Finance domain DTO layer implemented:
-  - Created `com.group_2.dto.finance` package with:
-    - `TransactionDTO` - immutable record for transaction display
-    - `TransactionSplitDTO` - immutable record for split details
-    - `BalanceDTO` - immutable record for balance display
-    - `StandingOrderDTO` - immutable record for standing order display
-    - `FinanceMapper` - Spring component for entity-to-DTO conversion
-  - Added DTO-returning methods to `TransactionService`:
-    - `getTransactionsForUserDTO()`, `getTransactionsByWGDTO()`, `getTransactionByIdDTO()`
-    - `calculateAllBalancesDTO()`, `createTransactionDTO()`, `updateTransactionDTO()`
-  - Added DTO-returning methods to `StandingOrderService`:
-    - `getActiveStandingOrdersDTO()`, `getStandingOrderByIdDTO()`
-    - `createStandingOrderDTO()`, `updateStandingOrderDTO()`
-  - Success alert added to `TransactionDialogController` on transaction save
-- [x] **[MEDIUM]** `TransactionsController` migrated to DTOs:
-  - `updateBalanceSheet()` now uses `BalanceDTO` from `TransactionService` decoupling UI from entity logic
-  - Refactored `BalanceEntry` (inner class) to store only `userId` instead of full `User` entity
-  - Updated settlement logic to resolve `User` from `UserRepository` only when needed
-- [x] **[HIGH]** `StandingOrdersDialogController` migrated to DTOs:
-  - Refactored to use `StandingOrderDTO` for table display
-  - Added ID-based `create`/`update` methods to `StandingOrderService` to fully decouple controller from entity instantiation
-  - Fixed multiple null-safety and create/update logic issues during migration
-- [x] **[MEDIUM]** `TransactionHistoryController` migrated to DTOs:
-  - Refactored to fully utilize `TransactionDTO` and `TransactionSplitDTO`
-  - Updated TableView columns and filter logic to consume immutable records
-  - Decoupled dialog logic from Entity classes
-- [x] **[MEDIUM]** Finance controller create/settlement paths now use DTO services:
-  - `TransactionDialogController` uses `createTransactionDTO`/`createStandingOrderDTO`
-  - `TransactionsController` settlement and credit-transfer flows use `createTransactionDTO`
-- [x] **[LOW]** Finance controllers now use UserService (no repo in UI)
-- [x] **[MEDIUM]** Cleaning schedule migrated to DTOs:
-  - Added `CleaningTaskDTO` and `CleaningMapper`
-  - `CleaningScheduleService` exposes DTO getters and id-based update/reassign/reschedule helpers
-  - `CleaningScheduleController` consumes DTOs (no direct `CleaningTask` manipulation)
-- [x] **[MEDIUM]** `TemplateEditorController` migrated to DTOs:
-  - Created `CleaningTaskTemplateDTO` for template display
-  - Added `getTemplatesDTO()` and `addTemplateByRoomId()` to service
-  - Refactored `WorkingTemplate` inner class to use IDs instead of entity references
-- [x] **[MEDIUM]** Shopping domain migrated to DTOs:
-  - Created `com.group_2.dto.shopping` package with `ShoppingListDTO`, `ShoppingListItemDTO`, `ShoppingMapper`
-  - Added ID-based service methods: `getAccessibleListsDTO()`, `createListByUserIds()`, `addItemByIds()`, etc.
-  - `ShoppingListController` fully refactored to use DTOs (no direct entity binding)
+## Follow-ups Needed
+- Decide target encoding (UTF-8) and update IDE/settings to stop producing garbled glyphs in controllers/FXML.
+- Agree on the DTO/view-model contract for the UI so services can stop returning entities.

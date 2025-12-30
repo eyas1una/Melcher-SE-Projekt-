@@ -107,13 +107,11 @@ public class ProfileController extends Controller {
 
         TextField firstNameField = new TextField(currentUser.getName());
         firstNameField.setPromptText("First Name");
-        firstNameField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        firstNameField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         TextField lastNameField = new TextField(currentUser.getSurname() != null ? currentUser.getSurname() : "");
         lastNameField.setPromptText("Last Name");
-        lastNameField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        lastNameField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         content.getChildren().addAll(new Text("First Name:"), firstNameField, new Text("Last Name:"), lastNameField);
 
@@ -161,8 +159,7 @@ public class ProfileController extends Controller {
 
         TextField emailField = new TextField(currentUser.getEmail() != null ? currentUser.getEmail() : "");
         emailField.setPromptText("Email address");
-        emailField.setStyle(
-                "-fx-background-color: #f9fafb; -fx-border-color: #e5e7eb; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 10;");
+        emailField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         content.getChildren().addAll(new Text("Email:"), emailField);
 

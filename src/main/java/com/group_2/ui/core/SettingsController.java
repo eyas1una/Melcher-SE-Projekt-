@@ -1,6 +1,6 @@
 package com.group_2.ui.core;
 
-import com.group_2.model.cleaning.Room;
+import com.group_2.dto.cleaning.RoomDTO;
 import com.group_2.model.User;
 import com.group_2.model.WG;
 import com.group_2.service.core.HouseholdSetupService;
@@ -106,15 +106,16 @@ public class SettingsController extends Controller {
         User currentUser = sessionManager.getCurrentUser();
         boolean isAdmin = wg.admin != null && currentUser != null && wg.admin.getId().equals(currentUser.getId());
 
-        if (wg.rooms != null && !wg.rooms.isEmpty()) {
-            roomCountText.setText(wg.rooms.size() + " room" + (wg.rooms.size() > 1 ? "s" : "") + " in your WG");
-            for (Room room : wg.rooms) {
+        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wg);
+        if (!rooms.isEmpty()) {
+            roomCountText.setText(rooms.size() + " room" + (rooms.size() > 1 ? "s" : "") + " in your WG");
+            for (RoomDTO room : rooms) {
                 roomsBox.getChildren().add(createRoomListItem(room, isAdmin));
             }
         } else {
             roomCountText.setText("No rooms yet");
             Text noRooms = new Text(isAdmin ? "Add your first room above!" : "No rooms have been added yet.");
-            noRooms.setStyle("-fx-fill: #64748b;");
+            noRooms.getStyleClass().add("list-item-subtitle");
             roomsBox.getChildren().add(noRooms);
         }
     }
@@ -132,24 +133,23 @@ public class SettingsController extends Controller {
         }
     }
 
-    private HBox createRoomListItem(Room room, boolean isAdmin) {
+    private HBox createRoomListItem(RoomDTO room, boolean isAdmin) {
         HBox item = new HBox(15);
         item.setAlignment(Pos.CENTER_LEFT);
         item.getStyleClass().add("list-item");
         item.setPadding(new Insets(10, 15, 10, 15));
 
         StackPane iconPane = new StackPane();
-        iconPane.getStyleClass().add("avatar");
-        iconPane.setStyle("-fx-background-color: linear-gradient(to bottom right, #10b981, #059669);");
-        Text iconText = new Text("🚪");
-        iconText.setStyle("-fx-font-size: 18px;");
+        iconPane.getStyleClass().addAll("avatar", "avatar-green");
+        Text iconText = new Text("??");
+        iconText.getStyleClass().add("avatar-text");
         iconPane.getChildren().add(iconText);
 
         VBox info = new VBox(3);
         javafx.scene.layout.HBox.setHgrow(info, javafx.scene.layout.Priority.ALWAYS);
-        Text nameText = new Text(room.getName());
+        Text nameText = new Text(room.name());
         nameText.getStyleClass().add("list-item-title");
-        Text idText = new Text("Room ID: " + room.getId());
+        Text idText = new Text("Room ID: " + room.id());
         idText.getStyleClass().add("list-item-subtitle");
         info.getChildren().addAll(nameText, idText);
 
@@ -160,17 +160,15 @@ public class SettingsController extends Controller {
             HBox actions = new HBox(8);
             actions.setAlignment(Pos.CENTER_RIGHT);
 
-            javafx.scene.control.Button editBtn = new javafx.scene.control.Button("✏️");
+            javafx.scene.control.Button editBtn = new javafx.scene.control.Button("Edit");
             editBtn.setTooltip(new javafx.scene.control.Tooltip("Edit Room"));
-            editBtn.setStyle(
-                    "-fx-background-color: #dbeafe; -fx-text-fill: #1d4ed8; -fx-background-radius: 6; -fx-padding: 6 10; -fx-cursor: hand;");
+            editBtn.getStyleClass().addAll("table-action-button", "table-edit-button");
             editBtn.setOnAction(e -> editRoom(room));
             actions.getChildren().add(editBtn);
 
-            javafx.scene.control.Button deleteBtn = new javafx.scene.control.Button("🗑️");
+            javafx.scene.control.Button deleteBtn = new javafx.scene.control.Button("Delete");
             deleteBtn.setTooltip(new javafx.scene.control.Tooltip("Delete Room"));
-            deleteBtn.setStyle(
-                    "-fx-background-color: #fef2f2; -fx-text-fill: #dc2626; -fx-background-radius: 6; -fx-padding: 6 10; -fx-cursor: hand;");
+            deleteBtn.getStyleClass().addAll("table-action-button", "table-delete-button");
             deleteBtn.setOnAction(e -> deleteRoom(room));
             actions.getChildren().add(deleteBtn);
 
@@ -203,7 +201,7 @@ public class SettingsController extends Controller {
         VBox info = new VBox(3);
         javafx.scene.layout.HBox.setHgrow(info, javafx.scene.layout.Priority.ALWAYS);
         String fullName = user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "");
-        Text nameText = new Text(fullName + (isMemberAdmin ? " 👑" : "") + (isSelf ? " (You)" : ""));
+        Text nameText = new Text(fullName + (isMemberAdmin ? " (Admin)" : "") + (isSelf ? " (You)" : ""));
         nameText.getStyleClass().add("list-item-title");
         Text emailText = new Text(user.getEmail() != null ? user.getEmail() : "No email");
         emailText.getStyleClass().add("list-item-subtitle");
@@ -218,19 +216,17 @@ public class SettingsController extends Controller {
 
             if (!isMemberAdmin) {
                 // Make Admin button
-                javafx.scene.control.Button makeAdminBtn = new javafx.scene.control.Button("👑");
+                javafx.scene.control.Button makeAdminBtn = new javafx.scene.control.Button("Make Admin");
                 makeAdminBtn.setTooltip(new javafx.scene.control.Tooltip("Make Admin"));
-                makeAdminBtn.setStyle(
-                        "-fx-background-color: #fef3c7; -fx-text-fill: #b45309; -fx-background-radius: 6; -fx-padding: 6 10; -fx-cursor: hand;");
+                makeAdminBtn.getStyleClass().addAll("table-action-button", "table-warning-button");
                 makeAdminBtn.setOnAction(e -> handleMakeAdmin(user));
                 actions.getChildren().add(makeAdminBtn);
             }
 
             // Remove button
-            javafx.scene.control.Button removeBtn = new javafx.scene.control.Button("✕");
+            javafx.scene.control.Button removeBtn = new javafx.scene.control.Button("Remove");
             removeBtn.setTooltip(new javafx.scene.control.Tooltip("Remove from WG"));
-            removeBtn.setStyle(
-                    "-fx-background-color: #fef2f2; -fx-text-fill: #dc2626; -fx-background-radius: 6; -fx-padding: 6 10; -fx-cursor: hand;");
+            removeBtn.getStyleClass().addAll("table-action-button", "table-delete-button");
             removeBtn.setOnAction(e -> handleRemoveMember(user));
             actions.getChildren().add(removeBtn);
 
@@ -323,8 +319,8 @@ public class SettingsController extends Controller {
         result.ifPresent(roomName -> {
             if (!roomName.trim().isEmpty()) {
                 try {
-                    Room newRoom = householdSetupService.createRoom(roomName.trim());
-                    wgService.addRoom(currentUser.getWg().getId(), newRoom);
+                    RoomDTO newRoom = householdSetupService.createRoomDTO(roomName.trim());
+                    wgService.addRoomById(currentUser.getWg().getId(), newRoom.id());
                     sessionManager.refreshCurrentUser();
                     loadWGData();
                     showSuccessAlert("Success", "Room '" + roomName + "' added!", getOwnerWindow(roomsBox));
@@ -335,12 +331,12 @@ public class SettingsController extends Controller {
         });
     }
 
-    private void editRoom(Room room) {
+    private void editRoom(RoomDTO room) {
         User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null || currentUser.getWg() == null)
             return;
 
-        TextInputDialog dialog = new TextInputDialog(room.getName());
+        TextInputDialog dialog = new TextInputDialog(room.name());
         configureDialogOwner(dialog, getOwnerWindow(roomsBox));
         dialog.setTitle("Edit Room");
         dialog.setHeaderText("Edit room name");
@@ -350,7 +346,7 @@ public class SettingsController extends Controller {
         result.ifPresent(newName -> {
             if (!newName.trim().isEmpty()) {
                 try {
-                    householdSetupService.updateRoom(room.getId(), newName.trim());
+                    householdSetupService.updateRoom(room.id(), newName.trim());
                     sessionManager.refreshCurrentUser();
                     loadWGData();
                     showSuccessAlert("Success", "Room renamed to '" + newName + "'!", getOwnerWindow(roomsBox));
@@ -361,12 +357,12 @@ public class SettingsController extends Controller {
         });
     }
 
-    private void deleteRoom(Room room) {
+    private void deleteRoom(RoomDTO room) {
         User currentUser = sessionManager.getCurrentUser();
         if (currentUser == null || currentUser.getWg() == null)
             return;
 
-        boolean confirmed = showConfirmDialog("Delete Room", "Delete room '" + room.getName() + "'?",
+        boolean confirmed = showConfirmDialog("Delete Room", "Delete room '" + room.name() + "'?",
                 "This will also remove any cleaning tasks and templates associated with this room.",
                 getOwnerWindow(roomsBox));
 
@@ -374,10 +370,10 @@ public class SettingsController extends Controller {
             try {
                 // Use the consolidated deletion method that handles everything in one
                 // transaction
-                householdSetupService.deleteRoom(room, currentUser.getWg());
+                householdSetupService.deleteRoomById(room.id(), currentUser.getWg());
                 sessionManager.refreshCurrentUser();
                 loadWGData();
-                showSuccessAlert("Success", "Room '" + room.getName() + "' deleted!", getOwnerWindow(roomsBox));
+                showSuccessAlert("Success", "Room '" + room.name() + "' deleted!", getOwnerWindow(roomsBox));
             } catch (Exception e) {
                 showErrorAlert("Error", "Failed to delete room: " + e.getMessage(), getOwnerWindow(roomsBox));
             }

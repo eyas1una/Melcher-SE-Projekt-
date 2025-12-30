@@ -5,6 +5,7 @@ import com.group_2.model.WG;
 import com.group_2.model.cleaning.Room;
 import com.group_2.repository.UserRepository;
 import com.group_2.repository.WGRepository;
+import com.group_2.repository.cleaning.RoomRepository;
 import com.group_2.service.cleaning.CleaningScheduleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +21,15 @@ public class WGService {
 
     private final WGRepository wgRepository;
     private final UserRepository userRepository;
+    private final RoomRepository roomRepository;
     private final CleaningScheduleService cleaningScheduleService;
 
     @Autowired
-    public WGService(WGRepository wgRepository, UserRepository userRepository,
+    public WGService(WGRepository wgRepository, UserRepository userRepository, RoomRepository roomRepository,
             @Lazy CleaningScheduleService cleaningScheduleService) {
         this.wgRepository = wgRepository;
         this.userRepository = userRepository;
+        this.roomRepository = roomRepository;
         this.cleaningScheduleService = cleaningScheduleService;
     }
 
@@ -78,8 +81,7 @@ public class WGService {
                 .orElseThrow(() -> new RuntimeException("WG not found with invite code: " + inviteCode));
 
         // Check if user is already in this WG (by ID comparison)
-        boolean alreadyMember = wg.getMitbewohner().stream()
-                .anyMatch(m -> m.getId().equals(user.getId()));
+        boolean alreadyMember = wg.getMitbewohner().stream().anyMatch(m -> m.getId().equals(user.getId()));
         if (alreadyMember) {
             throw new RuntimeException("User is already a member of this WG.");
         }
@@ -99,9 +101,7 @@ public class WGService {
         if (admin != null) {
             // Find the managed user entity from the WG's member list by ID
             // This avoids JPA merge issues with detached entities
-            User managedAdmin = wg.getMitbewohner().stream()
-                    .filter(m -> m.getId().equals(admin.getId()))
-                    .findFirst()
+            User managedAdmin = wg.getMitbewohner().stream().filter(m -> m.getId().equals(admin.getId())).findFirst()
                     .orElseThrow(() -> new RuntimeException("User is not a member of this WG"));
             wg.admin = managedAdmin;
         }
@@ -120,9 +120,7 @@ public class WGService {
         // fetch user.
         // Assuming we pass the user object or find it.
         // Let's find the user in the list.
-        User userToRemove = wg.getMitbewohner().stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst()
+        User userToRemove = wg.getMitbewohner().stream().filter(u -> u.getId().equals(userId)).findFirst()
                 .orElseThrow(() -> new RuntimeException("User not found in WG"));
         wg.removeMitbewohner(userToRemove);
 
@@ -138,6 +136,17 @@ public class WGService {
     @Transactional
     public void addRoom(Long wgId, Room room) {
         WG wg = wgRepository.findById(wgId).orElseThrow(() -> new RuntimeException("WG not found"));
+        wg.addRoom(room);
+        wgRepository.save(wg);
+    }
+
+    /**
+     * Add room by ID (for DTO-based controller usage).
+     */
+    @Transactional
+    public void addRoomById(Long wgId, Long roomId) {
+        WG wg = wgRepository.findById(wgId).orElseThrow(() -> new RuntimeException("WG not found"));
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new RuntimeException("Room not found"));
         wg.addRoom(room);
         wgRepository.save(wg);
     }

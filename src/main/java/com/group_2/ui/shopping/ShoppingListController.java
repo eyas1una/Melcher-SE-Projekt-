@@ -91,11 +91,11 @@ public class ShoppingListController extends Controller {
             VBox emptyState = new VBox(10);
             emptyState.setAlignment(Pos.CENTER);
             emptyState.setPadding(new Insets(30));
-            Text emptyIcon = new Text("📝");
-            emptyIcon.setStyle("-fx-font-size: 32px;");
+            Text emptyIcon = new Text("SL");
+            emptyIcon.getStyleClass().add("empty-state-icon-large");
             Text emptyText = new Text("Create your first list!");
-            emptyText.getStyleClass().add("card-subtitle");
-            emptyText.setStyle("-fx-text-alignment: center;");
+            emptyText.getStyleClass().add("empty-state-subtitle");
+            emptyState.getStyleClass().add("empty-state-card");
             emptyState.getChildren().addAll(emptyIcon, emptyText);
             listsContainer.getChildren().add(emptyState);
         } else {
@@ -119,10 +119,12 @@ public class ShoppingListController extends Controller {
 
         // Icon
         StackPane iconPane = new StackPane();
-        iconPane.getStyleClass().add("avatar");
-        iconPane.setStyle("-fx-background-color: linear-gradient(to bottom right, #f59e0b, #d97706);");
-        Text iconText = new Text("🛒");
-        iconText.setStyle("-fx-font-size: 16px;");
+        iconPane.getStyleClass().addAll("avatar", "avatar-amber");
+        String iconInitial = (list.name() != null && !list.name().isEmpty())
+                ? list.name().substring(0, 1).toUpperCase()
+                : "?";
+        Text iconText = new Text(iconInitial);
+        iconText.getStyleClass().add("avatar-text");
         iconPane.getChildren().add(iconText);
 
         // Info
@@ -137,8 +139,8 @@ public class ShoppingListController extends Controller {
 
         // Show shared indicator
         if (list.shared()) {
-            Text sharedIcon = new Text("👥");
-            sharedIcon.setStyle("-fx-font-size: 12px;");
+            Text sharedIcon = new Text("Shared");
+            sharedIcon.getStyleClass().add("list-item-subtitle");
             titleRow.getChildren().add(sharedIcon);
         }
 
@@ -244,7 +246,7 @@ public class ShoppingListController extends Controller {
         row.setPadding(new Insets(10, 12, 10, 12));
 
         if (isBought) {
-            row.setStyle("-fx-background-color: #f0fdf4; -fx-background-radius: 8;");
+            row.getStyleClass().add("list-item-bought");
         }
 
         // Circular checkbox
@@ -252,17 +254,16 @@ public class ShoppingListController extends Controller {
         checkBox.setPrefSize(28, 28);
         checkBox.setMinSize(28, 28);
         checkBox.setMaxSize(28, 28);
+        checkBox.getStyleClass().add("shopping-check-button");
 
         if (isBought) {
-            // Checked state - green with checkmark
-            checkBox.setText("✓");
-            checkBox.setStyle("-fx-background-color: #22c55e; -fx-background-radius: 14; "
-                    + "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand;");
+            checkBox.setText("X");
+            checkBox.getStyleClass().remove("shopping-check-unchecked");
+            checkBox.getStyleClass().add("shopping-check-checked");
         } else {
-            // Unchecked state - empty circle
             checkBox.setText("");
-            checkBox.setStyle("-fx-background-color: white; -fx-border-color: #d1d5db; "
-                    + "-fx-border-radius: 14; -fx-background-radius: 14; -fx-cursor: hand;");
+            checkBox.getStyleClass().remove("shopping-check-checked");
+            checkBox.getStyleClass().add("shopping-check-unchecked");
         }
 
         // Toggle bought on click
@@ -276,7 +277,7 @@ public class ShoppingListController extends Controller {
 
         if (isBought) {
             // Strikethrough and grayed out for bought items
-            nameText.setStyle("-fx-strikethrough: true; -fx-fill: #9ca3af;");
+            nameText.getStyleClass().add("bought-text");
         }
 
         boolean isOwnItem = currentUser != null && item.creatorId() != null
@@ -286,9 +287,8 @@ public class ShoppingListController extends Controller {
         info.getChildren().addAll(nameText, creatorText);
 
         // Delete button
-        Button deleteBtn = new Button("✕");
-        deleteBtn.getStyleClass().add("icon-button");
-        deleteBtn.setStyle("-fx-text-fill: #ef4444; -fx-cursor: hand;");
+        Button deleteBtn = new Button("X");
+        deleteBtn.getStyleClass().addAll("icon-button", "icon-button-danger");
         deleteBtn.setOnAction(e -> removeItem(item));
 
         row.getChildren().addAll(checkBox, info, deleteBtn);

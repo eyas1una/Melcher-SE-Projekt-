@@ -98,18 +98,27 @@ public class TransactionsController extends Controller {
 
                 if (empty || item == null) {
                     setText(null);
-                    setStyle("");
+                    getStyleClass().removeAll("balance-text-positive", "balance-text-negative", "balance-text-neutral");
                 } else {
                     setText(item);
                     BalanceEntry entry = getTableView().getItems().get(getIndex());
                     double balance = entry.getBalance();
 
                     if (balance > 0) {
-                        setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
+                        getStyleClass().removeAll("balance-text-negative", "balance-text-neutral");
+                        if (!getStyleClass().contains("balance-text-positive")) {
+                            getStyleClass().add("balance-text-positive");
+                        }
                     } else if (balance < 0) {
-                        setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
+                        getStyleClass().removeAll("balance-text-positive", "balance-text-neutral");
+                        if (!getStyleClass().contains("balance-text-negative")) {
+                            getStyleClass().add("balance-text-negative");
+                        }
                     } else {
-                        setStyle("-fx-text-fill: #64748b; -fx-font-weight: normal;");
+                        getStyleClass().removeAll("balance-text-positive", "balance-text-negative");
+                        if (!getStyleClass().contains("balance-text-neutral")) {
+                            getStyleClass().add("balance-text-neutral");
+                        }
                     }
                 }
             }
@@ -123,7 +132,7 @@ public class TransactionsController extends Controller {
         // Make rows clickable for settlement
         balanceTable.setRowFactory(tv -> {
             TableRow<BalanceEntry> row = new TableRow<>();
-            row.setStyle("-fx-cursor: hand;");
+            row.getStyleClass().add("clickable-row");
             row.setOnMouseClicked(event -> {
                 if (!row.isEmpty() && event.getClickCount() == 1) {
                     BalanceEntry entry = row.getItem();
@@ -166,18 +175,20 @@ public class TransactionsController extends Controller {
         totalBalanceText.setText(currencyFormat.format(totalBalance));
 
         // Change card color based on balance
+        if (!balanceCard.getStyleClass().contains("balance-card")) {
+            balanceCard.getStyleClass().add("balance-card");
+        }
+        balanceCard.getStyleClass()
+                .removeAll("balance-card-positive", "balance-card-negative", "balance-card-neutral");
         if (totalBalance > 0) {
             // Green gradient - they owe you
-            balanceCard.setStyle(
-                    "-fx-background-color: linear-gradient(to bottom right, #10b981, #059669); -fx-padding: 25;");
+            balanceCard.getStyleClass().add("balance-card-positive");
         } else if (totalBalance < 0) {
             // Red gradient - you owe them
-            balanceCard.setStyle(
-                    "-fx-background-color: linear-gradient(to bottom right, #ef4444, #dc2626); -fx-padding: 25;");
+            balanceCard.getStyleClass().add("balance-card-negative");
         } else {
             // Blue gradient - all settled
-            balanceCard.setStyle(
-                    "-fx-background-color: linear-gradient(to bottom right, #3b82f6, #2563eb); -fx-padding: 25;");
+            balanceCard.getStyleClass().add("balance-card-neutral");
         }
     }
 
@@ -230,12 +241,12 @@ public class TransactionsController extends Controller {
         VBox content = new VBox(20);
         content.setPadding(new Insets(30));
         content.setAlignment(Pos.CENTER);
-        content.setStyle("-fx-background-color: white;");
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(500);
 
         // Header icon
         Text headerIcon = new Text(balance < 0 ? "💸" : "💰");
-        headerIcon.setStyle("-fx-font-size: 48px;");
+        headerIcon.getStyleClass().add("dialog-header-icon");
 
         // Message
         Text messageText;
@@ -246,45 +257,26 @@ public class TransactionsController extends Controller {
             // They owe you
             messageText = new Text(memberName + " owes you");
         }
-        messageText.setStyle("-fx-font-size: 16px; -fx-fill: #374151;");
+        messageText.getStyleClass().add("dialog-message-text");
 
         // Amount
         Text amountText = new Text(currencyFormat.format(absBalance));
-        amountText.setStyle(
-                "-fx-font-size: 36px; -fx-font-weight: bold; -fx-fill: " + (balance < 0 ? "#ef4444" : "#10b981") + ";");
+        amountText.getStyleClass().addAll("dialog-amount-text",
+                balance < 0 ? "dialog-amount-negative"
+                        : balance > 0 ? "dialog-amount-positive" : "dialog-amount-neutral");
 
         // Payment method selection label
         Text paymentLabel = new Text("Select payment method to settle:");
-        paymentLabel.setStyle("-fx-font-size: 14px; -fx-fill: #6b7280; -fx-font-weight: 500;");
+        paymentLabel.getStyleClass().add("payment-section-label");
 
         // Create payment method buttons
         // Cash button
         Button cashButton = new Button("💵  Cash");
-        cashButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #10b981, #059669); "
-                + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;");
-        cashButton.setOnMouseEntered(
-                e -> cashButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #059669, #047857); "
-                        + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                        + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;"));
-        cashButton.setOnMouseExited(
-                e -> cashButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #10b981, #059669); "
-                        + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                        + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;"));
+        cashButton.getStyleClass().addAll("payment-button", "payment-button-cash");
 
         // Bank transfer button
         Button bankButton = new Button("🏦  Bank Transfer");
-        bankButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #3b82f6, #2563eb); "
-                + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;");
-        bankButton.setOnMouseEntered(
-                e -> bankButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563eb, #1d4ed8); "
-                        + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                        + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;"));
-        bankButton.setOnMouseExited(
-                e -> bankButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #3b82f6, #2563eb); "
-                        + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                        + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;"));
+        bankButton.getStyleClass().addAll("payment-button", "payment-button-bank");
 
         // PayPal button with icon
         Button paypalButton = new Button("PayPal");
@@ -298,17 +290,7 @@ public class TransactionsController extends Controller {
         } catch (Exception e) {
             paypalButton.setText("💳  PayPal");
         }
-        paypalButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #0070ba, #003087); "
-                + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;");
-        paypalButton.setOnMouseEntered(
-                e -> paypalButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #003087, #001f5f); "
-                        + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                        + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;"));
-        paypalButton.setOnMouseExited(
-                e -> paypalButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #0070ba, #003087); "
-                        + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                        + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 140;"));
+        paypalButton.getStyleClass().addAll("payment-button", "payment-button-paypal");
 
         // Set up button actions to show confirmation
         cashButton.setOnAction(e -> {
@@ -356,22 +338,12 @@ public class TransactionsController extends Controller {
             if (!availableCredits.isEmpty()) {
                 // Add separator
                 Text orText = new Text("— or —");
-                orText.setStyle("-fx-font-size: 12px; -fx-fill: #9ca3af;");
+                orText.getStyleClass().add("or-separator-text");
 
                 // Credit Transfer button
                 Button creditTransferButton = new Button("🔄  Credit Transfer");
-                creditTransferButton
-                        .setStyle("-fx-background-color: linear-gradient(to bottom right, #8b5cf6, #7c3aed); "
-                                + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 200;");
-                creditTransferButton.setOnMouseEntered(e -> creditTransferButton
-                        .setStyle("-fx-background-color: linear-gradient(to bottom right, #7c3aed, #6d28d9); "
-                                + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 200;"));
-                creditTransferButton.setOnMouseExited(e -> creditTransferButton
-                        .setStyle("-fx-background-color: linear-gradient(to bottom right, #8b5cf6, #7c3aed); "
-                                + "-fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 15 30; "
-                                + "-fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-min-width: 200;"));
+                creditTransferButton.getStyleClass()
+                        .addAll("payment-button", "payment-button-credit", "payment-button-wide");
 
                 creditTransferButton.setOnAction(e -> {
                     dialog.setResult("CreditTransfer");
@@ -379,7 +351,7 @@ public class TransactionsController extends Controller {
                 });
 
                 Text creditHint = new Text("Use credit from another roommate to settle this debt");
-                creditHint.setStyle("-fx-font-size: 11px; -fx-fill: #9ca3af;");
+                creditHint.getStyleClass().add("credit-hint-text");
 
                 creditTransferSection.getChildren().addAll(orText, creditTransferButton, creditHint);
             }
@@ -434,7 +406,7 @@ public class TransactionsController extends Controller {
         confirmDialog.initOwner(owner);
 
         // Style the dialog
-        confirmDialog.getDialogPane().setStyle("-fx-background-color: white;");
+        confirmDialog.getDialogPane().getStyleClass().add("dialog-content");
 
         // Add custom buttons
         ButtonType confirmButton = new ButtonType("✓ Confirm", ButtonBar.ButtonData.OK_DONE);
@@ -443,8 +415,7 @@ public class TransactionsController extends Controller {
 
         // Style the confirm button
         Button confirmBtn = (Button) confirmDialog.getDialogPane().lookupButton(confirmButton);
-        confirmBtn.setStyle("-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 8; "
-                + "-fx-padding: 8 20; -fx-font-weight: bold; -fx-cursor: hand;");
+        confirmBtn.getStyleClass().addAll("confirm-button", "confirm-button-success");
 
         // Handle result
         Optional<ButtonType> confirmResult = confirmDialog.showAndWait();
@@ -526,21 +497,21 @@ public class TransactionsController extends Controller {
         VBox content = new VBox(20);
         content.setPadding(new Insets(30));
         content.setAlignment(Pos.CENTER);
-        content.setStyle("-fx-background-color: white;");
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(450);
 
         // Header
         Text headerIcon = new Text("🔄");
-        headerIcon.setStyle("-fx-font-size: 48px;");
+        headerIcon.getStyleClass().add("dialog-header-icon");
 
         Text titleText = new Text("Select Credit Source");
-        titleText.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1f2937;");
+        titleText.getStyleClass().add("dialog-title");
 
         Text subtitleText = new Text("Choose a roommate's credit to transfer to " + debtorName);
-        subtitleText.setStyle("-fx-font-size: 13px; -fx-fill: #6b7280;");
+        subtitleText.getStyleClass().add("dialog-subtitle");
 
         Text debtInfo = new Text("Debt to settle: " + currencyFormat.format(debtAmount));
-        debtInfo.setStyle("-fx-font-size: 14px; -fx-fill: #ef4444; -fx-font-weight: 500;");
+        debtInfo.getStyleClass().add("debt-info-text");
 
         // Create buttons for each available credit
         VBox creditButtons = new VBox(10);
@@ -552,19 +523,10 @@ public class TransactionsController extends Controller {
             double transferAmount = Math.min(availableAmount, debtAmount);
 
             Button creditButton = new Button();
+            creditButton.getStyleClass().addAll("credit-option-button", "credit-option-button-wide",
+                    "credit-option-button-accent");
             creditButton.setText(credit.getMemberName() + " owes you " + currencyFormat.format(availableAmount)
                     + "\n→ Transfer " + currencyFormat.format(transferAmount));
-            creditButton.setStyle("-fx-background-color: #f3f4f6; -fx-text-fill: #374151; "
-                    + "-fx-background-radius: 12; -fx-padding: 15 25; -fx-font-size: 13px; "
-                    + "-fx-cursor: hand; -fx-min-width: 350; -fx-alignment: center-left;");
-            creditButton.setOnMouseEntered(e -> creditButton.setStyle(
-                    "-fx-background-color: linear-gradient(to bottom right, #8b5cf6, #7c3aed); -fx-text-fill: white; "
-                            + "-fx-background-radius: 12; -fx-padding: 15 25; -fx-font-size: 13px; "
-                            + "-fx-cursor: hand; -fx-min-width: 350; -fx-alignment: center-left;"));
-            creditButton.setOnMouseExited(
-                    e -> creditButton.setStyle("-fx-background-color: #f3f4f6; -fx-text-fill: #374151; "
-                            + "-fx-background-radius: 12; -fx-padding: 15 25; -fx-font-size: 13px; "
-                            + "-fx-cursor: hand; -fx-min-width: 350; -fx-alignment: center-left;"));
 
             final BalanceEntry selectedCredit = credit;
             creditButton.setOnAction(e -> {
@@ -616,15 +578,14 @@ public class TransactionsController extends Controller {
         confirmDialog.setContentText(message);
 
         confirmDialog.initOwner(balanceTable.getScene().getWindow());
-        confirmDialog.getDialogPane().setStyle("-fx-background-color: white;");
+        confirmDialog.getDialogPane().getStyleClass().add("dialog-content");
 
         ButtonType confirmButton = new ButtonType("✓ Confirm Transfer", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         confirmDialog.getButtonTypes().setAll(confirmButton, cancelButton);
 
         Button confirmBtn = (Button) confirmDialog.getDialogPane().lookupButton(confirmButton);
-        confirmBtn.setStyle("-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-background-radius: 8; "
-                + "-fx-padding: 8 20; -fx-font-weight: bold; -fx-cursor: hand;");
+        confirmBtn.getStyleClass().addAll("confirm-button", "confirm-button-primary");
 
         Optional<ButtonType> confirmResult = confirmDialog.showAndWait();
         if (confirmResult.isPresent() && confirmResult.get() == confirmButton) {
