@@ -1,6 +1,5 @@
 package com.group_2;
 
-import com.group_2.ui.StageInitializer;
 import javafx.application.Application;
 import javafx.application.HostServices;
 import javafx.application.Platform;
@@ -9,6 +8,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+
+import com.group_2.util.StageInitializer;
 
 public class JavaFxApplication extends Application {
 

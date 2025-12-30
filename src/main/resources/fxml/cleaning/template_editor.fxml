@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.group_2.ui.cleaning.TemplateEditorController"
+            styleClass="dashboard-root"
+            stylesheets="@/css/styles.css"
+            prefWidth="1000" prefHeight="700">
+
+    <!-- Top Header -->
+    <top>
+        <fx:include source="../core/navbar.fxml" fx:id="navbar"/>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <VBox styleClass="cleaning-page">
+            
+            <!-- Header with Actions -->
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="cleaning-header">
+                <VBox spacing="5">
+                    <Text fx:id="headerTitle" text="Default Weekly Template" 
+                          styleClass="text-title-cleaning"/>
+                    <Text text="Define tasks that repeat every week" 
+                          styleClass="text-subtitle-cleaning"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <VBox alignment="CENTER" spacing="2" 
+                      styleClass="cleaning-stat-card">
+                    <Text fx:id="templateCountText" text="0" 
+                          styleClass="text-stat-primary"/>
+                    <Text text="Tasks" styleClass="text-caption-muted"/>
+                </VBox>
+            </HBox>
+
+            <!-- Action Toolbar -->
+            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="cleaning-toolbar">
+                <Button text="➕ Add Task" onAction="#showAddTemplateDialog"
+                        styleClass="btn btn-primary"/>
+                <Button text="🗑️ Clear All" onAction="#clearAllTemplates"
+                        styleClass="btn btn-danger"/>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <Button text="✅ Save \&amp; Apply" onAction="#saveAndApplyTemplate"
+                        styleClass="btn btn-success"/>
+                
+                <!-- Info Badge -->
+                <HBox spacing="8" alignment="CENTER" 
+                      styleClass="info-badge">
+                    <Text text="ℹ️" styleClass="info-badge-icon"/>
+                    <Text text="This template applies to every new week" 
+                          styleClass="info-badge-text"/>
+                </HBox>
+            </HBox>
+
+            <!-- Day Columns -->
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+                <HBox spacing="10" alignment="TOP_LEFT">
+                    
+                    <!-- Monday -->
+                    <VBox fx:id="mondayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Monday" styleClass="template-day-title"/>
+                    </VBox>
+                    
+                    <!-- Tuesday -->
+                    <VBox fx:id="tuesdayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Tuesday" styleClass="template-day-title"/>
+                    </VBox>
+                    
+                    <!-- Wednesday -->
+                    <VBox fx:id="wednesdayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Wednesday" styleClass="template-day-title"/>
+                    </VBox>
+                    
+                    <!-- Thursday -->
+                    <VBox fx:id="thursdayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Thursday" styleClass="template-day-title"/>
+                    </VBox>
+                    
+                    <!-- Friday -->
+                    <VBox fx:id="fridayColumn" spacing="10" styleClass="template-day-card" prefWidth="160" minWidth="160">
+                        <Text text="Friday" styleClass="template-day-title"/>
+                    </VBox>
+                    
+                    <!-- Saturday -->
+                    <VBox fx:id="saturdayColumn" spacing="10" styleClass="template-day-card-muted" prefWidth="160" minWidth="160">
+                        <Text text="Saturday" styleClass="template-day-title-muted"/>
+                    </VBox>
+                    
+                    <!-- Sunday -->
+                    <VBox fx:id="sundayColumn" spacing="10" styleClass="template-day-card-muted" prefWidth="160" minWidth="160">
+                        <Text text="Sunday" styleClass="template-day-title-muted"/>
+                    </VBox>
+                    
+                </HBox>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>

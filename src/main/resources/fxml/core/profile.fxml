@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.group_2.ui.core.ProfileController"
+            styleClass="dashboard-root"
+            stylesheets="@/css/styles.css"
+            prefWidth="1000" prefHeight="700">
+
+    <!-- Top Header -->
+    <top>
+        <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
+            <Button text="← Back" onAction="#backToHome" styleClass="navbar-back-button"/>
+            <Text text="👤 My Profile" styleClass="navbar-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
+
+    <!-- Main Content -->
+    <center>
+        <VBox alignment="CENTER" spacing="30" style="-fx-background-color: #f8fafc; -fx-padding: 50;">
+            
+            <!-- Profile Card -->
+            <VBox styleClass="card" spacing="25" alignment="CENTER" 
+                  style="-fx-pref-width: 500; -fx-padding: 40;">
+                
+                <!-- Avatar and Name -->
+                <StackPane style="-fx-background-color: linear-gradient(to bottom right, #6366f1, #8b5cf6); -fx-background-radius: 50; -fx-pref-width: 100; -fx-pref-height: 100;">
+                    <Text fx:id="avatarInitial" text="?" style="-fx-font-size: 42px; -fx-fill: white; -fx-font-weight: bold;"/>
+                </StackPane>
+                
+                <VBox spacing="5" alignment="CENTER">
+                    <Text fx:id="userNameText" text="User Name" styleClass="card-title" style="-fx-font-size: 24px;"/>
+                    <Text fx:id="userEmailText" text="user@email.com" styleClass="card-subtitle" style="-fx-font-size: 14px;"/>
+                </VBox>
+
+                <Region style="-fx-min-height: 1; -fx-background-color: #e2e8f0;"/>
+
+                <!-- User Info -->
+                <VBox spacing="15" style="-fx-padding: 0 20;">
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Text text="👤" style="-fx-font-size: 18px;"/>
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Text text="Name" styleClass="card-subtitle" style="-fx-font-size: 12px;"/>
+                            <Text fx:id="nameDisplayText" text="First Last" style="-fx-font-size: 14px; -fx-fill: #1e293b;"/>
+                        </VBox>
+                        <Button text="✏️ Edit" onAction="#handleEditName"
+                                style="-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Text text="📧" style="-fx-font-size: 18px;"/>
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Text text="Email" styleClass="card-subtitle" style="-fx-font-size: 12px;"/>
+                            <Text fx:id="emailDisplayText" text="email@example.com" style="-fx-font-size: 14px; -fx-fill: #1e293b;"/>
+                        </VBox>
+                        <Button text="✏️ Edit" onAction="#handleEditEmail"
+                                style="-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-background-radius: 6; -fx-padding: 6 12; -fx-cursor: hand; -fx-font-size: 12px;"/>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Text text="🏠" style="-fx-font-size: 18px;"/>
+                        <VBox spacing="2">
+                            <Text text="Home Status" styleClass="card-subtitle" style="-fx-font-size: 12px;"/>
+                            <Text fx:id="wgStatusText" text="Member of Home Name" style="-fx-font-size: 14px; -fx-fill: #1e293b;"/>
+                        </VBox>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Text text="👑" style="-fx-font-size: 18px;"/>
+                        <VBox spacing="2">
+                            <Text text="Role" styleClass="card-subtitle" style="-fx-font-size: 12px;"/>
+                            <Text fx:id="roleText" text="Member" style="-fx-font-size: 14px; -fx-fill: #1e293b;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <Region style="-fx-min-height: 1; -fx-background-color: #e2e8f0;"/>
+
+                <!-- Action Buttons -->
+                <VBox spacing="12" alignment="CENTER" style="-fx-padding: 10 0 0 0;">
+                    <Button text="🚪 Leave Home" onAction="#handleLeaveWG"
+                            style="-fx-background-color: #fef2f2; -fx-text-fill: #dc2626; -fx-background-radius: 8; -fx-padding: 12 30; -fx-cursor: hand; -fx-pref-width: 200;"/>
+                    <Button text="🔓 Logout" onAction="#handleLogout"
+                            styleClass="primary-button" style="-fx-pref-width: 200; -fx-padding: 12 30;"/>
+                </VBox>
+            </VBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>

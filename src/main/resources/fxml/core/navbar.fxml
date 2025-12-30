@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.group_2.ui.core.NavbarController"
+      styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
+    <Button fx:id="backButton" text="← Back" onAction="#backToHome" styleClass="navbar-back-button"/>
+    <Text fx:id="titleText" text="Title" styleClass="navbar-title"/>
+    <Region HBox.hgrow="ALWAYS"/>
+</HBox>

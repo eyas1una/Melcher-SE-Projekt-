@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.group_2.ui.finance.TransactionsController"
+           styleClass="dashboard-root"
+           stylesheets="@/css/styles.css"
+           prefWidth="1000" prefHeight="700">
+
+    <!-- Main Content BorderPane -->
+    <BorderPane>
+        <!-- Top Header -->
+        <top>
+            <fx:include source="../core/navbar.fxml" fx:id="navbar"/>
+        </top>
+
+
+        <!-- Main Content -->
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                <VBox styleClass="main-content" spacing="30">
+                    
+                    <!-- Page Header -->
+                    <VBox styleClass="content-header" spacing="8">
+                        <Text text="Transaction Management" styleClass="page-title"/>
+                        <Text text="Track shared expenses and balances with your flatmates" styleClass="page-subtitle"/>
+                    </VBox>
+
+                    <!-- Total Balance Card -->
+                    <VBox fx:id="balanceCard" styleClass="finance-card-primary" spacing="15">
+                        <Text text="Your Total Balance" styleClass="finance-card-header"/>
+                        <Text fx:id="totalBalanceText" text="€0.00" 
+                              styleClass="finance-card-title"/>
+                        <Text text="Sum of all balances with WG members" styleClass="finance-card-subtitle"/>
+                    </VBox>
+
+                    <!-- Balance Sheet Table -->
+                    <VBox styleClass="card" spacing="20">
+                        <HBox alignment="CENTER_LEFT">
+                            <Text text="💳 Balance Sheet" styleClass="card-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="🔄 Standing Orders" onAction="#showStandingOrders" 
+                                    styleClass="finance-pill"/>
+                            <Region prefWidth="10"/>
+                            <Button text="📜 History" onAction="#navigateToHistory" 
+                                    styleClass="finance-pill"/>
+                            <Region prefWidth="10"/>
+                            <Button text="+ Add Transaction" styleClass="primary-button" onAction="#showAddTransactionDialog" />
+                        </HBox>
+                        
+                        <Text text="Your balances with each WG member" styleClass="card-subtitle"/>
+                        
+                        <TableView fx:id="balanceTable" fixedCellSize="50" styleClass="table-view">
+                            <columns>
+                                <TableColumn fx:id="memberColumn" text="Member" prefWidth="400"/>
+                                <TableColumn fx:id="balanceColumn" text="Balance" prefWidth="200"/>
+                            </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+
+                </VBox>
+
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <!-- Transaction Dialog Overlay -->
+    <fx:include source="transaction_dialog.fxml" fx:id="transactionDialog"/>
+
+    <!-- Standing Orders Dialog Overlay -->
+    <fx:include source="standing_orders_dialog.fxml" fx:id="standingOrdersDialog"/>
+
+</StackPane>
+

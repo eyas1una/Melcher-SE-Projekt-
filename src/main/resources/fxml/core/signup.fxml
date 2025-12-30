@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.group_2.ui.core.SignUpController"
+      spacing="15"
+      alignment="CENTER"
+      styleClass="root-pane"
+      stylesheets="@/css/styles.css">
+
+    <Text text="Create Account" styleClass="title-text"/>
+
+    <VBox spacing="5" alignment="CENTER_LEFT" maxWidth="300">
+        <Label text="Name" styleClass="field-label"/>
+        <TextField fx:id="signupNameField" styleClass="text-field"/>
+    </VBox>
+    
+    <VBox spacing="5" alignment="CENTER_LEFT" maxWidth="300">
+        <Label text="Surname" styleClass="field-label"/>
+        <TextField fx:id="signupSurnameField" styleClass="text-field"/>
+    </VBox>
+    
+    <VBox spacing="5" alignment="CENTER_LEFT" maxWidth="300">
+        <Label text="Email" styleClass="field-label"/>
+        <TextField fx:id="signupEmailField" styleClass="text-field"/>
+    </VBox>
+    
+    <VBox spacing="5" alignment="CENTER_LEFT" maxWidth="300">
+        <Label text="Password" styleClass="field-label"/>
+        <PasswordField fx:id="signupPasswordField" styleClass="text-field"/>
+    </VBox>
+
+    <Button text="Sign Up" onAction="#handleSignup" styleClass="success-button"/>
+    
+    <Hyperlink text="Already have an account? Login" onAction="#showLoginScreen"/>
+
+</VBox>

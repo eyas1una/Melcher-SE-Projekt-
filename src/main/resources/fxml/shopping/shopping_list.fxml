@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.group_2.ui.shopping.ShoppingListController"
+            styleClass="dashboard-root"
+            stylesheets="@/css/styles.css"
+            prefWidth="1100" prefHeight="700">
+
+    <!-- Top Header -->
+    <top>
+        <fx:include source="../core/navbar.fxml" fx:id="navbar"/>
+    </top>
+
+
+    <!-- Main Content Area -->
+    <center>
+        <HBox spacing="20" style="-fx-background-color: #f8fafc; -fx-padding: 25;">
+            <!-- Left Panel: Shopping Lists -->
+            <VBox styleClass="main-content" spacing="20" prefWidth="350">
+                <VBox styleClass="content-header" spacing="8">
+                    <Text text="My Lists" styleClass="page-title"/>
+                    <Text text="Your personal and shared lists" styleClass="page-subtitle"/>
+                </VBox>
+
+                <Button text="+ Create New List" styleClass="primary-button" onAction="#showCreateListDialog"/>
+
+                <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="listsContainer" spacing="10">
+                        <!-- Lists will be added here dynamically -->
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+
+            <!-- Right Panel: Selected List Items -->
+            <VBox styleClass="main-content" spacing="20" HBox.hgrow="ALWAYS">
+                <!-- Placeholder when no list selected -->
+                <VBox fx:id="noListSelectedView" alignment="CENTER" spacing="15" VBox.vgrow="ALWAYS">
+                    <Text text="📋" style="-fx-font-size: 48px;"/>
+                    <Text text="Create a new list and add items" styleClass="card-subtitle"/>
+                </VBox>
+
+                <!-- List details view -->
+                <VBox fx:id="listDetailsView" spacing="20" visible="false" managed="false">
+                    <VBox styleClass="content-header" spacing="8">
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Text fx:id="selectedListName" text="List Name" styleClass="page-title"/>
+                            <StackPane fx:id="sharedBadge" styleClass="badge" visible="false" managed="false">
+                                <Text text="👥 Shared" styleClass="badge-text"/>
+                            </StackPane>
+                        </HBox>
+                        <Text fx:id="selectedListCreator" text="Created by: You" styleClass="page-subtitle"/>
+                    </VBox>
+
+                    <!-- Add Item Section -->
+                    <VBox styleClass="card" spacing="15">
+                        <Text text="Add Item" styleClass="card-title"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <TextField fx:id="newItemField" promptText="Enter item name..." 
+                                       styleClass="modern-text-field" HBox.hgrow="ALWAYS"/>
+                            <Button text="+ Add" styleClass="primary-button" onAction="#addItem"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- All Items Container - Single Scrollable Area -->
+                    <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+                        <VBox spacing="20" style="-fx-padding: 5;">
+                            <!-- Pending Items Section -->
+                            <VBox styleClass="card" spacing="15">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Text text="🛒 Items" styleClass="card-title"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Text fx:id="itemCountText" text="0 items" styleClass="card-subtitle"/>
+                                </HBox>
+                                <VBox fx:id="itemsContainer" spacing="8">
+                                    <!-- Pending items will be added here dynamically -->
+                                </VBox>
+                            </VBox>
+
+                            <!-- Bought Items Section -->
+                            <VBox fx:id="boughtSection" styleClass="card" spacing="15" style="-fx-background-color: #f0fdf4;">
+                                <HBox alignment="CENTER_LEFT">
+                                    <Text text="✅ Purchased" styleClass="card-title" style="-fx-fill: #16a34a;"/>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Text fx:id="boughtCountText" text="0 items" styleClass="card-subtitle"/>
+                                </HBox>
+                                <VBox fx:id="boughtItemsContainer" spacing="8">
+                                    <!-- Bought items will be added here dynamically -->
+                                </VBox>
+                            </VBox>
+                        </VBox>
+                    </ScrollPane>
+
+                    <!-- List Actions -->
+                    <HBox spacing="15">
+                        <Button text="⚙️ Manage Sharing" styleClass="secondary-button" onAction="#showSharingDialog"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="deleteListButton" text="🗑️ Delete List" styleClass="danger-button" onAction="#deleteSelectedList"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

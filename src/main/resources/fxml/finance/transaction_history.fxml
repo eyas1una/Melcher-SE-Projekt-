@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.group_2.ui.finance.TransactionHistoryController"
+           styleClass="dashboard-root"
+           stylesheets="@/css/styles.css"
+           prefWidth="1000" prefHeight="700">
+
+    <BorderPane>
+        <!-- Top Header -->
+        <top>
+            <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
+                <Button text="← Back" onAction="#returnToTransactions" styleClass="navbar-back-button"/>
+                <Text text="📜 Transaction History" styleClass="navbar-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </top>
+
+        <!-- Main Content -->
+        <center>
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                <VBox styleClass="main-content" spacing="16" >
+                    
+                    <!-- Page Header -->
+                    <VBox styleClass="content-header" spacing="8">
+                        <Text text="Transaction History" styleClass="page-title"/>
+                        <Text text="View all your past transactions with your flatmates" styleClass="page-subtitle"/>
+                    </VBox>
+
+                    <!-- Hidden counter placeholder (used by controller) -->
+                    <Text fx:id="transactionCountText" text="" visible="false" managed="false"/>
+
+                    <!-- Filter Bar -->
+                    <VBox styleClass="card" spacing="15">
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <Text text="📅 Filter by:" styleClass="card-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="clearFiltersButton" text="↺ Clear Filters" styleClass="secondary-button" onAction="#clearFilters"/>
+                        </HBox>
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <VBox spacing="5">
+                                <Text text="Year" styleClass="dialog-label-secondary"/>
+                                <ComboBox fx:id="yearFilter" promptText="Year" prefWidth="100"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Text text="Month" styleClass="dialog-label-secondary"/>
+                                <ComboBox fx:id="monthFilter" promptText="Month" prefWidth="120"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Text text="Payer" styleClass="dialog-label-secondary"/>
+                                <ComboBox fx:id="payerFilter" promptText="All Payers" prefWidth="130"/>
+                            </VBox>
+                            <VBox spacing="5">
+                                <Text text="Debtor" styleClass="dialog-label-secondary"/>
+                                <ComboBox fx:id="debtorFilter" promptText="All Debtors" prefWidth="130"/>
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Text text="🔍 Search Description" styleClass="dialog-label-secondary"/>
+                                <TextField fx:id="searchField" promptText="Type to search..." styleClass="modern-text-field"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Table Container -->
+                    <VBox styleClass="card" spacing="20">
+                        <HBox alignment="CENTER_LEFT">
+                            <Text text="📜 Transactions" styleClass="card-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        
+                        <Text text="Filtered transaction history" styleClass="card-subtitle"/>
+                        
+                        <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="table-view" fixedCellSize="50">
+                            <columns>
+                                <TableColumn fx:id="dateColumn" text="Date" prefWidth="100"/>
+                                <TableColumn fx:id="timeColumn" text="Time" prefWidth="80"/>
+                                <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="200"/>
+                                <TableColumn fx:id="amountColumn" text="Amount" prefWidth="100"/>
+                                <TableColumn fx:id="creditorColumn" text="Creditor" prefWidth="120"/>
+                                <TableColumn fx:id="debtorColumn" text="Debtor(s)" prefWidth="140"/>
+                                <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="140"/>
+                            </columns>
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
+                        </TableView>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+</StackPane>

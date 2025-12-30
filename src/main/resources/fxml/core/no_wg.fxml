@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.group_2.ui.core.NoWgController"
+      spacing="30"
+      alignment="CENTER"
+      styleClass="root-pane"
+      stylesheets="@/css/styles.css"
+      prefWidth="800" prefHeight="650">
+
+    <!-- Welcome Header -->
+    <VBox spacing="10" alignment="CENTER">
+        <Text text="🏠" style="-fx-font-size: 64px;"/>
+        <Text fx:id="welcomeText" text="Welcome!" styleClass="title-text"/>
+        <Text text="You're not part of a WG yet. Get started below!" 
+              styleClass="subtitle-text" style="-fx-fill: rgba(255,255,255,0.8);"/>
+    </VBox>
+
+    <!-- Action Cards -->
+    <HBox fx:id="actionCardsBox" spacing="30" alignment="CENTER">
+        <!-- Create WG Card -->
+        <VBox styleClass="card" spacing="20" alignment="CENTER" 
+              style="-fx-pref-width: 280; -fx-pref-height: 260;">
+            <Text text="🏗️" style="-fx-font-size: 48px;"/>
+            <Text text="Create New WG" styleClass="card-title"/>
+            <Text text="Start your own WG and invite your roommates to join."
+                  styleClass="card-subtitle" wrappingWidth="220" style="-fx-text-alignment: center;"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Create WG" onAction="#showCreateWgForm" 
+                    styleClass="primary-button" style="-fx-pref-width: 200;"/>
+        </VBox>
+
+        <!-- Join WG Card -->
+        <VBox styleClass="card" spacing="20" alignment="CENTER"
+              style="-fx-pref-width: 280; -fx-pref-height: 260;">
+            <Text text="🤝" style="-fx-font-size: 48px;"/>
+            <Text text="Join Existing WG" styleClass="card-title"/>
+            <Text text="Have an invite code from your roommate? Enter it to join."
+                  styleClass="card-subtitle" wrappingWidth="220" style="-fx-text-alignment: center;"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Join WG" onAction="#showJoinWgForm" 
+                    styleClass="success-button" style="-fx-pref-width: 200;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Create WG Form (hidden by default) -->
+    <VBox fx:id="createWgForm" spacing="20" alignment="CENTER" visible="false" managed="false">
+        <VBox styleClass="card" spacing="20" style="-fx-pref-width: 450;">
+            <Text text="Create Your WG" styleClass="card-title"/>
+            
+            <VBox spacing="8">
+                <Text text="WG Name" styleClass="card-subtitle"/>
+                <TextField fx:id="wgNameField" promptText="e.g., Sunny Apartment" 
+                           styleClass="modern-text-field"/>
+            </VBox>
+
+            <VBox spacing="12">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Text text="Rooms" styleClass="card-subtitle"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Add Room" onAction="#addRoomField" 
+                            styleClass="primary-button" style="-fx-padding: 6 12; -fx-font-size: 12px;"/>
+                </HBox>
+                
+                <ScrollPane fx:id="roomScrollPane" fitToWidth="true" prefHeight="200" maxHeight="300" 
+                          styleClass="modern-scroll-pane">
+                    <VBox fx:id="roomFieldsContainer" spacing="10">
+                        <!-- Room fields will be added here dynamically -->
+                    </VBox>
+                </ScrollPane>
+                
+                <Text text="Add the rooms in your apartment (optional)" 
+                      styleClass="list-item-subtitle"/>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Create WG" onAction="#handleCreateWg" 
+                        styleClass="primary-button"/>
+                <Button text="Cancel" onAction="#hideAllForms" 
+                        styleClass="secondary-button"/>
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <!-- Join WG Form (hidden by default) -->
+    <VBox fx:id="joinWgForm" spacing="20" alignment="CENTER" visible="false" managed="false">
+        <VBox styleClass="card" spacing="20" style="-fx-pref-width: 400;">
+            <Text text="Join a WG" styleClass="card-title"/>
+            
+            <VBox spacing="8">
+                <Text text="Invite Code" styleClass="card-subtitle"/>
+                <TextField fx:id="wgIdField" promptText="e.g., ABC12DEF" 
+                           styleClass="modern-text-field"/>
+                <Text text="Ask your roommate for the 8-character invite code" 
+                      styleClass="list-item-subtitle"/>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Join WG" onAction="#handleJoinWg" 
+                        styleClass="success-button"/>
+                <Button text="Cancel" onAction="#hideAllForms" 
+                        styleClass="secondary-button"/>
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <!-- Logout link at bottom -->
+    <Region VBox.vgrow="ALWAYS"/>
+    <Hyperlink text="Logout" onAction="#handleLogout" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+
+</VBox>
