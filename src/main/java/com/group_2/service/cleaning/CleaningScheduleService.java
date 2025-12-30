@@ -11,6 +11,7 @@ import com.group_2.dto.cleaning.CleaningMapper;
 import com.group_2.dto.cleaning.CleaningTaskDTO;
 import com.group_2.dto.cleaning.CleaningTaskTemplateDTO;
 import com.group_2.repository.UserRepository;
+import com.group_2.repository.WGRepository;
 import com.group_2.repository.cleaning.CleaningTaskRepository;
 import com.group_2.repository.cleaning.CleaningTaskTemplateRepository;
 import com.group_2.repository.cleaning.RoomAssignmentQueueRepository;
@@ -40,17 +41,20 @@ public class CleaningScheduleService {
     private final RoomAssignmentQueueRepository queueRepository;
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
+    private final WGRepository wgRepository;
     private final CleaningMapper cleaningMapper;
 
     @Autowired
     public CleaningScheduleService(CleaningTaskRepository cleaningTaskRepository,
             CleaningTaskTemplateRepository templateRepository, RoomAssignmentQueueRepository queueRepository,
-            UserRepository userRepository, RoomRepository roomRepository, CleaningMapper cleaningMapper) {
+            UserRepository userRepository, RoomRepository roomRepository, WGRepository wgRepository,
+            CleaningMapper cleaningMapper) {
         this.cleaningTaskRepository = cleaningTaskRepository;
         this.templateRepository = templateRepository;
         this.queueRepository = queueRepository;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
+        this.wgRepository = wgRepository;
         this.cleaningMapper = cleaningMapper;
     }
 
@@ -93,6 +97,14 @@ public class CleaningScheduleService {
     @Transactional
     public List<CleaningTaskDTO> getTasksForWeekDTO(WG wg, LocalDate weekStart) {
         return cleaningMapper.toDTOList(getTasksForWeek(wg, weekStart));
+    }
+
+    /**
+     * DTO variant of getTasksForWeek using WG ID.
+     */
+    @Transactional
+    public List<CleaningTaskDTO> getTasksForWeekDTO(Long wgId, LocalDate weekStart) {
+        return getTasksForWeekDTO(requireWg(wgId), weekStart);
     }
 
     /**
@@ -346,6 +358,14 @@ public class CleaningScheduleService {
     }
 
     /**
+     * Generate a new weekly schedule for the current week by WG ID.
+     */
+    @Transactional
+    public List<CleaningTask> generateFromTemplate(Long wgId) {
+        return generateFromTemplate(requireWg(wgId));
+    }
+
+    /**
      * Save current week's schedule as the default template. Also initializes
      * assignment queues for each room.
      */
@@ -378,6 +398,14 @@ public class CleaningScheduleService {
     }
 
     /**
+     * Save current week's schedule as the default template by WG ID.
+     */
+    @Transactional
+    public List<CleaningTaskTemplate> saveAsTemplate(Long wgId) {
+        return saveAsTemplate(requireWg(wgId));
+    }
+
+    /**
      * Get all templates for a WG.
      */
     public List<CleaningTaskTemplate> getTemplates(WG wg) {
@@ -392,10 +420,24 @@ public class CleaningScheduleService {
     }
 
     /**
+     * Get all templates for a WG as DTOs by WG ID.
+     */
+    public List<CleaningTaskTemplateDTO> getTemplatesDTO(Long wgId) {
+        return getTemplatesDTO(requireWg(wgId));
+    }
+
+    /**
      * Check if templates exist for a WG.
      */
     public boolean hasTemplate(WG wg) {
         return !templateRepository.findByWg(wg).isEmpty();
+    }
+
+    /**
+     * Check if templates exist for a WG by WG ID.
+     */
+    public boolean hasTemplate(Long wgId) {
+        return hasTemplate(requireWg(wgId));
     }
 
     /**
@@ -449,6 +491,14 @@ public class CleaningScheduleService {
     }
 
     /**
+     * Assign a cleaning task by IDs using WG ID.
+     */
+    @Transactional
+    public CleaningTaskDTO assignTaskByIds(Long roomId, Long assigneeId, Long wgId) {
+        return assignTaskByIds(roomId, assigneeId, requireWg(wgId));
+    }
+
+    /**
      * Assign a cleaning task for a specific room to a user with a custom due date.
      * Always creates a new task (allows multiple tasks per room per day).
      */
@@ -469,6 +519,14 @@ public class CleaningScheduleService {
         CleaningTask task = new CleaningTask(room, assignee, wg, weekStart, dueDate);
         task.setManualOverride(true);
         return cleaningMapper.toDTO(cleaningTaskRepository.save(task));
+    }
+
+    /**
+     * Assign a cleaning task by IDs with a custom due date using WG ID.
+     */
+    @Transactional
+    public CleaningTaskDTO assignTaskByIdsWithDate(Long roomId, Long assigneeId, Long wgId, LocalDate dueDate) {
+        return assignTaskByIdsWithDate(roomId, assigneeId, requireWg(wgId), dueDate);
     }
 
     /**
@@ -644,6 +702,15 @@ public class CleaningScheduleService {
     }
 
     /**
+     * Add a new template task by room ID using WG ID.
+     */
+    @Transactional
+    public CleaningTaskTemplateDTO addTemplateByRoomId(Long wgId, Long roomId, DayOfWeek dayOfWeek,
+            RecurrenceInterval interval) {
+        return addTemplateByRoomId(requireWg(wgId), roomId, dayOfWeek, interval);
+    }
+
+    /**
      * Update an existing template (day and recurrence can be changed, assignee is
      * auto-managed). Only updates due dates for current and future tasks, not past
      * ones.
@@ -710,6 +777,14 @@ public class CleaningScheduleService {
 
         queueRepository.deleteByWg(wg);
         templateRepository.deleteByWg(wg);
+    }
+
+    /**
+     * Clear all templates and queues for a WG by WG ID.
+     */
+    @Transactional
+    public void clearTemplates(Long wgId) {
+        clearTemplates(requireWg(wgId));
     }
 
     /**
@@ -809,5 +884,12 @@ public class CleaningScheduleService {
         int intervalWeeks = template.getRecurrenceInterval().getWeeks();
 
         return weeksBetween % intervalWeeks == 0;
+    }
+
+    private WG requireWg(Long wgId) {
+        if (wgId == null) {
+            throw new IllegalArgumentException("WG ID is required");
+        }
+        return wgRepository.findById(wgId).orElseThrow(() -> new IllegalArgumentException("WG not found"));
     }
 }

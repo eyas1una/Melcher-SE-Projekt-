@@ -14,7 +14,7 @@
     <!-- Top Header -->
     <top>
         <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
-            <Button text="← Back" onAction="#backToHome" styleClass="navbar-back-button"/>
+            <Button text="&lt; Back" onAction="#backToHome" styleClass="navbar-back-button"/>
             <Text text="Home Settings" styleClass="navbar-title"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Text fx:id="wgNameHeader" text="Home Name" styleClass="navbar-wg-name"/>

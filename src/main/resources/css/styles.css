@@ -921,15 +921,19 @@
 }
 
 .styled-dialog .button-bar {
-    -fx-padding: 15 20 20 20;
+    -fx-padding: 18 20 22 20;
 }
 
 .styled-dialog .button-bar .button {
     -fx-background-radius: 8;
-    -fx-padding: 10 20;
+    -fx-padding: 12 22;
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
+    -fx-max-height: 40;
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-weight: 600;
     -fx-cursor: hand;
+    -fx-alignment: center;
 }
 
 .styled-dialog .button-bar .button:default {
@@ -1527,11 +1531,14 @@
     -fx-border-radius: 50;
     -fx-background-radius: 50;
     -fx-border-width: 2;
-    -fx-pref-width: 20;
-    -fx-pref-height: 20;
-    -fx-min-width: 20;
-    -fx-min-height: 20;
-    -fx-padding: 4;
+    -fx-pref-width: 18;
+    -fx-pref-height: 18;
+    -fx-min-width: 18;
+    -fx-min-height: 18;
+    -fx-padding: 0;
+    -fx-alignment: center;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
 }
 
 .radio-button:hover .radio {
@@ -1547,10 +1554,14 @@
 .radio-button .dot {
     -fx-background-color: transparent;
     -fx-background-radius: 50;
-    -fx-pref-width: 10;
-    -fx-pref-height: 10;
-    -fx-min-width: 10;
-    -fx-min-height: 10;
+    -fx-pref-width: 7;
+    -fx-pref-height: 7;
+    -fx-min-width: 7;
+    -fx-min-height: 7;
+    -fx-max-width: 7;
+    -fx-max-height: 7;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
 }
 
 .radio-button:selected .dot {

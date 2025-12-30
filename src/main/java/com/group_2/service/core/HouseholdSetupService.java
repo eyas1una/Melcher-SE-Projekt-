@@ -4,6 +4,7 @@ import com.group_2.dto.cleaning.CleaningMapper;
 import com.group_2.dto.cleaning.RoomDTO;
 import com.group_2.model.WG;
 import com.group_2.model.cleaning.Room;
+import com.group_2.repository.WGRepository;
 import com.group_2.service.cleaning.RoomService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +24,13 @@ public class HouseholdSetupService {
 
     private final RoomService roomService;
     private final CleaningMapper cleaningMapper;
+    private final WGRepository wgRepository;
 
     @Autowired
-    public HouseholdSetupService(RoomService roomService, CleaningMapper cleaningMapper) {
+    public HouseholdSetupService(RoomService roomService, CleaningMapper cleaningMapper, WGRepository wgRepository) {
         this.roomService = roomService;
         this.cleaningMapper = cleaningMapper;
+        this.wgRepository = wgRepository;
     }
 
     // ========== Room Management (delegating to cleaning domain) ==========
@@ -85,6 +88,17 @@ public class HouseholdSetupService {
             return List.of();
         }
         return cleaningMapper.toRoomDTOList(wg.rooms);
+    }
+
+    /**
+     * Get rooms for a WG as DTOs by WG ID.
+     */
+    public List<RoomDTO> getRoomsForWgDTO(Long wgId) {
+        if (wgId == null) {
+            return List.of();
+        }
+        WG wg = wgRepository.findById(wgId).orElse(null);
+        return getRoomsForWgDTO(wg);
     }
 
     /**

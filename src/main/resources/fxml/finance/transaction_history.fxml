@@ -15,7 +15,7 @@
         <!-- Top Header -->
         <top>
             <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
-                <Button text="← Back" onAction="#returnToTransactions" styleClass="navbar-back-button"/>
+                <Button text="&lt; Back" onAction="#returnToTransactions" styleClass="navbar-back-button"/>
                 <Text text="Transaction History" styleClass="navbar-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </HBox>
@@ -40,7 +40,7 @@
                         <HBox spacing="15" alignment="CENTER_LEFT">
                             <Text text="Filter by:" styleClass="card-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="clearFiltersButton" text="↺ Clear Filters" styleClass="secondary-button" onAction="#clearFilters"/>
+                            <Button fx:id="clearFiltersButton" text="Clear Filters" styleClass="secondary-button" onAction="#clearFilters"/>
                         </HBox>
                         <HBox spacing="15" alignment="CENTER_LEFT">
                             <VBox spacing="5">

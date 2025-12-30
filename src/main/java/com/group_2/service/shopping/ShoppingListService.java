@@ -144,6 +144,16 @@ public class ShoppingListService {
     }
 
     /**
+     * Get all shopping lists accessible to a user by ID as DTOs.
+     */
+    public List<ShoppingListDTO> getAccessibleListsDTO(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        return userRepository.findById(userId).map(this::getAccessibleListsDTO).orElseGet(List::of);
+    }
+
+    /**
      * Get a shopping list by ID as DTO.
      */
     public Optional<ShoppingListDTO> getListDTO(Long id) {

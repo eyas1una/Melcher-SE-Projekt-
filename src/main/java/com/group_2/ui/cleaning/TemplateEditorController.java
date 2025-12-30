@@ -2,11 +2,11 @@ package com.group_2.ui.cleaning;
 
 import com.group_2.dto.cleaning.CleaningTaskTemplateDTO;
 import com.group_2.dto.cleaning.RoomDTO;
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.cleaning.RecurrenceInterval;
 import com.group_2.service.cleaning.CleaningScheduleService;
 import com.group_2.service.core.HouseholdSetupService;
+import com.group_2.service.core.WGService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.MainScreenController;
 import com.group_2.ui.core.NavbarController;
@@ -36,6 +36,7 @@ public class TemplateEditorController extends Controller {
 
     private final CleaningScheduleService cleaningScheduleService;
     private final HouseholdSetupService householdSetupService;
+    private final WGService wgService;
     private final SessionManager sessionManager;
 
     @Autowired
@@ -98,9 +99,10 @@ public class TemplateEditorController extends Controller {
     }
 
     public TemplateEditorController(CleaningScheduleService cleaningScheduleService,
-            HouseholdSetupService householdSetupService, SessionManager sessionManager) {
+            HouseholdSetupService householdSetupService, WGService wgService, SessionManager sessionManager) {
         this.cleaningScheduleService = cleaningScheduleService;
         this.householdSetupService = householdSetupService;
+        this.wgService = wgService;
         this.sessionManager = sessionManager;
     }
 
@@ -122,12 +124,11 @@ public class TemplateEditorController extends Controller {
         workingTemplates.clear();
         hasUnsavedChanges = false;
 
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null)
             return;
 
-        WG wg = currentUser.getWg();
-        List<CleaningTaskTemplateDTO> templates = cleaningScheduleService.getTemplatesDTO(wg);
+        List<CleaningTaskTemplateDTO> templates = cleaningScheduleService.getTemplatesDTO(session.wgId());
 
         for (CleaningTaskTemplateDTO dto : templates) {
             workingTemplates.add(new WorkingTemplate(dto));
@@ -140,11 +141,9 @@ public class TemplateEditorController extends Controller {
     private void refreshView() {
         clearColumns();
 
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null)
             return;
-
-        WG wg = currentUser.getWg();
 
         // Count non-deleted templates
         long count = workingTemplates.stream().filter(t -> !t.isDeleted).count();
@@ -156,7 +155,7 @@ public class TemplateEditorController extends Controller {
 
             VBox column = getColumnForDay(template.dayOfWeek);
             if (column != null) {
-                column.getChildren().add(createTemplateCard(template, wg));
+                column.getChildren().add(createTemplateCard(template));
             }
         }
     }
@@ -192,7 +191,7 @@ public class TemplateEditorController extends Controller {
         }
     }
 
-    private VBox createTemplateCard(WorkingTemplate template, WG wg) {
+    private VBox createTemplateCard(WorkingTemplate template) {
         VBox card = new VBox(8);
         card.setPadding(new Insets(12));
         card.getStyleClass().add("template-card");
@@ -247,20 +246,21 @@ public class TemplateEditorController extends Controller {
 
     @FXML
     public void showAddTemplateDialog() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             showErrorAlert("Error", "You must be in a WG.", getOwnerWindow(headerTitle));
             return;
         }
 
-        WG wg = currentUser.getWg();
-        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wg);
+        Long wgId = session.wgId();
+        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wgId);
         if (rooms.isEmpty()) {
             showWarningAlert("No Rooms", "Please add rooms first in the Dashboard.", getOwnerWindow(headerTitle));
             return;
         }
 
-        if (wg.getMitbewohner().isEmpty()) {
+        List<UserSummaryDTO> members = wgService.getMemberSummaries(wgId);
+        if (members.isEmpty()) {
             showWarningAlert("No Members", "WG has no members.", getOwnerWindow(headerTitle));
             return;
         }
@@ -321,7 +321,7 @@ public class TemplateEditorController extends Controller {
         HBox infoBox = new HBox(8);
         infoBox.setAlignment(Pos.CENTER_LEFT);
         infoBox.getStyleClass().add("info-box-success");
-        Text infoIcon = new Text("↻");
+        Text infoIcon = new Text("i");
         infoIcon.getStyleClass().add("info-box-success-icon");
         Text infoText = new Text("Assignees rotate automatically each week");
         infoText.getStyleClass().add("info-box-success-text");
@@ -360,8 +360,8 @@ public class TemplateEditorController extends Controller {
     }
 
     private void showEditTemplateDialog(WorkingTemplate template) {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null)
             return;
 
         Dialog<Void> dialog = new Dialog<>();
@@ -403,7 +403,7 @@ public class TemplateEditorController extends Controller {
         HBox infoBox = new HBox(8);
         infoBox.setAlignment(Pos.CENTER_LEFT);
         infoBox.getStyleClass().add("info-box-success");
-        Text infoIcon = new Text("↻");
+        Text infoIcon = new Text("i");
         infoIcon.getStyleClass().add("info-box-success-icon");
         Text infoText = new Text("Assignees rotate automatically - no need to change");
         infoText.getStyleClass().add("info-box-success-text");
@@ -439,22 +439,20 @@ public class TemplateEditorController extends Controller {
 
     @FXML
     public void saveAndApplyTemplate() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             showErrorAlert("Error", "You must be in a WG.", getOwnerWindow(headerTitle));
             return;
         }
 
-        WG wg = currentUser.getWg();
-
         // First, clear all existing templates and tasks
-        cleaningScheduleService.clearTemplates(wg);
+        cleaningScheduleService.clearTemplates(session.wgId());
 
         // Then, add all non-deleted templates from working copy
         for (WorkingTemplate wt : workingTemplates) {
             if (wt.isDeleted)
                 continue;
-            cleaningScheduleService.addTemplateByRoomId(wg, wt.roomId, DayOfWeek.of(wt.dayOfWeek),
+            cleaningScheduleService.addTemplateByRoomId(session.wgId(), wt.roomId, DayOfWeek.of(wt.dayOfWeek),
                     wt.recurrenceInterval);
         }
 
@@ -469,8 +467,8 @@ public class TemplateEditorController extends Controller {
 
     @FXML
     public void clearAllTemplates() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null)
             return;
 
         boolean confirmed = showConfirmDialog("Clear All", "Clear all template tasks?",

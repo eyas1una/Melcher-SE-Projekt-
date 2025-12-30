@@ -19,7 +19,7 @@
         
         <!-- Header -->
         <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
-            <Button text="✕" onAction="#closeDialog"
+            <Button text="X" onAction="#closeDialog"
                     styleClass="dialog-close-button"/>
             <Text text="Standing Orders" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
@@ -47,7 +47,7 @@
             
             <!-- Empty State -->
             <VBox fx:id="emptyState" alignment="CENTER" spacing="10" visible="false" managed="false" VBox.vgrow="ALWAYS">
-                <Text text="📭" styleClass="dialog-header-icon"/>
+                <Text text="LIST" styleClass="dialog-header-icon"/>
                 <Text text="No standing orders yet" styleClass="dialog-message-text"/>
                 <Text text="Create a standing order from the transaction dialog" styleClass="dialog-subtitle-small"/>
             </VBox>

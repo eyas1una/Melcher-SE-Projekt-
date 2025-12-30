@@ -25,14 +25,14 @@
             <HBox alignment="CENTER_LEFT" spacing="20" styleClass="cleaning-header">
                 <!-- Week Navigation -->
                 <HBox spacing="12" alignment="CENTER_LEFT">
-                    <Button text="◀" styleClass="icon-button nav-button-light" onAction="#previousWeek"/>
+                    <Button text="&lt;" styleClass="icon-button nav-button-light" onAction="#previousWeek"/>
                     <VBox spacing="2" alignment="CENTER_LEFT">
                         <Text fx:id="weekTitle" text="Week 52, 2024" 
                               styleClass="text-title-cleaning"/>
                         <Text fx:id="weekDateRange" text="December 23 - December 29" 
                               styleClass="text-subtitle-cleaning"/>
                     </VBox>
-                    <Button text="▶" styleClass="icon-button nav-button-light" onAction="#nextWeek"/>
+                    <Button text="&gt;" styleClass="icon-button nav-button-light" onAction="#nextWeek"/>
                     <Button text="Today" styleClass="nav-button-primary" onAction="#goToCurrentWeek"/>
                 </HBox>
                 

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+
 /**
  * DTO representing a transaction for display in the UI. Immutable record
  * containing only the display data needed by controllers.

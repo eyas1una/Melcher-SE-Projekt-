@@ -79,4 +79,3 @@
     <fx:include source="standing_orders_dialog.fxml" fx:id="standingOrdersDialog"/>
 
 </StackPane>
-

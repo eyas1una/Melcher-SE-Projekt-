@@ -69,7 +69,7 @@ public class TransactionHistoryController extends Controller {
     @FXML
     private TextField searchField;
 
-    private DecimalFormat currencyFormat = new DecimalFormat("EUR #,##0.00");
+    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -438,7 +438,7 @@ public class TransactionHistoryController extends Controller {
         descField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         // Total Amount field
-        Text amountLabel = new Text("Total Amount (EUR)");
+        Text amountLabel = new Text("Total Amount (€)");
         amountLabel.getStyleClass().add("form-label-bold");
         TextField amountField = new TextField(String.format("%.2f", transaction.totalAmount()));
         amountField.getStyleClass().addAll("dialog-field", "dialog-field-small");
@@ -508,7 +508,7 @@ public class TransactionHistoryController extends Controller {
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                         String debtorName = split.debtor() != null ? split.debtor().displayName() : "Unknown";
-                        Text nameText = new Text(debtorName + ": " + String.format("%.2f", equalAmount) + " EUR");
+                        Text nameText = new Text(debtorName + ": " + String.format("%.2f", equalAmount) + " €");
                         nameText.getStyleClass().add("text-small");
                         row.getChildren().add(nameText);
                         splitsContainer.getChildren().add(row);
@@ -572,7 +572,7 @@ public class TransactionHistoryController extends Controller {
                     // Initial calculation
                     double sum = splits.stream().mapToDouble(TransactionSplitViewDTO::percentage).sum();
                     double remaining = 100.0 - sum;
-                    validationLabel.setText(String.format("Total: %.2f EUR of %.2f EUR\n%.2f EUR left", sum, total, remaining));
+                    validationLabel.setText(String.format("Total: %.2f € of %.2f €\n%.2f € left", sum, total, remaining));
                     validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error", "validation-label-muted");
                     if (Math.abs(remaining) < 0.01) {
                         validationLabel.getStyleClass().addAll("validation-label", "validation-label-success");
@@ -662,7 +662,7 @@ public class TransactionHistoryController extends Controller {
                         }
                         if (Math.abs(totalSplitAmount - newAmount) > 0.01) {
                             throw new IllegalArgumentException(String.format(
-                                    "Split amounts (EUR %.2f) must equal total (EUR %.2f)", totalSplitAmount,
+                                    "Split amounts (€%.2f) must equal total (€%.2f)", totalSplitAmount,
                                     newAmount));
                         }
                         for (TransactionSplitViewDTO split : splits) {
@@ -750,6 +750,3 @@ public class TransactionHistoryController extends Controller {
         }
     }
 }
-
-
-

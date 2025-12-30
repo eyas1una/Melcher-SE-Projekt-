@@ -21,7 +21,7 @@
         
         <!-- Header -->
         <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
-            <Button text="✕" onAction="#closeDialog"
+            <Button text="X" onAction="#closeDialog"
                     styleClass="dialog-close-button"/>
             <Text text="Step 1: Select Participants" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
@@ -56,7 +56,7 @@
 
         <!-- Footer with Next Button -->
         <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="dialog-footer">
-            <Button fx:id="step1NextButton" text="Next →" onAction="#goToStep2"
+            <Button fx:id="step1NextButton" text="Next &gt;" onAction="#goToStep2"
                     styleClass="dialog-footer-button-primary"/>
         </HBox>
     </VBox>
@@ -67,7 +67,7 @@
         
         <!-- Header -->
         <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
-            <Button text="✕" onAction="#closeDialog"
+            <Button text="X" onAction="#closeDialog"
                     styleClass="dialog-close-button"/>
             <Text text="Step 2: Transaction Details" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
@@ -130,9 +130,9 @@
 
         <!-- Footer with Back/Next Buttons -->
         <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="dialog-footer">
-            <Button text="← Back" onAction="#goToStep1"
+            <Button text="&lt; Back" onAction="#goToStep1"
                     styleClass="dialog-footer-button-light"/>
-            <Button fx:id="step2NextButton" text="Next →" onAction="#goToStep3"
+            <Button fx:id="step2NextButton" text="Next &gt;" onAction="#goToStep3"
                     styleClass="dialog-footer-button-primary"/>
         </HBox>
     </VBox>
@@ -143,7 +143,7 @@
         
         <!-- Header -->
         <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
-            <Button text="✕" onAction="#closeDialog"
+            <Button text="X" onAction="#closeDialog"
                     styleClass="dialog-close-button"/>
             <Text text="Step 3: Split Options" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
@@ -186,7 +186,7 @@
 
         <!-- Footer with Back/Save Buttons -->
         <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="dialog-footer">
-            <Button text="← Back" onAction="#goToStep2"
+            <Button text="&lt; Back" onAction="#goToStep2"
                     styleClass="dialog-footer-button-light"/>
             <Button fx:id="saveButton" text="Save Transaction" onAction="#saveTransaction"
                     styleClass="dialog-footer-button-primary"/>

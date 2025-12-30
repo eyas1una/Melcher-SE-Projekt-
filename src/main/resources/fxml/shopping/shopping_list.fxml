@@ -41,7 +41,7 @@
             <VBox styleClass="main-content" spacing="20" HBox.hgrow="ALWAYS">
                 <!-- Placeholder when no list selected -->
                 <VBox fx:id="noListSelectedView" alignment="CENTER" spacing="15" VBox.vgrow="ALWAYS">
-                    <Text text="📋" style="-fx-font-size: 48px;"/>
+                    <Text text="LIST" style="-fx-font-size: 48px;"/>
                     <Text text="Create a new list and add items" styleClass="card-subtitle"/>
                 </VBox>
 

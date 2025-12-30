@@ -3,6 +3,8 @@ package com.group_2.service.core;
 import com.group_2.model.User;
 import com.group_2.model.WG;
 import com.group_2.model.cleaning.Room;
+import com.group_2.dto.core.CoreMapper;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.repository.UserRepository;
 import com.group_2.repository.WGRepository;
 import com.group_2.repository.cleaning.RoomRepository;
@@ -23,14 +25,16 @@ public class WGService {
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
     private final CleaningScheduleService cleaningScheduleService;
+    private final CoreMapper coreMapper;
 
     @Autowired
     public WGService(WGRepository wgRepository, UserRepository userRepository, RoomRepository roomRepository,
-            @Lazy CleaningScheduleService cleaningScheduleService) {
+            @Lazy CleaningScheduleService cleaningScheduleService, CoreMapper coreMapper) {
         this.wgRepository = wgRepository;
         this.userRepository = userRepository;
         this.roomRepository = roomRepository;
         this.cleaningScheduleService = cleaningScheduleService;
+        this.coreMapper = coreMapper;
     }
 
     @Transactional
@@ -75,6 +79,14 @@ public class WGService {
 
     public Optional<WG> getWG(Long id) {
         return wgRepository.findById(id);
+    }
+
+    /**
+     * Get WG member summaries for UI consumption by WG ID.
+     */
+    public List<UserSummaryDTO> getMemberSummaries(Long wgId) {
+        WG wg = wgRepository.findById(wgId).orElseThrow(() -> new RuntimeException("WG not found"));
+        return coreMapper.toUserSummaries(wg.getMitbewohner());
     }
 
     public Optional<WG> getWGByInviteCode(String inviteCode) {

@@ -63,7 +63,7 @@ public class TransactionsController extends Controller {
     @FXML
     private VBox balanceCard;
 
-    private DecimalFormat currencyFormat = new DecimalFormat("EUR #,##0.00");
+    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
 
     @Autowired
     public TransactionsController(TransactionService transactionService, SessionManager sessionManager) {
@@ -640,7 +640,7 @@ public class TransactionsController extends Controller {
         private final String memberName;
         private final double balance;
         private final Long userId;
-        private final DecimalFormat format = new DecimalFormat("EUR #,##0.00");
+        private final DecimalFormat format = new DecimalFormat("€#,##0.00");
 
         public BalanceEntry(String memberName, double balance, Long userId) {
             this.memberName = memberName;

@@ -968,6 +968,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         if (!customAmountSplitSummary.getStyleClass().contains("validation-label")) {
             customAmountSplitSummary.getStyleClass().add("validation-label");
         }
-        customAmountSplitSummary.setText(String.format("Total: %.2f€ of %.2f€\n%s", total, totalAmount, remainingText));
+        customAmountSplitSummary.setText(String.format("Total: %.2f€ of %.2f€\n%s",
+                total, totalAmount, remainingText));
     }
 }

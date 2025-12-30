@@ -1,14 +1,14 @@
 package com.group_2.ui.cleaning;
 
 import com.group_2.dto.cleaning.RoomDTO;
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.cleaning.CleaningTaskDTO;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.cleaning.CleaningScheduleService;
 import com.group_2.service.core.HouseholdSetupService;
+import com.group_2.service.core.WGService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.NavbarController;
 import com.group_2.util.SessionManager;
-import com.group_2.dto.cleaning.CleaningTaskDTO;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -32,6 +32,7 @@ public class CleaningScheduleController extends Controller {
 
     private final CleaningScheduleService cleaningScheduleService;
     private final HouseholdSetupService householdSetupService;
+    private final WGService wgService;
     private final SessionManager sessionManager;
 
     // Current displayed week
@@ -58,9 +59,10 @@ public class CleaningScheduleController extends Controller {
     private NavbarController navbarController;
 
     public CleaningScheduleController(CleaningScheduleService cleaningScheduleService,
-            HouseholdSetupService householdSetupService, SessionManager sessionManager) {
+            HouseholdSetupService householdSetupService, WGService wgService, SessionManager sessionManager) {
         this.cleaningScheduleService = cleaningScheduleService;
         this.householdSetupService = householdSetupService;
+        this.wgService = wgService;
         this.sessionManager = sessionManager;
     }
 
@@ -98,23 +100,23 @@ public class CleaningScheduleController extends Controller {
     private void loadCalendarDays() {
         calendarDaysContainer.getChildren().clear();
 
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null)
             return;
 
-        WG wg = currentUser.getWg();
-        List<CleaningTaskDTO> weekTasks = cleaningScheduleService.getTasksForWeekDTO(wg, displayedWeekStart);
+        List<CleaningTaskDTO> weekTasks = cleaningScheduleService.getTasksForWeekDTO(session.wgId(),
+                displayedWeekStart);
         LocalDate today = LocalDate.now();
 
         // Create 7 day cells
         for (int i = 0; i < 7; i++) {
             LocalDate day = displayedWeekStart.plusDays(i);
-            VBox dayCell = createDayCell(day, weekTasks, today, currentUser);
+            VBox dayCell = createDayCell(day, weekTasks, today, session.userId());
             calendarDaysContainer.getChildren().add(dayCell);
         }
     }
 
-    private VBox createDayCell(LocalDate day, List<CleaningTaskDTO> weekTasks, LocalDate today, User currentUser) {
+    private VBox createDayCell(LocalDate day, List<CleaningTaskDTO> weekTasks, LocalDate today, Long currentUserId) {
         VBox cell = new VBox(8);
         cell.setPrefWidth(130);
         cell.setMinHeight(150);
@@ -162,7 +164,7 @@ public class CleaningScheduleController extends Controller {
                 taskDueDate = task.weekStartDate();
             }
             if (taskDueDate.equals(day)) {
-                HBox taskPill = createTaskPill(task, currentUser);
+                HBox taskPill = createTaskPill(task, currentUserId);
                 cell.getChildren().add(taskPill);
             }
         }
@@ -170,13 +172,13 @@ public class CleaningScheduleController extends Controller {
         return cell;
     }
 
-    private HBox createTaskPill(CleaningTaskDTO task, User currentUser) {
+    private HBox createTaskPill(CleaningTaskDTO task, Long currentUserId) {
         HBox pill = new HBox(5);
         pill.setAlignment(Pos.CENTER_LEFT);
         pill.setPadding(new Insets(4, 8, 4, 8));
         pill.setCursor(javafx.scene.Cursor.HAND);
 
-        boolean isMyTask = task.assigneeId() != null && task.assigneeId().equals(currentUser.getId());
+        boolean isMyTask = task.assigneeId() != null && task.assigneeId().equals(currentUserId);
 
         // Apply CSS classes based on task state
         if (task.completed()) {
@@ -187,7 +189,7 @@ public class CleaningScheduleController extends Controller {
             pill.getStyleClass().add("task-pill-pending");
         }
 
-        Text roomIcon = new Text(task.completed() ? "✓" : "🚪");
+        Text roomIcon = new Text(task.completed() ? "C" : "P");
         roomIcon.getStyleClass().add("task-pill-icon");
 
         Text roomName = new Text(truncate(task.roomName(), 10));
@@ -218,14 +220,14 @@ public class CleaningScheduleController extends Controller {
     private void loadRoomCards() {
         roomCardsContainer.getChildren().clear();
 
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             showEmptyState();
             return;
         }
 
-        WG wg = currentUser.getWg();
-        List<CleaningTaskDTO> weekTasks = cleaningScheduleService.getTasksForWeekDTO(wg, displayedWeekStart);
+        List<CleaningTaskDTO> weekTasks = cleaningScheduleService.getTasksForWeekDTO(session.wgId(),
+                displayedWeekStart);
 
         if (weekTasks.isEmpty()) {
             showEmptyState();
@@ -234,19 +236,19 @@ public class CleaningScheduleController extends Controller {
 
         // Create a card for each task
         for (CleaningTaskDTO task : weekTasks) {
-            VBox card = createRoomCard(task, currentUser);
+            VBox card = createRoomCard(task, session.userId());
             roomCardsContainer.getChildren().add(card);
         }
     }
 
-    private VBox createRoomCard(CleaningTaskDTO task, User currentUser) {
+    private VBox createRoomCard(CleaningTaskDTO task, Long currentUserId) {
         VBox card = new VBox(12);
         card.setPadding(new Insets(25, 15, 20, 15)); // Extra top padding for delete button
         card.setPrefWidth(220);
         card.setAlignment(Pos.TOP_CENTER);
 
         boolean isCompleted = task.completed();
-        boolean isMyTask = task.assigneeId() != null && task.assigneeId().equals(currentUser.getId());
+        boolean isMyTask = task.assigneeId() != null && task.assigneeId().equals(currentUserId);
 
         // Apply CSS classes based on task state
         card.getStyleClass().add("task-card");
@@ -262,7 +264,7 @@ public class CleaningScheduleController extends Controller {
 
         // Only show delete button for manually created tasks (not template-generated)
         if (task.manualOverride()) {
-            Button deleteBtn = new Button("×");
+            Button deleteBtn = new Button("X");
             deleteBtn.getStyleClass().add("task-delete-button");
             deleteBtn.setTooltip(new Tooltip("Delete task"));
             deleteBtn.setOnAction(e -> showDeleteConfirmDialog(task));
@@ -325,7 +327,7 @@ public class CleaningScheduleController extends Controller {
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER);
 
-        Button completeBtn = new Button(isCompleted ? "↩ Undo" : "✓ Done");
+        Button completeBtn = new Button(isCompleted ? "Undo" : "Done");
         completeBtn.getStyleClass().add("complete-button");
         if (isCompleted) {
             completeBtn.getStyleClass().add("complete-button-done");
@@ -343,7 +345,7 @@ public class CleaningScheduleController extends Controller {
 
         // Only show reassign button for your own tasks
         if (isMyTask) {
-            Button reassignBtn = new Button("↻");
+            Button reassignBtn = new Button("Assign");
             reassignBtn.getStyleClass().add("task-action-button");
             reassignBtn.setMinWidth(Region.USE_PREF_SIZE);
             reassignBtn.setTooltip(new Tooltip("Reassign to someone else"));
@@ -387,7 +389,7 @@ public class CleaningScheduleController extends Controller {
         emptyState.setPrefWidth(400);
         emptyState.getStyleClass().add("empty-state-card");
 
-        Text emptyIcon = new Text("📋");
+        Text emptyIcon = new Text("LIST");
         emptyIcon.getStyleClass().add("empty-state-icon-large");
 
         Text emptyTitle = new Text("No Tasks This Week");
@@ -409,20 +411,20 @@ public class CleaningScheduleController extends Controller {
     }
 
     private void updateStats() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             completedTasksText.setText("0/0");
             myTasksCountText.setText("0");
             return;
         }
 
-        WG wg = currentUser.getWg();
-        List<CleaningTaskDTO> weekTasks = cleaningScheduleService.getTasksForWeekDTO(wg, displayedWeekStart);
+        List<CleaningTaskDTO> weekTasks = cleaningScheduleService.getTasksForWeekDTO(session.wgId(),
+                displayedWeekStart);
 
         int total = weekTasks.size();
         int completed = (int) weekTasks.stream().filter(CleaningTaskDTO::completed).count();
         int myTasks = (int) weekTasks.stream()
-                .filter(t -> t.assigneeId() != null && t.assigneeId().equals(currentUser.getId())).count();
+                .filter(t -> t.assigneeId() != null && t.assigneeId().equals(session.userId())).count();
 
         completedTasksText.setText(completed + "/" + total);
         myTasksCountText.setText(String.valueOf(myTasks));
@@ -431,7 +433,7 @@ public class CleaningScheduleController extends Controller {
     private String truncate(String text, int maxLength) {
         if (text.length() <= maxLength)
             return text;
-        return text.substring(0, maxLength - 1) + "…";
+        return text.substring(0, maxLength - 1) + "...";
     }
 
     // Week navigation
@@ -455,16 +457,22 @@ public class CleaningScheduleController extends Controller {
 
     @FXML
     public void showAddTaskDialog() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             showErrorAlert("Error", "You must be in a WG to add tasks.", getOwnerWindow(weekTitle));
             return;
         }
 
-        WG wg = currentUser.getWg();
-        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wg);
+        Long wgId = session.wgId();
+        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wgId);
         if (rooms.isEmpty()) {
             showWarningAlert("No Rooms", "Please add rooms first.", getOwnerWindow(weekTitle));
+            return;
+        }
+
+        List<UserSummaryDTO> members = wgService.getMemberSummaries(wgId);
+        if (members.isEmpty()) {
+            showWarningAlert("No Members", "WG has no members.", getOwnerWindow(weekTitle));
             return;
         }
 
@@ -497,17 +505,17 @@ public class CleaningScheduleController extends Controller {
         });
 
         // Assignee selection
-        ComboBox<User> assigneeCombo = new ComboBox<>();
-        assigneeCombo.getItems().addAll(wg.getMitbewohner());
+        ComboBox<UserSummaryDTO> assigneeCombo = new ComboBox<>();
+        assigneeCombo.getItems().addAll(members);
         assigneeCombo.setPromptText("Assign to...");
-        assigneeCombo.setConverter(new javafx.util.StringConverter<User>() {
+        assigneeCombo.setConverter(new javafx.util.StringConverter<UserSummaryDTO>() {
             @Override
-            public String toString(User user) {
-                return user != null ? user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "") : "";
+            public String toString(UserSummaryDTO user) {
+                return formatUserName(user);
             }
 
             @Override
-            public User fromString(String string) {
+            public UserSummaryDTO fromString(String string) {
                 return null;
             }
         });
@@ -562,8 +570,8 @@ public class CleaningScheduleController extends Controller {
             if (dialogButton == addButtonType) {
                 return cleaningScheduleService.assignTaskByIdsWithDate(
                         roomCombo.getValue().id(),
-                        assigneeCombo.getValue().getId(),
-                        wg,
+                        assigneeCombo.getValue().id(),
+                        wgId,
                         datePicker.getValue());
             }
             return null;
@@ -573,13 +581,16 @@ public class CleaningScheduleController extends Controller {
     }
 
     private void showReassignDialog(CleaningTaskDTO task) {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null)
             return;
 
-        Dialog<User> dialog = new Dialog<>();
+        List<UserSummaryDTO> members = wgService.getMemberSummaries(session.wgId());
+        Dialog<UserSummaryDTO> dialog = new Dialog<>();
         configureDialogOwner(dialog, getOwnerWindow(weekTitle));
         styleDialog(dialog);
+        dialog.getDialogPane().setMinWidth(360);
+        dialog.getDialogPane().setPrefWidth(360);
         dialog.setTitle("Reassign Task");
         dialog.setHeaderText("Reassign \"" + task.roomName() + "\"");
 
@@ -590,12 +601,11 @@ public class CleaningScheduleController extends Controller {
         content.setPadding(new Insets(20));
 
         ToggleGroup group = new ToggleGroup();
-        for (User member : currentUser.getWg().getMitbewohner()) {
-            RadioButton rb = new RadioButton(
-                    member.getName() + (member.getSurname() != null ? " " + member.getSurname() : ""));
+        for (UserSummaryDTO member : members) {
+            RadioButton rb = new RadioButton(formatUserName(member));
             rb.setUserData(member);
             rb.setToggleGroup(group);
-            if (task.assigneeId() != null && member.getId().equals(task.assigneeId())) {
+            if (task.assigneeId() != null && member.id().equals(task.assigneeId())) {
                 rb.setSelected(true);
             }
             content.getChildren().add(rb);
@@ -605,13 +615,13 @@ public class CleaningScheduleController extends Controller {
 
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == assignButtonType && group.getSelectedToggle() != null) {
-                return (User) group.getSelectedToggle().getUserData();
+                return (UserSummaryDTO) group.getSelectedToggle().getUserData();
             }
             return null;
         });
 
         dialog.showAndWait().ifPresent(newAssignee -> {
-            cleaningScheduleService.reassignTask(task.id(), newAssignee.getId());
+            cleaningScheduleService.reassignTask(task.id(), newAssignee.id());
             refreshView();
         });
     }
@@ -683,14 +693,13 @@ public class CleaningScheduleController extends Controller {
 
     @FXML
     public void saveAsTemplate() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             showErrorAlert("Error", "You must be in a WG.", getOwnerWindow(weekTitle));
             return;
         }
 
-        WG wg = currentUser.getWg();
-        if (cleaningScheduleService.getTasksForWeekDTO(wg, displayedWeekStart).isEmpty()) {
+        if (cleaningScheduleService.getTasksForWeekDTO(session.wgId(), displayedWeekStart).isEmpty()) {
             showWarningAlert("No Tasks", "Create a schedule first before saving it as a template.",
                     getOwnerWindow(weekTitle));
             return;
@@ -700,7 +709,7 @@ public class CleaningScheduleController extends Controller {
                 "This will overwrite any existing template.", getOwnerWindow(weekTitle));
 
         if (confirmed) {
-            cleaningScheduleService.saveAsTemplate(wg);
+            cleaningScheduleService.saveAsTemplate(session.wgId());
             showSuccessAlert("Saved", "Template saved! Use 'Load Default' to apply it to new weeks.",
                     getOwnerWindow(weekTitle));
         }
@@ -708,14 +717,13 @@ public class CleaningScheduleController extends Controller {
 
     @FXML
     public void loadFromTemplate() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        SessionManager.UserSession session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             showErrorAlert("Error", "You must be in a WG.", getOwnerWindow(weekTitle));
             return;
         }
 
-        WG wg = currentUser.getWg();
-        if (!cleaningScheduleService.hasTemplate(wg)) {
+        if (!cleaningScheduleService.hasTemplate(session.wgId())) {
             showWarningAlert("No Template",
                     "No default template found. First create a schedule and save it as template.",
                     getOwnerWindow(weekTitle));
@@ -726,7 +734,7 @@ public class CleaningScheduleController extends Controller {
                 "This will replace any existing tasks for this week.", getOwnerWindow(weekTitle));
 
         if (confirmed) {
-            cleaningScheduleService.generateFromTemplate(wg);
+            cleaningScheduleService.generateFromTemplate(session.wgId());
             refreshView();
         }
     }
@@ -740,6 +748,16 @@ public class CleaningScheduleController extends Controller {
     public void handleLogout() {
         sessionManager.clear();
         loadScene(weekTitle.getScene(), "/core/login.fxml");
+    }
+
+    private String formatUserName(UserSummaryDTO user) {
+        if (user == null) {
+            return "";
+        }
+        if (user.surname() == null || user.surname().isBlank()) {
+            return user.name();
+        }
+        return user.name() + " " + user.surname();
     }
 
 }
