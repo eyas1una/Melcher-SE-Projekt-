@@ -18,7 +18,7 @@
         <Text text="🏠" style="-fx-font-size: 64px;"/>
         <Text fx:id="welcomeText" text="Welcome!" styleClass="title-text"/>
         <Text text="You're not part of a WG yet. Get started below!" 
-              styleClass="subtitle-text" style="-fx-fill: rgba(255,255,255,0.8);"/>
+              styleClass="subtitle-text" style="-fx-fill: white;"/>
     </VBox>
 
     <!-- Action Cards -->
@@ -111,6 +111,6 @@
 
     <!-- Logout link at bottom -->
     <Region VBox.vgrow="ALWAYS"/>
-    <Hyperlink text="Logout" onAction="#handleLogout" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+    <Hyperlink text="Logout" onAction="#handleLogout" style="-fx-text-fill: white;"/>
 
 </VBox>
