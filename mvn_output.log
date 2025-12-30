@@ -1,0 +1,41 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.group_2:Melcher_SE_Projekt >-------------------
+[INFO] Building Melcher_SE_Projekt 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[WARNING] 6 problems were encountered while building the effective model for org.openjfx:javafx-controls:jar:win:17.0.2 during dependency collection step for project (use -X to see details)
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ Melcher_SE_Projekt ---
+[INFO] Deleting C:\diev\Melcher-SE-Projekt-\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ Melcher_SE_Projekt ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 18 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ Melcher_SE_Projekt ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 73 source files with javac [debug release 17] to target\classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/diev/Melcher-SE-Projekt-/src/main/java/com/group_2/ui/finance/TransactionHistoryController.java:[1,1] illegal character: '\ufeff'
+[ERROR] /C:/diev/Melcher-SE-Projekt-/src/main/java/com/group_2/ui/finance/TransactionHistoryController.java:[1,10] class, interface, enum, or record expected
+[INFO] 2 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.807 s
+[INFO] Finished at: 2025-12-30T04:41:42+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project Melcher_SE_Projekt: Compilation failure: Compilation failure: 
+[ERROR] /C:/diev/Melcher-SE-Projekt-/src/main/java/com/group_2/ui/finance/TransactionHistoryController.java:[1,1] illegal character: '\ufeff'
+[ERROR] /C:/diev/Melcher-SE-Projekt-/src/main/java/com/group_2/ui/finance/TransactionHistoryController.java:[1,10] class, interface, enum, or record expected
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

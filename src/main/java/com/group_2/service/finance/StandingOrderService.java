@@ -11,6 +11,7 @@ import com.group_2.repository.UserRepository;
 import com.group_2.repository.finance.StandingOrderRepository;
 import com.group_2.dto.finance.FinanceMapper;
 import com.group_2.dto.finance.StandingOrderDTO;
+import com.group_2.dto.finance.StandingOrderViewDTO;
 import com.group_2.repository.WGRepository;
 
 import org.slf4j.Logger;
@@ -353,12 +354,21 @@ public class StandingOrderService {
         }
         return getActiveStandingOrdersView(wg);
     }
+
     /**
      * Get a standing order by ID as DTO
      */
     public StandingOrderDTO getStandingOrderByIdDTO(Long id) {
         StandingOrder order = getStandingOrderById(id);
         return financeMapper.toDTO(order);
+    }
+
+    /**
+     * Get a standing order by ID as view DTO
+     */
+    public StandingOrderViewDTO getStandingOrderByIdView(Long id) {
+        StandingOrder order = getStandingOrderById(id);
+        return financeMapper.toStandingOrderView(order);
     }
 
     /**

@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import com.group_2.dto.finance.StandingOrderViewDTO;
 import com.group_2.model.User;
 import com.group_2.model.WG;
-import com.group_2.model.finance.StandingOrderFrequency;
 
 @Component
 public class StandingOrdersDialogController extends com.group_2.ui.core.Controller {
@@ -103,8 +102,7 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                 cellData -> new SimpleStringProperty(currencyFormat.format(cellData.getValue().totalAmount())));
 
         // Frequency column
-        frequencyColumn
-                .setCellValueFactory(cellData -> new SimpleStringProperty(formatFrequency(cellData.getValue())));
+        frequencyColumn.setCellValueFactory(cellData -> new SimpleStringProperty(formatFrequency(cellData.getValue())));
 
         // Next execution column
         nextExecutionColumn.setCellValueFactory(cellData -> {
@@ -142,7 +140,8 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                     Long currentUserId = sessionManager.getCurrentUserId();
 
                     // Only show actions for creator
-                    if (currentUserId != null && order.createdById().equals(currentUserId)) {
+                    if (currentUserId != null && order.createdBy() != null
+                            && order.createdBy().id().equals(currentUserId)) {
                         HBox buttons = new HBox(5, editBtn, deleteBtn);
                         setGraphic(buttons);
                     } else {
@@ -158,7 +157,8 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                 StandingOrderViewDTO selectedOrder = standingOrdersTable.getSelectionModel().getSelectedItem();
                 Long currentUserId = sessionManager.getCurrentUserId();
 
-                if (currentUserId != null && selectedOrder.createdById().equals(currentUserId)) {
+                if (currentUserId != null && selectedOrder.createdBy() != null
+                        && selectedOrder.createdBy().id().equals(currentUserId)) {
                     showEditDialog(selectedOrder);
                 }
             }
@@ -207,12 +207,11 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
         } else if (debtors.size() == 1) {
             return debtors.get(0).user() != null ? debtors.get(0).user().displayName() : "Unknown";
         } else {
-            return debtors.stream()
-                    .map(d -> {
-                        String name = d.user() != null ? d.user().displayName() : "Unknown";
-                        String pct = String.format("%.1f%%", d.percentage());
-                        return name + " (" + pct + ")";
-                    }).collect(Collectors.joining(", "));
+            return debtors.stream().map(d -> {
+                String name = d.user() != null ? d.user().displayName() : "Unknown";
+                String pct = String.format("%.1f%%", d.percentage());
+                return name + " (" + pct + ")";
+            }).collect(Collectors.joining(", "));
         }
     }
 
@@ -294,7 +293,7 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
         StandingOrderFrequency defaultFreq = StandingOrderFrequency.MONTHLY;
         Boolean defaultMonthlyLastDay = false;
         Integer defaultMonthlyDay = 1;
-        List<DebtorShareDTO> defaultDebtors = new java.util.ArrayList<>();
+        List<StandingOrderViewDTO.DebtorShareViewDTO> defaultDebtors = new java.util.ArrayList<>();
 
         if (order != null) {
             defaultDesc = order.description();
@@ -481,8 +480,8 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                                 } else {
                                     validationLabel.getStyleClass().add("validation-label-muted");
                                 }
-                                validationLabel.setText(
-                                        String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
+                                validationLabel
+                                        .setText(String.format("Total: %.1f%% of 100%%\n%.1f%% left", sum, remaining));
                                 if (!validationLabel.getStyleClass().contains("validation-label")) {
                                     validationLabel.getStyleClass().add("validation-label");
                                 }
