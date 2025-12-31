@@ -18,6 +18,9 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creditor_id", nullable = false)
     private User creditor;

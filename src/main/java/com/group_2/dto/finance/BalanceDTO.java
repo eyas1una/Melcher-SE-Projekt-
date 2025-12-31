@@ -1,5 +1,6 @@
 package com.group_2.dto.finance;
 
+
 /**
  * DTO representing a balance between two users. Positive = other user owes
  * current user. Negative = current user owes other user.

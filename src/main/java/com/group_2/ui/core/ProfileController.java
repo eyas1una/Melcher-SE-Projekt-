@@ -1,7 +1,7 @@
 package com.group_2.ui.core;
 
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserProfileViewDTO;
+import com.group_2.service.core.CoreViewService;
 import com.group_2.service.core.UserService;
 import com.group_2.service.core.WGService;
 import com.group_2.util.SessionManager;
@@ -29,6 +29,7 @@ public class ProfileController extends Controller {
     private final SessionManager sessionManager;
     private final WGService wgService;
     private final UserService userService;
+    private final CoreViewService coreViewService;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -49,10 +50,12 @@ public class ProfileController extends Controller {
     private Text roleText;
 
     @Autowired
-    public ProfileController(SessionManager sessionManager, WGService wgService, UserService userService) {
+    public ProfileController(SessionManager sessionManager, WGService wgService, UserService userService,
+            CoreViewService coreViewService) {
         this.sessionManager = sessionManager;
         this.wgService = wgService;
         this.userService = userService;
+        this.coreViewService = coreViewService;
     }
 
     public void initView() {
@@ -61,39 +64,47 @@ public class ProfileController extends Controller {
     }
 
     private void updateProfileInfo() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null) {
-            String fullName = currentUser.getName()
-                    + (currentUser.getSurname() != null ? " " + currentUser.getSurname() : "");
-            userNameText.setText(fullName);
-            nameDisplayText.setText(fullName);
+        Long currentUserId = sessionManager.getCurrentUserId();
+        if (currentUserId == null) {
+            return;
+        }
 
-            String email = currentUser.getEmail() != null ? currentUser.getEmail() : "No email";
-            userEmailText.setText(email);
-            emailDisplayText.setText(email);
+        UserProfileViewDTO profile = coreViewService.getUserProfile(currentUserId);
+        if (profile == null || profile.user() == null) {
+            return;
+        }
 
-            String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
-                    ? currentUser.getName().substring(0, 1).toUpperCase()
-                    : "?";
-            avatarInitial.setText(initial);
+        String fullName = profile.user().displayName();
+        userNameText.setText(fullName);
+        nameDisplayText.setText(fullName);
 
-            WG wg = currentUser.getWg();
-            if (wg != null) {
-                wgStatusText.setText("Member of " + wg.name);
-                boolean isAdmin = wg.admin != null && wg.admin.getId().equals(currentUser.getId());
-                roleText.setText(isAdmin ? "Admin" : "Member");
-            } else {
-                wgStatusText.setText("No WG");
-                roleText.setText("-");
-            }
+        String email = profile.user().email() != null ? profile.user().email() : "No email";
+        userEmailText.setText(email);
+        emailDisplayText.setText(email);
+
+        String initial = profile.user().name() != null && !profile.user().name().isEmpty()
+                ? profile.user().name().substring(0, 1).toUpperCase()
+                : "?";
+        avatarInitial.setText(initial);
+
+        if (profile.wg() != null) {
+            wgStatusText.setText("Member of " + profile.wg().name());
+            roleText.setText(profile.admin() ? "Admin" : "Member");
+        } else {
+            wgStatusText.setText("No WG");
+            roleText.setText("-");
         }
     }
 
     @FXML
     public void handleEditName() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null)
+        Long currentUserId = sessionManager.getCurrentUserId();
+        if (currentUserId == null)
             return;
+        UserProfileViewDTO profile = coreViewService.getUserProfile(currentUserId);
+        if (profile == null || profile.user() == null) {
+            return;
+        }
 
         Dialog<String[]> dialog = new Dialog<>();
         dialog.setTitle("Edit Name");
@@ -105,11 +116,12 @@ public class ProfileController extends Controller {
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
 
-        TextField firstNameField = new TextField(currentUser.getName());
+        TextField firstNameField = new TextField(profile.user().name());
         firstNameField.setPromptText("First Name");
         firstNameField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
-        TextField lastNameField = new TextField(currentUser.getSurname() != null ? currentUser.getSurname() : "");
+        TextField lastNameField = new TextField(
+                profile.user().surname() != null ? profile.user().surname() : "");
         lastNameField.setPromptText("Last Name");
         lastNameField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
@@ -130,8 +142,8 @@ public class ProfileController extends Controller {
                 return;
             }
             try {
-                userService.updateUser(currentUser.getId(), names[0], names[1].isEmpty() ? null : names[1],
-                        currentUser.getEmail());
+                userService.updateUser(currentUserId, names[0], names[1].isEmpty() ? null : names[1],
+                        profile.user().email());
                 sessionManager.refreshCurrentUser();
                 updateProfileInfo();
                 showSuccessAlert("Success", "Name updated successfully!");
@@ -143,9 +155,13 @@ public class ProfileController extends Controller {
 
     @FXML
     public void handleEditEmail() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null)
+        Long currentUserId = sessionManager.getCurrentUserId();
+        if (currentUserId == null)
             return;
+        UserProfileViewDTO profile = coreViewService.getUserProfile(currentUserId);
+        if (profile == null || profile.user() == null) {
+            return;
+        }
 
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Edit Email");
@@ -157,7 +173,7 @@ public class ProfileController extends Controller {
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
 
-        TextField emailField = new TextField(currentUser.getEmail() != null ? currentUser.getEmail() : "");
+        TextField emailField = new TextField(profile.user().email() != null ? profile.user().email() : "");
         emailField.setPromptText("Email address");
         emailField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
@@ -182,7 +198,7 @@ public class ProfileController extends Controller {
                 return;
             }
             try {
-                userService.updateUser(currentUser.getId(), currentUser.getName(), currentUser.getSurname(), email);
+                userService.updateUser(currentUserId, profile.user().name(), profile.user().surname(), email);
                 sessionManager.refreshCurrentUser();
                 updateProfileInfo();
                 showSuccessAlert("Success", "Email updated successfully!");
@@ -200,27 +216,29 @@ public class ProfileController extends Controller {
 
     @FXML
     public void handleLeaveWG() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        Long currentUserId = sessionManager.getCurrentUserId();
+        if (currentUserId == null) {
+            showWarningAlert("No WG", "You are not a member of any WG.");
+            return;
+        }
+        UserProfileViewDTO profile = coreViewService.getUserProfile(currentUserId);
+        if (profile == null || profile.wg() == null) {
             showWarningAlert("No WG", "You are not a member of any WG.");
             return;
         }
 
-        WG wg = currentUser.getWg();
-        boolean isAdmin = wg.admin != null && wg.admin.getId().equals(currentUser.getId());
-
-        if (isAdmin) {
+        if (profile.admin()) {
             showWarningAlert("Cannot Leave",
                     "As the admin, you cannot leave the WG. Please transfer admin rights first or delete the WG.");
             return;
         }
 
-        boolean confirmed = showConfirmDialog("Leave WG", "Are you sure you want to leave " + wg.name + "?",
+        boolean confirmed = showConfirmDialog("Leave WG", "Are you sure you want to leave " + profile.wg().name() + "?",
                 "This action cannot be undone.");
 
         if (confirmed) {
             try {
-                wgService.removeMitbewohner(wg.getId(), currentUser.getId());
+                wgService.removeMitbewohner(profile.wg().id(), currentUserId);
                 sessionManager.refreshCurrentUser();
                 showSuccessAlert("Success", "You have left the WG.");
                 loadScene(avatarInitial.getScene(), "/core/no_wg.fxml");

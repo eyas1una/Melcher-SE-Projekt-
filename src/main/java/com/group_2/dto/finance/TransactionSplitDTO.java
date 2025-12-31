@@ -1,5 +1,6 @@
 package com.group_2.dto.finance;
 
+
 /**
  * DTO representing a transaction split (debtor's portion of a transaction).
  * Immutable record containing only the display data needed by controllers.

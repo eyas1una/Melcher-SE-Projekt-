@@ -1,11 +1,12 @@
 package com.group_2.ui.finance;
 
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserSessionDTO;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.finance.StandingOrderFrequency;
 import com.group_2.service.finance.StandingOrderService;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.util.SessionManager;
+import com.group_2.util.MonthlyScheduleUtil;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -106,7 +107,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
     private ToggleGroup splitModeToggleGroup;
     private ToggleGroup creditorToggleGroup;
     private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
-    private List<User> allWgMembers;
+    private List<UserSummaryDTO> allWgMembers;
     private Runnable onTransactionSaved;
 
     @Autowired
@@ -171,13 +172,20 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
     }
 
     public void showDialog() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null) {
+        UserSessionDTO session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null || session.wgId() == null) {
             return;
         }
-
-        WG wg = currentUser.getWg();
-        allWgMembers = wg.mitbewohner != null ? wg.mitbewohner : new ArrayList<>();
+        allWgMembers = new ArrayList<>(transactionService.getMemberSummaries(session.wgId()));
+        UserSummaryDTO currentUser = findMemberSummary(session.userId(), session);
+        if (currentUser != null) {
+            boolean exists = allWgMembers.stream()
+                    .anyMatch(member -> member != null && currentUser.id() != null
+                            && currentUser.id().equals(member.id()));
+            if (!exists) {
+                allWgMembers.add(currentUser);
+            }
+        }
 
         // Reset state
         state.reset(currentUser, allWgMembers);
@@ -411,9 +419,10 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
                 sb.append("on the last day of every month");
                 // Calculate first execution (last day of current or next month)
                 LocalDate now = LocalDate.now();
-                LocalDate firstExec = now.withDayOfMonth(now.lengthOfMonth());
+                LocalDate firstExec = now.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(now));
                 if (firstExec.isBefore(now) || firstExec.equals(now)) {
-                    firstExec = now.plusMonths(1).withDayOfMonth(now.plusMonths(1).lengthOfMonth());
+                    LocalDate nextMonth = now.plusMonths(1);
+                    firstExec = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(nextMonth));
                 }
                 sb.append(" starting ").append(firstExec.toString());
             } else {
@@ -424,14 +433,11 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
                 state.setMonthlyDay(day);
                 // Calculate first execution
                 LocalDate now = LocalDate.now();
-                LocalDate firstExec;
-                if (day <= now.lengthOfMonth()) {
-                    firstExec = now.withDayOfMonth(day);
-                    if (firstExec.isBefore(now) || firstExec.equals(now)) {
-                        firstExec = now.plusMonths(1).withDayOfMonth(Math.min(day, now.plusMonths(1).lengthOfMonth()));
-                    }
-                } else {
-                    firstExec = now.withDayOfMonth(now.lengthOfMonth());
+                int actualDay = MonthlyScheduleUtil.getEffectiveDay(now, day);
+                LocalDate firstExec = now.withDayOfMonth(actualDay);
+                if (firstExec.isBefore(now) || firstExec.equals(now)) {
+                    LocalDate nextMonth = now.plusMonths(1);
+                    firstExec = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, day));
                 }
                 sb.append(" starting ").append(firstExec.toString());
             }
@@ -515,15 +521,15 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     private void populateCreditorList() {
         creditorListBox.getChildren().clear();
+        Long currentUserId = sessionManager.getCurrentUserId();
 
-        for (User member : allWgMembers) {
-            RadioButton radio = new RadioButton(
-                    member.getName() + (member.getSurname() != null ? " " + member.getSurname() : ""));
+        for (UserSummaryDTO member : allWgMembers) {
+            RadioButton radio = new RadioButton(member.displayName());
             radio.setToggleGroup(creditorToggleGroup);
             radio.getStyleClass().add("option-toggle");
 
             // Select current user by default
-            if (member.getId().equals(sessionManager.getCurrentUser().getId())) {
+            if (currentUserId != null && member.id() != null && member.id().equals(currentUserId)) {
                 radio.setSelected(true);
                 state.setPayer(member);
             }
@@ -541,9 +547,8 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
     private void populateDebtorList() {
         debtorListBox.getChildren().clear();
 
-        for (User member : allWgMembers) {
-            CheckBox checkbox = new CheckBox(
-                    member.getName() + (member.getSurname() != null ? " " + member.getSurname() : ""));
+        for (UserSummaryDTO member : allWgMembers) {
+            CheckBox checkbox = new CheckBox(member.displayName());
             checkbox.setSelected(state.isParticipant(member));
             checkbox.getStyleClass().add("option-toggle");
 
@@ -575,7 +580,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
             state.getParticipants().clear();
         } else {
             // Select all
-            for (User member : allWgMembers) {
+            for (UserSummaryDTO member : allWgMembers) {
                 state.addParticipant(member);
             }
         }
@@ -614,7 +619,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
     }
 
     private void updateStep2Summary() {
-        String payerName = state.getPayer().getName();
+        String payerName = state.getPayer().displayName();
         int debtorCount = state.getParticipants().size();
         String summary = String.format("%s paid for %d person%s", payerName, debtorCount, debtorCount == 1 ? "" : "s");
         step2Summary.setText(summary);
@@ -623,14 +628,14 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
     private void populateStep3() {
         // Populate percentage split list
         percentageSplitParticipantsBox.getChildren().clear();
-        for (User participant : state.getParticipants()) {
+        for (UserSummaryDTO participant : state.getParticipants()) {
             HBox row = createPercentageRow(participant);
             percentageSplitParticipantsBox.getChildren().add(row);
         }
 
         // Populate custom amount split list
         customAmountSplitParticipantsBox.getChildren().clear();
-        for (User participant : state.getParticipants()) {
+        for (UserSummaryDTO participant : state.getParticipants()) {
             HBox row = createCustomAmountRow(participant);
             customAmountSplitParticipantsBox.getChildren().add(row);
         }
@@ -713,8 +718,8 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         List<Long> debtorIds = new ArrayList<>();
         List<Double> percentages = new ArrayList<>();
 
-        for (User participant : state.getParticipants()) {
-            debtorIds.add(participant.getId());
+        for (UserSummaryDTO participant : state.getParticipants()) {
+            debtorIds.add(participant.id());
 
             switch (state.getSplitMode()) {
             case EQUAL:
@@ -733,21 +738,26 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         }
 
         try {
-            User currentUser = sessionManager.getCurrentUser();
-            WG wg = currentUser.getWg();
+            Long currentUserId = sessionManager.getCurrentUserId();
+            Long wgId = sessionManager.getCurrentWgId();
+            if (currentUserId == null) {
+                showErrorAlert("Error", "No active user session.",
+                        dialogOverlay.getScene() != null ? dialogOverlay.getScene().getWindow() : null);
+                return;
+            }
 
             if (state.isStandingOrder()) {
                 // Use DTO-creating path to keep controllers off entities
-                standingOrderService.createStandingOrderDTO(currentUser.getId(), // creator (gets edit rights)
-                        state.getPayer().getId(), // creditor (payer)
-                        wg != null ? wg.getId() : null, state.getTotalAmount(), state.getDescription(),
+                standingOrderService.createStandingOrderDTO(currentUserId, // creator (gets edit rights)
+                        state.getPayer().id(), // creditor (payer)
+                        wgId, state.getTotalAmount(), state.getDescription(),
                         state.getStandingOrderFrequency(), state.getStandingOrderStartDate(), debtorIds,
                         state.getSplitMode() == TransactionDialogState.SplitMode.EQUAL ? null : percentages,
                         state.getMonthlyDay(), state.isMonthlyLastDay());
             } else {
                 // Create immediate transaction (current user is the creator, payer is the creditor)
-                transactionService.createTransactionDTO(currentUser.getId(), // creator (gets edit rights)
-                        state.getPayer().getId(), // creditor (payer)
+                transactionService.createTransactionDTO(currentUserId, // creator (gets edit rights)
+                        state.getPayer().id(), // creditor (payer)
                         debtorIds, state.getSplitMode() == TransactionDialogState.SplitMode.EQUAL ? null : percentages,
                         state.getTotalAmount(), state.getDescription());
             }
@@ -775,11 +785,11 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         }
     }
 
-    private HBox createPercentageRow(User user) {
+    private HBox createPercentageRow(UserSummaryDTO user) {
         HBox row = new HBox(10);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        Text nameText = new Text(user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "") + ":");
+        Text nameText = new Text(user.displayName() + ":");
         nameText.getStyleClass().add("text-small");
         nameText.setWrappingWidth(120);
 
@@ -801,7 +811,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
             customAmountSplitParticipantsBox.getChildren().removeIf(node -> {
                 if (node instanceof HBox) {
                     HBox hbox = (HBox) node;
-                    return hbox.getUserData() != null && hbox.getUserData().equals(user.getId());
+                    return hbox.getUserData() != null && hbox.getUserData().equals(user.id());
                 }
                 return false;
             });
@@ -826,7 +836,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         });
 
         // Store user ID for cross-referencing
-        row.setUserData(user.getId());
+        row.setUserData(user.id());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -835,11 +845,11 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         return row;
     }
 
-    private HBox createCustomAmountRow(User user) {
+    private HBox createCustomAmountRow(UserSummaryDTO user) {
         HBox row = new HBox(10);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        Text nameText = new Text(user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "") + ":");
+        Text nameText = new Text(user.displayName() + ":");
         nameText.getStyleClass().add("text-small");
         nameText.setWrappingWidth(120);
 
@@ -861,7 +871,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
             percentageSplitParticipantsBox.getChildren().removeIf(node -> {
                 if (node instanceof HBox) {
                     HBox hbox = (HBox) node;
-                    return hbox.getUserData() != null && hbox.getUserData().equals(user.getId());
+                    return hbox.getUserData() != null && hbox.getUserData().equals(user.id());
                 }
                 return false;
             });
@@ -886,7 +896,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         });
 
         // Store user ID for cross-referencing
-        row.setUserData(user.getId());
+        row.setUserData(user.id());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -910,7 +920,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     private void updatePercentageSummary() {
         double total = 0.0;
-        for (User participant : state.getParticipants()) {
+        for (UserSummaryDTO participant : state.getParticipants()) {
             Double value = state.getCustomValue(participant);
             if (value != null) {
                 total += value;
@@ -941,7 +951,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     private void updateCustomAmountSummary() {
         double total = 0.0;
-        for (User participant : state.getParticipants()) {
+        for (UserSummaryDTO participant : state.getParticipants()) {
             Double value = state.getCustomValue(participant);
             if (value != null) {
                 total += value;
@@ -968,6 +978,24 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         if (!customAmountSplitSummary.getStyleClass().contains("validation-label")) {
             customAmountSplitSummary.getStyleClass().add("validation-label");
         }
-        customAmountSplitSummary.setText(String.format("Total: %.2f€ of %.2f€\n%s", total, totalAmount, remainingText));
+        customAmountSplitSummary.setText(String.format("Total: %.2f€ of %.2f€\n%s",
+                total, totalAmount, remainingText));
+    }
+
+    private UserSummaryDTO findMemberSummary(Long userId, UserSessionDTO session) {
+        if (userId == null) {
+            return null;
+        }
+        if (allWgMembers != null) {
+            for (UserSummaryDTO member : allWgMembers) {
+                if (member != null && userId.equals(member.id())) {
+                    return member;
+                }
+            }
+        }
+        if (session != null) {
+            return new UserSummaryDTO(session.userId(), session.name(), session.surname(), null, session.wgId());
+        }
+        return null;
     }
 }

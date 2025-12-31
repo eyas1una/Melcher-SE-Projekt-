@@ -1,7 +1,8 @@
 package com.group_2.ui.core;
 
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserSessionDTO;
+import com.group_2.dto.core.WgSummaryDTO;
+import com.group_2.service.core.CoreViewService;
 import com.group_2.ui.finance.TransactionsController;
 import com.group_2.util.SessionManager;
 
@@ -20,13 +21,15 @@ import org.springframework.stereotype.Component;
 public class MainScreenController extends Controller {
 
     private final SessionManager sessionManager;
+    private final CoreViewService coreViewService;
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Autowired
-    public MainScreenController(SessionManager sessionManager) {
+    public MainScreenController(SessionManager sessionManager, CoreViewService coreViewService) {
         this.sessionManager = sessionManager;
+        this.coreViewService = coreViewService;
     }
 
     // Header elements
@@ -38,28 +41,33 @@ public class MainScreenController extends Controller {
     private Text headerAvatar;
 
     public void initView() {
-        sessionManager.refreshCurrentUser();
-        updateHeader();
+        System.out.println("MainScreenController initialized");
+        try {
+            sessionManager.refreshCurrentUser();
+            updateHeader();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateHeader() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null) {
-            String fullName = currentUser.getName() +
-                    (currentUser.getSurname() != null ? " " + currentUser.getSurname() : "");
-            headerUserName.setText(fullName);
+        UserSessionDTO session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null) {
+            return;
+        }
 
-            String initial = currentUser.getName() != null && !currentUser.getName().isEmpty()
-                    ? currentUser.getName().substring(0, 1).toUpperCase()
-                    : "?";
-            headerAvatar.setText(initial);
+        headerUserName.setText(session.displayName());
 
-            WG wg = currentUser.getWg();
-            if (wg != null) {
-                headerWgName.setText(wg.name);
-            } else {
-                headerWgName.setText("No WG");
-            }
+        String initial = session.name() != null && !session.name().isEmpty()
+                ? session.name().substring(0, 1).toUpperCase()
+                : "?";
+        headerAvatar.setText(initial);
+
+        WgSummaryDTO wgSummary = coreViewService.getWgSummary(session.wgId());
+        if (wgSummary != null) {
+            headerWgName.setText(wgSummary.name());
+        } else {
+            headerWgName.setText("No WG");
         }
     }
 

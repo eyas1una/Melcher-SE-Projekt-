@@ -1,9 +1,8 @@
 package com.group_2.ui.core;
 
-import com.group_2.model.cleaning.Room;
-import com.group_2.model.User;
+import com.group_2.dto.cleaning.RoomDTO;
+import com.group_2.dto.core.UserSessionDTO;
 import com.group_2.service.core.HouseholdSetupService;
-import com.group_2.service.core.UserService;
 import com.group_2.service.core.WGService;
 import com.group_2.util.SessionManager;
 
@@ -30,7 +29,6 @@ import java.util.List;
 @Component
 public class NoWgController extends Controller {
 
-    private final UserService userService;
     private final WGService wgService;
     private final HouseholdSetupService householdSetupService;
     private final SessionManager sessionManager;
@@ -60,9 +58,8 @@ public class NoWgController extends Controller {
     @FXML
     private TextField wgIdField;
 
-    public NoWgController(UserService userService, WGService wgService, HouseholdSetupService householdSetupService,
+    public NoWgController(WGService wgService, HouseholdSetupService householdSetupService,
             SessionManager sessionManager) {
-        this.userService = userService;
         this.wgService = wgService;
         this.householdSetupService = householdSetupService;
         this.sessionManager = sessionManager;
@@ -70,9 +67,9 @@ public class NoWgController extends Controller {
 
     public void initView() {
         sessionManager.refreshCurrentUser();
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null) {
-            welcomeText.setText("Welcome, " + currentUser.getName() + "!");
+        UserSessionDTO session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session != null) {
+            welcomeText.setText("Welcome, " + session.name() + "!");
         }
         hideAllForms();
         roomFields.clear();
@@ -151,28 +148,25 @@ public class NoWgController extends Controller {
             return;
         }
 
-        List<Room> rooms = new ArrayList<>();
+        List<Long> roomIds = new ArrayList<>();
         for (TextField roomField : roomFields) {
             String roomName = roomField.getText().trim();
             if (!roomName.isEmpty()) {
-                Room room = householdSetupService.createRoom(roomName);
-                rooms.add(room);
+                RoomDTO room = householdSetupService.createRoomDTO(roomName);
+                if (room != null) {
+                    roomIds.add(room.id());
+                }
             }
         }
 
         try {
-            User currentUser = sessionManager.getCurrentUser();
-            wgService.createWG(wgName, currentUser, rooms);
-            // Refresh user and their WG data
-            sessionManager.refreshCurrentUser();
-
-            // Should get the updated user with WG reference
-            currentUser = sessionManager.getCurrentUser();
-            if (currentUser.getWg() == null) {
-                // Fallback if not updated correctly, though refreshCurrentUser should handle it
-                // via sessionManager logic
-                currentUser.setWg(wgService.getWG(currentUser.getId()).orElse(null));
+            UserSessionDTO session = sessionManager.getCurrentUserSession().orElse(null);
+            if (session == null) {
+                showErrorAlert("Error", "You must be logged in to create a WG.");
+                return;
             }
+            wgService.createWGWithRoomIds(wgName, session.userId(), roomIds);
+            sessionManager.refreshCurrentUser();
 
             showSuccessAlert("Success", "WG created successfully!");
             navigateToMainScreen();
@@ -191,7 +185,12 @@ public class NoWgController extends Controller {
         }
 
         try {
-            wgService.addMitbewohnerByInviteCode(inviteCode, sessionManager.getCurrentUser());
+            UserSessionDTO session = sessionManager.getCurrentUserSession().orElse(null);
+            if (session == null) {
+                showErrorAlert("Error", "You must be logged in to join a WG.");
+                return;
+            }
+            wgService.addMitbewohnerByInviteCode(inviteCode, session.userId());
             sessionManager.refreshCurrentUser();
             showSuccessAlert("Success", "Successfully joined the WG!");
             navigateToMainScreen();

@@ -25,11 +25,16 @@
             </HBox>
             <Region HBox.hgrow="ALWAYS"/>
             
-            <!-- Navigation Icons -->
-            <HBox spacing="16" alignment="CENTER_RIGHT">
-                <!-- Settings Icon -->
-                <Button fx:id="settingsButton" text="⚙️" onAction="#navigateToSettings" styleClass="navbar-settings-button"/>
-                
+            <!-- WG Settings -->
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button text="Settings" onAction="#navigateToSettings" styleClass="navbar-settings-button"/>
+            </HBox>
+            
+            <!-- Separator -->
+            <Region style="-fx-background-color: rgba(255,255,255,0.3); -fx-min-width: 1; -fx-pref-width: 1; -fx-min-height: 30;"/>
+            
+            <!-- User Profile -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
                 <VBox alignment="CENTER_RIGHT" spacing="2">
                     <Text fx:id="headerUserName" text="User Name" styleClass="navbar-user-name"/>
                     <Text fx:id="headerWgName" text="Home Name" styleClass="navbar-wg-name"/>
@@ -65,9 +70,7 @@
                     <Text text="Organize cleaning duties and schedules for your home."
                           styleClass="card-subtitle" wrappingWidth="280" style="-fx-text-alignment: center; -fx-font-size: 16px;"/>
                     <Region VBox.vgrow="ALWAYS"/>
-                    <Button text="Open" 
-                            styleClass="primary-button" style="-fx-pref-width: 200; -fx-font-size: 16px; -fx-padding: 14 35;" onAction="#navigateToCleaningSchedule"/>
-                    <Region style="-fx-min-height: 15;"/>
+
                 </VBox>
 
                 <!-- Shopping List Card -->
@@ -77,15 +80,13 @@
                       onMouseClicked="#navigateToShoppingList">
                     <Region VBox.vgrow="ALWAYS"/>
                     <StackPane style="-fx-background-color: linear-gradient(to bottom right, #ec4899, #db2777); -fx-background-radius: 25; -fx-pref-width: 140; -fx-pref-height: 140; -fx-min-width: 140; -fx-min-height: 140;" VBox.vgrow="NEVER">
-                        <Text text="🛒" style="-fx-font-size: 70px;"/>
+                        <Text text="Shop" style="-fx-font-size: 40px; -fx-fill: white; -fx-font-weight: bold;"/>
                     </StackPane>
                     <Text text="Shopping List" styleClass="card-title" style="-fx-font-size: 26px;"/>
                     <Text text="Create shared shopping lists for your home."
                           styleClass="card-subtitle" wrappingWidth="280" style="-fx-text-alignment: center; -fx-font-size: 16px;"/>
                     <Region VBox.vgrow="ALWAYS"/>
-                    <Button text="Open" onAction="#navigateToShoppingList"
-                            styleClass="primary-button" style="-fx-pref-width: 200; -fx-font-size: 16px; -fx-padding: 14 35;"/>
-                    <Region style="-fx-min-height: 15;"/>
+
                 </VBox>
 
                 <!-- Transactions Card -->
@@ -95,15 +96,13 @@
                       onMouseClicked="#navigateToExpenses">
                     <Region VBox.vgrow="ALWAYS"/>
                     <StackPane style="-fx-background-color: linear-gradient(to bottom right, #f59e0b, #d97706); -fx-background-radius: 25; -fx-pref-width: 140; -fx-pref-height: 140; -fx-min-width: 140; -fx-min-height: 140;" VBox.vgrow="NEVER">
-                        <Text text="💰" style="-fx-font-size: 70px;"/>
+                        <Text text="\$" style="-fx-font-size: 70px; -fx-fill: white;"/>
                     </StackPane>
                     <Text text="Transactions" styleClass="card-title" style="-fx-font-size: 26px;"/>
                     <Text text="Track and split shared costs fairly."
                           styleClass="card-subtitle" wrappingWidth="280" style="-fx-text-alignment: center; -fx-font-size: 16px;"/>
                     <Region VBox.vgrow="ALWAYS"/>
-                    <Button text="Open" onAction="#navigateToExpenses"
-                            styleClass="primary-button" style="-fx-pref-width: 200; -fx-font-size: 16px; -fx-padding: 14 35;"/>
-                    <Region style="-fx-min-height: 15;"/>
+
                 </VBox>
 
             </HBox>

@@ -1,8 +1,10 @@
 package com.group_2.ui.core;
 
 import com.group_2.dto.cleaning.RoomDTO;
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserSessionDTO;
+import com.group_2.dto.core.UserSummaryDTO;
+import com.group_2.dto.core.WgDetailsViewDTO;
+import com.group_2.service.core.CoreViewService;
 import com.group_2.service.core.HouseholdSetupService;
 import com.group_2.service.core.WGService;
 import com.group_2.util.SessionManager;
@@ -34,6 +36,7 @@ public class SettingsController extends Controller {
     private final SessionManager sessionManager;
     private final WGService wgService;
     private final HouseholdSetupService householdSetupService;
+    private final CoreViewService coreViewService;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -55,12 +58,16 @@ public class SettingsController extends Controller {
     @FXML
     private javafx.scene.control.Button addRoomButton;
 
+    private WgDetailsViewDTO currentWg;
+    private Long currentUserId;
+
     @Autowired
     public SettingsController(SessionManager sessionManager, WGService wgService,
-            HouseholdSetupService householdSetupService) {
+            HouseholdSetupService householdSetupService, CoreViewService coreViewService) {
         this.sessionManager = sessionManager;
         this.wgService = wgService;
         this.householdSetupService = householdSetupService;
+        this.coreViewService = coreViewService;
     }
 
     public void initView() {
@@ -69,22 +76,33 @@ public class SettingsController extends Controller {
     }
 
     private void loadWGData() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null)
+        UserSessionDTO session = sessionManager.getCurrentUserSession().orElse(null);
+        if (session == null) {
+            currentWg = null;
+            currentUserId = null;
             return;
-
-        WG wg = currentUser.getWg();
-        if (wg == null) {
+        }
+        currentUserId = session.userId();
+        if (session.wgId() == null) {
+            currentWg = null;
             showWarningAlert("No WG", "You are not a member of any WG.", getOwnerWindow(wgNameHeader));
             return;
         }
 
+        WgDetailsViewDTO wg = coreViewService.getWgDetails(session.wgId());
+        if (wg == null) {
+            currentWg = null;
+            showWarningAlert("No WG", "You are not a member of any WG.", getOwnerWindow(wgNameHeader));
+            return;
+        }
+        currentWg = wg;
+
         // Header
-        wgNameHeader.setText(wg.name);
-        inviteCodeText.setText(wg.getInviteCode());
+        wgNameHeader.setText(wg.name());
+        inviteCodeText.setText(wg.inviteCode());
 
         // Check if admin
-        boolean isAdmin = wg.admin != null && wg.admin.getId().equals(currentUser.getId());
+        boolean isAdmin = isCurrentUserAdmin();
         adminCard.setVisible(isAdmin);
         adminCard.setManaged(isAdmin);
 
@@ -95,18 +113,14 @@ public class SettingsController extends Controller {
         }
 
         // Load rooms
-        loadRooms(wg);
+        loadRooms(wg.rooms(), isAdmin);
 
         // Load members
-        loadMembers(wg);
+        loadMembers(wg.members());
     }
 
-    private void loadRooms(WG wg) {
+    private void loadRooms(java.util.List<RoomDTO> rooms, boolean isAdmin) {
         roomsBox.getChildren().clear();
-        User currentUser = sessionManager.getCurrentUser();
-        boolean isAdmin = wg.admin != null && currentUser != null && wg.admin.getId().equals(currentUser.getId());
-
-        java.util.List<RoomDTO> rooms = householdSetupService.getRoomsForWgDTO(wg);
         if (!rooms.isEmpty()) {
             roomCountText.setText(rooms.size() + " room" + (rooms.size() > 1 ? "s" : "") + " in your WG");
             for (RoomDTO room : rooms) {
@@ -120,13 +134,13 @@ public class SettingsController extends Controller {
         }
     }
 
-    private void loadMembers(WG wg) {
+    private void loadMembers(java.util.List<UserSummaryDTO> members) {
         membersBox.getChildren().clear();
-        if (wg.mitbewohner != null && !wg.mitbewohner.isEmpty()) {
+        if (members != null && !members.isEmpty()) {
             memberCountText.setText(
-                    wg.mitbewohner.size() + " member" + (wg.mitbewohner.size() > 1 ? "s" : "") + " in your WG");
-            for (User user : wg.mitbewohner) {
-                membersBox.getChildren().add(createMemberListItem(user, wg));
+                    members.size() + " member" + (members.size() > 1 ? "s" : "") + " in your WG");
+            for (UserSummaryDTO user : members) {
+                membersBox.getChildren().add(createMemberListItem(user));
             }
         } else {
             memberCountText.setText("No members yet");
@@ -178,11 +192,11 @@ public class SettingsController extends Controller {
         return item;
     }
 
-    private HBox createMemberListItem(User user, WG wg) {
-        User currentUser = sessionManager.getCurrentUser();
-        boolean currentUserIsAdmin = wg.admin != null && wg.admin.getId().equals(currentUser.getId());
-        boolean isMemberAdmin = wg.admin != null && wg.admin.getId().equals(user.getId());
-        boolean isSelf = user.getId().equals(currentUser.getId());
+    private HBox createMemberListItem(UserSummaryDTO user) {
+        boolean currentUserIsAdmin = isCurrentUserAdmin();
+        boolean isMemberAdmin = currentWg != null && currentWg.admin() != null
+                && currentWg.admin().id() != null && currentWg.admin().id().equals(user.id());
+        boolean isSelf = currentUserId != null && user.id() != null && user.id().equals(currentUserId);
 
         HBox item = new HBox(15);
         item.setAlignment(Pos.CENTER_LEFT);
@@ -191,8 +205,8 @@ public class SettingsController extends Controller {
 
         StackPane avatar = new StackPane();
         avatar.getStyleClass().add("avatar");
-        String initial = user.getName() != null && !user.getName().isEmpty()
-                ? user.getName().substring(0, 1).toUpperCase()
+        String initial = user.name() != null && !user.name().isEmpty()
+                ? user.name().substring(0, 1).toUpperCase()
                 : "?";
         Text avatarText = new Text(initial);
         avatarText.getStyleClass().add("avatar-text");
@@ -200,10 +214,10 @@ public class SettingsController extends Controller {
 
         VBox info = new VBox(3);
         javafx.scene.layout.HBox.setHgrow(info, javafx.scene.layout.Priority.ALWAYS);
-        String fullName = user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "");
+        String fullName = user.displayName();
         Text nameText = new Text(fullName + (isMemberAdmin ? " (Admin)" : "") + (isSelf ? " (You)" : ""));
         nameText.getStyleClass().add("list-item-title");
-        Text emailText = new Text(user.getEmail() != null ? user.getEmail() : "No email");
+        Text emailText = new Text(user.email() != null ? user.email() : "No email");
         emailText.getStyleClass().add("list-item-subtitle");
         info.getChildren().addAll(nameText, emailText);
 
@@ -236,20 +250,18 @@ public class SettingsController extends Controller {
         return item;
     }
 
-    private void handleMakeAdmin(User user) {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+    private void handleMakeAdmin(UserSummaryDTO user) {
+        if (currentWg == null || currentUserId == null)
             return;
 
-        WG wg = currentUser.getWg();
-        String userName = user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "");
+        String userName = user.displayName();
 
         boolean confirmed = showConfirmDialog("Transfer Admin Rights", "Make " + userName + " the new admin?",
                 "You will no longer be the admin of this WG.", getOwnerWindow(membersBox));
 
         if (confirmed) {
             try {
-                wgService.updateWG(wg.getId(), wg.name, user);
+                wgService.updateWG(currentWg.id(), currentWg.name(), user.id());
                 sessionManager.refreshCurrentUser();
                 loadWGData();
                 showSuccessAlert("Success", userName + " is now the admin!", getOwnerWindow(membersBox));
@@ -260,20 +272,18 @@ public class SettingsController extends Controller {
         }
     }
 
-    private void handleRemoveMember(User user) {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+    private void handleRemoveMember(UserSummaryDTO user) {
+        if (currentWg == null || currentUserId == null)
             return;
 
-        WG wg = currentUser.getWg();
-        String userName = user.getName() + (user.getSurname() != null ? " " + user.getSurname() : "");
+        String userName = user.displayName();
 
         boolean confirmed = showConfirmDialog("Remove Member", "Remove " + userName + " from the WG?",
                 "This action cannot be undone.", getOwnerWindow(membersBox));
 
         if (confirmed) {
             try {
-                wgService.removeMitbewohner(wg.getId(), user.getId());
+                wgService.removeMitbewohner(currentWg.id(), user.id());
                 sessionManager.refreshCurrentUser();
                 loadWGData();
                 showSuccessAlert("Success", userName + " has been removed from the WG.", getOwnerWindow(membersBox));
@@ -285,9 +295,8 @@ public class SettingsController extends Controller {
 
     @FXML
     public void copyInviteCode() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser != null && currentUser.getWg() != null) {
-            String code = currentUser.getWg().getInviteCode();
+        if (currentWg != null && currentWg.inviteCode() != null) {
+            String code = currentWg.inviteCode();
             Clipboard clipboard = Clipboard.getSystemClipboard();
             ClipboardContent content = new ClipboardContent();
             content.putString(code);
@@ -298,19 +307,18 @@ public class SettingsController extends Controller {
 
     @FXML
     public void addRoom() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        if (currentWg == null || currentUserId == null)
             return;
 
         // Only admin can add rooms
-        WG wg = currentUser.getWg();
-        if (wg.admin == null || !wg.admin.getId().equals(currentUser.getId())) {
+        if (!isCurrentUserAdmin()) {
             showWarningAlert("Permission Denied", "Only the admin can add rooms.", getOwnerWindow(roomsBox));
             return;
         }
 
         TextInputDialog dialog = new TextInputDialog();
         configureDialogOwner(dialog, getOwnerWindow(roomsBox));
+        styleDialog(dialog);
         dialog.setTitle("Add Room");
         dialog.setHeaderText("Add a new room to your WG");
         dialog.setContentText("Room name:");
@@ -320,7 +328,7 @@ public class SettingsController extends Controller {
             if (!roomName.trim().isEmpty()) {
                 try {
                     RoomDTO newRoom = householdSetupService.createRoomDTO(roomName.trim());
-                    wgService.addRoomById(currentUser.getWg().getId(), newRoom.id());
+                    wgService.addRoomById(currentWg.id(), newRoom.id());
                     sessionManager.refreshCurrentUser();
                     loadWGData();
                     showSuccessAlert("Success", "Room '" + roomName + "' added!", getOwnerWindow(roomsBox));
@@ -332,12 +340,12 @@ public class SettingsController extends Controller {
     }
 
     private void editRoom(RoomDTO room) {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        if (currentWg == null || currentUserId == null)
             return;
 
         TextInputDialog dialog = new TextInputDialog(room.name());
         configureDialogOwner(dialog, getOwnerWindow(roomsBox));
+        styleDialog(dialog);
         dialog.setTitle("Edit Room");
         dialog.setHeaderText("Edit room name");
         dialog.setContentText("Room name:");
@@ -358,8 +366,7 @@ public class SettingsController extends Controller {
     }
 
     private void deleteRoom(RoomDTO room) {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        if (currentWg == null || currentUserId == null)
             return;
 
         boolean confirmed = showConfirmDialog("Delete Room", "Delete room '" + room.name() + "'?",
@@ -370,7 +377,7 @@ public class SettingsController extends Controller {
             try {
                 // Use the consolidated deletion method that handles everything in one
                 // transaction
-                householdSetupService.deleteRoomById(room.id(), currentUser.getWg());
+                householdSetupService.deleteRoomById(room.id(), currentWg.id());
                 sessionManager.refreshCurrentUser();
                 loadWGData();
                 showSuccessAlert("Success", "Room '" + room.name() + "' deleted!", getOwnerWindow(roomsBox));
@@ -382,12 +389,12 @@ public class SettingsController extends Controller {
 
     @FXML
     public void editWgName() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        if (currentWg == null || currentUserId == null)
             return;
 
-        TextInputDialog dialog = new TextInputDialog(currentUser.getWg().name);
+        TextInputDialog dialog = new TextInputDialog(currentWg.name());
         configureDialogOwner(dialog, getOwnerWindow(wgNameHeader));
+        styleDialog(dialog);
         dialog.setTitle("Edit WG Name");
         dialog.setHeaderText("Change your WG name");
         dialog.setContentText("New name:");
@@ -396,8 +403,8 @@ public class SettingsController extends Controller {
         result.ifPresent(newName -> {
             if (!newName.trim().isEmpty()) {
                 try {
-                    WG wg = currentUser.getWg();
-                    wgService.updateWG(wg.getId(), newName.trim(), wg.admin);
+                    Long adminId = currentWg.admin() != null ? currentWg.admin().id() : null;
+                    wgService.updateWG(currentWg.id(), newName.trim(), adminId);
                     sessionManager.refreshCurrentUser();
                     loadWGData();
                     showSuccessAlert("Success", "WG name updated!", getOwnerWindow(wgNameHeader));
@@ -411,8 +418,7 @@ public class SettingsController extends Controller {
 
     @FXML
     public void deleteWG() {
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null || currentUser.getWg() == null)
+        if (currentWg == null || currentUserId == null)
             return;
 
         boolean confirmed = showConfirmDialog("Delete WG", "Are you sure you want to delete this WG?",
@@ -420,8 +426,7 @@ public class SettingsController extends Controller {
 
         if (confirmed) {
             try {
-                Long wgId = currentUser.getWg().getId();
-                wgService.deleteWG(wgId);
+                wgService.deleteWG(currentWg.id());
                 sessionManager.refreshCurrentUser();
                 showSuccessAlert("Success", "WG deleted.", getOwnerWindow(wgNameHeader));
                 loadScene(wgNameHeader.getScene(), "/core/no_wg.fxml");
@@ -438,5 +443,10 @@ public class SettingsController extends Controller {
             MainScreenController mainController = applicationContext.getBean(MainScreenController.class);
             mainController.initView();
         });
+    }
+
+    private boolean isCurrentUserAdmin() {
+        return currentWg != null && currentUserId != null && currentWg.admin() != null
+                && currentWg.admin().id() != null && currentWg.admin().id().equals(currentUserId);
     }
 }

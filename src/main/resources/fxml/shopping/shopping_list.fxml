@@ -41,7 +41,7 @@
             <VBox styleClass="main-content" spacing="20" HBox.hgrow="ALWAYS">
                 <!-- Placeholder when no list selected -->
                 <VBox fx:id="noListSelectedView" alignment="CENTER" spacing="15" VBox.vgrow="ALWAYS">
-                    <Text text="📋" style="-fx-font-size: 48px;"/>
+                    <Text text="LIST" style="-fx-font-size: 48px;"/>
                     <Text text="Create a new list and add items" styleClass="card-subtitle"/>
                 </VBox>
 
@@ -51,7 +51,7 @@
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <Text fx:id="selectedListName" text="List Name" styleClass="page-title"/>
                             <StackPane fx:id="sharedBadge" styleClass="badge" visible="false" managed="false">
-                                <Text text="👥 Shared" styleClass="badge-text"/>
+                                <Text text="Shared" styleClass="badge-text"/>
                             </StackPane>
                         </HBox>
                         <Text fx:id="selectedListCreator" text="Created by: You" styleClass="page-subtitle"/>
@@ -73,7 +73,7 @@
                             <!-- Pending Items Section -->
                             <VBox styleClass="card" spacing="15">
                                 <HBox alignment="CENTER_LEFT">
-                                    <Text text="🛒 Items" styleClass="card-title"/>
+                                    <Text text="Items" styleClass="card-title"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Text fx:id="itemCountText" text="0 items" styleClass="card-subtitle"/>
                                 </HBox>
@@ -85,7 +85,7 @@
                             <!-- Bought Items Section -->
                             <VBox fx:id="boughtSection" styleClass="card" spacing="15" style="-fx-background-color: #f0fdf4;">
                                 <HBox alignment="CENTER_LEFT">
-                                    <Text text="✅ Purchased" styleClass="card-title" style="-fx-fill: #16a34a;"/>
+                                    <Text text="Purchased" styleClass="card-title" style="-fx-fill: #16a34a;"/>
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Text fx:id="boughtCountText" text="0 items" styleClass="card-subtitle"/>
                                 </HBox>
@@ -98,9 +98,9 @@
 
                     <!-- List Actions -->
                     <HBox spacing="15">
-                        <Button text="⚙️ Manage Sharing" styleClass="secondary-button" onAction="#showSharingDialog"/>
+                        <Button text="Manage Sharing" styleClass="secondary-button" onAction="#showSharingDialog"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="deleteListButton" text="🗑️ Delete List" styleClass="danger-button" onAction="#deleteSelectedList"/>
+                        <Button fx:id="deleteListButton" text="Delete List" styleClass="danger-button" onAction="#deleteSelectedList"/>
                     </HBox>
                 </VBox>
             </VBox>

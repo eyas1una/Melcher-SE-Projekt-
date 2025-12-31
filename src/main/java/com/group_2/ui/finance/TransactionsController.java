@@ -1,7 +1,6 @@
 package com.group_2.ui.finance;
 
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.NavbarController;
@@ -38,9 +37,6 @@ public class TransactionsController extends Controller {
     private final SessionManager sessionManager;
 
     @Autowired
-    private com.group_2.service.core.UserService userService;
-
-    @Autowired
     private ApplicationContext applicationContext;
 
     // Balance display
@@ -63,7 +59,7 @@ public class TransactionsController extends Controller {
     @FXML
     private VBox balanceCard;
 
-    private DecimalFormat currencyFormat = new DecimalFormat("EUR #,##0.00");
+    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
 
     @Autowired
     public TransactionsController(TransactionService transactionService, SessionManager sessionManager) {
@@ -220,17 +216,11 @@ public class TransactionsController extends Controller {
         if (currentUserId == null)
             return;
 
-        User currentUser = userService.getUser(currentUserId).orElse(null);
-        if (currentUser == null)
-            return;
-
         double balance = entry.getBalance();
         double absBalance = Math.abs(balance);
         String memberName = entry.getMemberName();
-
-        // Resolve the User from userId when needed
-        User otherUser = userService.getUser(entry.getUserId()).orElse(null);
-        if (otherUser == null) {
+        Long otherUserId = entry.getUserId();
+        if (otherUserId == null) {
             showErrorAlert("Error", "User not found", balanceTable.getScene().getWindow());
             return;
         }
@@ -324,22 +314,8 @@ public class TransactionsController extends Controller {
 
         if (balance < 0) {
             // Find roommates who owe the current user (positive balances = they owe us)
-            Map<Long, Double> allBalances = transactionService.calculateAllBalances(currentUser.getId());
-            List<BalanceEntry> availableCredits = new ArrayList<>();
-
-            WG wg = currentUser.getWg();
-            if (wg != null && wg.mitbewohner != null) {
-                for (User member : wg.mitbewohner) {
-                    if (!member.getId().equals(currentUser.getId()) && !member.getId().equals(otherUser.getId())) {
-                        double memberBalance = allBalances.getOrDefault(member.getId(), 0.0);
-                        if (memberBalance > 0) { // They owe us money
-                            String name = member.getName()
-                                    + (member.getSurname() != null ? " " + member.getSurname() : "");
-                            availableCredits.add(new BalanceEntry(name, memberBalance, member.getId()));
-                        }
-                    }
-                }
-            }
+            List<BalanceEntry> availableCredits = toBalanceEntries(
+                    transactionService.getAvailableCredits(currentUserId, otherUserId));
 
             if (!availableCredits.isEmpty()) {
                 // Add separator
@@ -385,16 +361,16 @@ public class TransactionsController extends Controller {
 
             if (paymentMethod.equals("CreditTransfer")) {
                 // Show credit transfer selection dialog
-                showCreditTransferDialog(currentUser, otherUser, finalAbsBalance, memberName);
+                showCreditTransferDialog(currentUserId, otherUserId, finalAbsBalance, memberName);
             } else {
                 // Show confirmation dialog for regular payment methods
-                showSettlementConfirmation(currentUser, otherUser, finalAbsBalance, paymentMethod, finalCurrentUserPays,
-                        memberName);
+                showSettlementConfirmation(currentUserId, otherUserId, finalAbsBalance, paymentMethod,
+                        finalCurrentUserPays, memberName);
             }
         }
     }
 
-    private void showSettlementConfirmation(User currentUser, User otherUser, double amount, String paymentMethod,
+    private void showSettlementConfirmation(Long currentUserId, Long otherUserId, double amount, String paymentMethod,
             boolean currentUserPays, String memberName) {
 
         // Create confirmation dialog
@@ -427,21 +403,20 @@ public class TransactionsController extends Controller {
         Optional<ButtonType> confirmResult = confirmDialog.showAndWait();
         if (confirmResult.isPresent() && confirmResult.get() == confirmButton) {
             // Create settlement transaction
-            createSettlementTransaction(currentUser, otherUser, amount, paymentMethod, currentUserPays);
+            createSettlementTransaction(currentUserId, otherUserId, amount, paymentMethod, currentUserPays,
+                    memberName);
         }
     }
 
-    private void createSettlementTransaction(User currentUser, User otherUser, double amount, String paymentMethod,
-            boolean currentUserPays) {
+    private void createSettlementTransaction(Long currentUserId, Long otherUserId, double amount, String paymentMethod,
+            boolean currentUserPays, String memberName) {
         try {
-            transactionService.settleBalance(currentUser.getId(), otherUser.getId(), amount, currentUserPays,
-                    paymentMethod);
+            transactionService.settleBalance(currentUserId, otherUserId, amount, currentUserPays, paymentMethod);
 
             updateBalanceDisplay();
             updateBalanceSheet();
 
-            showSuccessAlert("Settlement Complete", "The balance with " + otherUser.getName()
-                    + (otherUser.getSurname() != null ? " " + otherUser.getSurname() : "") + " has been settled.",
+            showSuccessAlert("Settlement Complete", "The balance with " + memberName + " has been settled.",
                     balanceTable.getScene().getWindow());
 
         } catch (Exception e) {
@@ -450,23 +425,10 @@ public class TransactionsController extends Controller {
         }
     }
 
-    private void showCreditTransferDialog(User currentUser, User debtorTo, double debtAmount, String debtorName) {
+    private void showCreditTransferDialog(Long currentUserId, Long debtorToId, double debtAmount, String debtorName) {
         // Find roommates who owe the current user
-        Map<Long, Double> allBalances = transactionService.calculateAllBalances(currentUser.getId());
-        List<BalanceEntry> availableCredits = new ArrayList<>();
-
-        WG wg = currentUser.getWg();
-        if (wg != null && wg.mitbewohner != null) {
-            for (User member : wg.mitbewohner) {
-                if (!member.getId().equals(currentUser.getId()) && !member.getId().equals(debtorTo.getId())) {
-                    double memberBalance = allBalances.getOrDefault(member.getId(), 0.0);
-                    if (memberBalance > 0) {
-                        String name = member.getName() + (member.getSurname() != null ? " " + member.getSurname() : "");
-                        availableCredits.add(new BalanceEntry(name, memberBalance, member.getId()));
-                    }
-                }
-            }
-        }
+        List<BalanceEntry> availableCredits = toBalanceEntries(
+                transactionService.getAvailableCredits(currentUserId, debtorToId));
 
         if (availableCredits.isEmpty()) {
             showSuccessAlert("No Credits Available", "There are no roommates who currently owe you money.",
@@ -534,21 +496,13 @@ public class TransactionsController extends Controller {
             double transferAmount = Math.min(selectedCredit.getBalance(), debtAmount);
 
             // Show confirmation for credit transfer
-            // Resolve user first
-            User creditSourceUser = userService.getUser(selectedCredit.getUserId()).orElse(null);
-
-            if (creditSourceUser != null) {
-                showCreditTransferConfirmation(currentUser, creditSourceUser, debtorTo, transferAmount,
-                        selectedCredit.getMemberName(), debtorName);
-            } else {
-                showErrorAlert("Error", "Selected credit source user could not be found.",
-                        balanceTable.getScene().getWindow());
-            }
+            showCreditTransferConfirmation(currentUserId, selectedCredit.getUserId(), debtorToId, transferAmount,
+                    selectedCredit.getMemberName(), debtorName);
         }
     }
 
-    private void showCreditTransferConfirmation(User currentUser, User creditSource, User debtorTo, double amount,
-            String creditSourceName, String debtorName) {
+    private void showCreditTransferConfirmation(Long currentUserId, Long creditSourceUserId, Long debtorToUserId,
+            double amount, String creditSourceName, String debtorName) {
 
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
         confirmDialog.setTitle("Confirm Credit Transfer");
@@ -574,14 +528,15 @@ public class TransactionsController extends Controller {
 
         Optional<ButtonType> confirmResult = confirmDialog.showAndWait();
         if (confirmResult.isPresent() && confirmResult.get() == confirmButton) {
-            executeCreditTransfer(currentUser, creditSource, debtorTo, amount, creditSourceName, debtorName);
+            executeCreditTransfer(currentUserId, creditSourceUserId, debtorToUserId, amount, creditSourceName,
+                    debtorName);
         }
     }
 
-    private void executeCreditTransfer(User currentUser, User creditSource, User debtorTo, double amount,
+    private void executeCreditTransfer(Long currentUserId, Long creditSourceUserId, Long debtorToUserId, double amount,
             String creditSourceName, String debtorName) {
         try {
-            transactionService.transferCredit(currentUser.getId(), creditSource.getId(), debtorTo.getId(), amount);
+            transactionService.transferCredit(currentUserId, creditSourceUserId, debtorToUserId, amount);
 
             updateBalanceDisplay();
             updateBalanceSheet();
@@ -636,11 +591,23 @@ public class TransactionsController extends Controller {
         }
     }
 
+    private List<BalanceEntry> toBalanceEntries(List<BalanceViewDTO> balances) {
+        List<BalanceEntry> availableCredits = new ArrayList<>();
+        for (BalanceViewDTO dto : balances) {
+            UserSummaryDTO user = dto.user();
+            if (user == null || user.id() == null) {
+                continue;
+            }
+            availableCredits.add(new BalanceEntry(user.displayName(), dto.balance(), user.id()));
+        }
+        return availableCredits;
+    }
+
     public static class BalanceEntry {
         private final String memberName;
         private final double balance;
         private final Long userId;
-        private final DecimalFormat format = new DecimalFormat("EUR #,##0.00");
+        private final DecimalFormat format = new DecimalFormat("€#,##0.00");
 
         public BalanceEntry(String memberName, double balance, Long userId) {
             this.memberName = memberName;

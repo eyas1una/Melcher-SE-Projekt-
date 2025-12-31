@@ -46,6 +46,23 @@ public abstract class Controller {
         }
     }
 
+    /**
+     * Applies consistent styling to any Dialog (including custom dialogs).
+     * Call this after creating a dialog to apply the application's visual theme.
+     */
+    protected void styleDialog(Dialog<?> dialog) {
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStyleClass().add("styled-dialog");
+        try {
+            String stylesheet = getClass().getResource("/css/styles.css").toExternalForm();
+            if (!dialogPane.getStylesheets().contains(stylesheet)) {
+                dialogPane.getStylesheets().add(stylesheet);
+            }
+        } catch (Exception e) {
+            // Stylesheet not found, continue without custom styling
+        }
+    }
+
     // ========== Scene Navigation ==========
 
     /**
@@ -56,6 +73,7 @@ public abstract class Controller {
             Parent root = fxmlLoader.load(fxmlPath);
             currentScene.setRoot(root);
         } catch (IOException e) {
+            e.printStackTrace();
             showErrorAlert("Error loading page",
                     "Could not load the next page. Try again or close the application.\n" + e.getMessage());
         }
@@ -240,12 +258,12 @@ public abstract class Controller {
 
         // Add type-specific style class
         switch (type) {
-        case ERROR -> dialogPane.getStyleClass().add("alert-error");
-        case INFORMATION -> dialogPane.getStyleClass().add("alert-success");
-        case WARNING -> dialogPane.getStyleClass().add("alert-warning");
-        case CONFIRMATION -> dialogPane.getStyleClass().add("alert-confirm");
-        default -> {
-        }
+            case ERROR -> dialogPane.getStyleClass().add("alert-error");
+            case INFORMATION -> dialogPane.getStyleClass().add("alert-success");
+            case WARNING -> dialogPane.getStyleClass().add("alert-warning");
+            case CONFIRMATION -> dialogPane.getStyleClass().add("alert-confirm");
+            default -> {
+            }
         }
 
         // Try to load application stylesheet

@@ -2,11 +2,13 @@ package com.group_2.dto.cleaning;
 
 import com.group_2.model.cleaning.RecurrenceInterval;
 
+import java.time.LocalDate;
+
 /**
  * Immutable DTO for cleaning task templates to decouple UI from JPA entities.
  */
 public record CleaningTaskTemplateDTO(Long id, Long roomId, String roomName, int dayOfWeek,
-        RecurrenceInterval recurrenceInterval) {
+        RecurrenceInterval recurrenceInterval, LocalDate baseWeekStart) {
 
     /**
      * Get display-friendly day name

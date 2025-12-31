@@ -14,8 +14,8 @@
     <!-- Top Header -->
     <top>
         <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
-            <Button text="← Back" onAction="#backToHome" styleClass="navbar-back-button"/>
-            <Text text="⚙️ Home Settings" styleClass="navbar-title"/>
+            <Button text="&lt; Back" onAction="#backToHome" styleClass="navbar-back-button"/>
+            <Text text="Home Settings" styleClass="navbar-title"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Text fx:id="wgNameHeader" text="Home Name" styleClass="navbar-wg-name"/>
         </HBox>
@@ -29,7 +29,7 @@
                 <!-- Invitation Code Card -->
                 <VBox styleClass="card" spacing="15" style="-fx-padding: 25;">
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="🔗" style="-fx-font-size: 24px;"/>
+
                         <Text text="Invitation Code" styleClass="card-title"/>
                     </HBox>
                     <Text text="Share this code with others to invite them to your home" styleClass="card-subtitle"/>
@@ -37,7 +37,7 @@
                         <StackPane style="-fx-background-color: #f1f5f9; -fx-background-radius: 8; -fx-padding: 15 25;">
                             <Text fx:id="inviteCodeText" text="ABCD1234" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #6366f1; -fx-font-family: monospace;"/>
                         </StackPane>
-                        <Button text="📋 Copy" onAction="#copyInviteCode"
+                        <Button text="Copy" onAction="#copyInviteCode"
                                 style="-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-background-radius: 8; -fx-padding: 12 20; -fx-cursor: hand;"/>
                     </HBox>
                 </VBox>
@@ -45,14 +45,14 @@
                 <!-- Admin Info Card (only visible to admin) -->
                 <VBox fx:id="adminCard" styleClass="card" spacing="15" style="-fx-padding: 25;" visible="false" managed="false">
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Text text="👑" style="-fx-font-size: 24px;"/>
+
                         <Text text="Admin Controls" styleClass="card-title"/>
                     </HBox>
                     <Text text="You are the admin of this home" styleClass="card-subtitle"/>
                     <HBox spacing="15">
                         <Button text="Edit Home Name" onAction="#editWgName"
                                 style="-fx-background-color: #dbeafe; -fx-text-fill: #1d4ed8; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
-                        <Button text="🗑️ Delete Home" onAction="#deleteWG"
+                        <Button text="Delete Home" onAction="#deleteWG"
                                 style="-fx-background-color: #fef2f2; -fx-text-fill: #dc2626; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
                     </HBox>
                 </VBox>
@@ -61,7 +61,7 @@
                 <VBox styleClass="card" spacing="15" style="-fx-padding: 25;">
                     <HBox alignment="CENTER_LEFT">
                         <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Text text="🚪" style="-fx-font-size: 24px;"/>
+
                             <Text text="Rooms" styleClass="card-title"/>
                         </HBox>
                         <Region HBox.hgrow="ALWAYS"/>
@@ -78,11 +78,11 @@
                 <VBox styleClass="card" spacing="15" style="-fx-padding: 25;">
                     <HBox alignment="CENTER_LEFT">
                         <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Text text="👥" style="-fx-font-size: 24px;"/>
+
                             <Text text="Members" styleClass="card-title"/>
                         </HBox>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="📋 Copy Invite Code" onAction="#copyInviteCode"
+                        <Button text="Copy Invite Code" onAction="#copyInviteCode"
                                 style="-fx-background-color: #e0e7ff; -fx-text-fill: #4338ca; -fx-background-radius: 8; -fx-padding: 8 16; -fx-cursor: hand;"/>
                     </HBox>
                     <Text fx:id="memberCountText" text="0 members in your home" styleClass="card-subtitle"/>

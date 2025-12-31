@@ -1,5 +1,7 @@
 package com.group_2.service.core;
 
+import com.group_2.dto.core.CoreMapper;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.User;
 import com.group_2.repository.UserRepository;
 
@@ -16,10 +18,15 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncryptionService passwordEncryptionService;
+    private final CoreMapper coreMapper;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncryptionService passwordEncryptionService,
+            CoreMapper coreMapper) {
         this.userRepository = userRepository;
+        this.passwordEncryptionService = passwordEncryptionService;
+        this.coreMapper = coreMapper;
     }
 
     @Transactional
@@ -34,17 +41,45 @@ public class UserService {
         if (userRepository.findAll().stream().anyMatch(u -> u.getEmail() != null && u.getEmail().equals(email))) {
             throw new RuntimeException("Email already exists");
         }
-        User user = new User(name, surname, email, password);
+        // Hash password before storing
+        String hashedPassword = passwordEncryptionService.hashPassword(password);
+        User user = new User(name, surname, email, hashedPassword);
         return userRepository.save(user);
     }
 
+    /**
+     * Register a user and return a summary for UI usage.
+     */
+    @Transactional
+    public UserSummaryDTO registerUserSummary(String name, String surname, String email, String password) {
+        return coreMapper.toUserSummary(registerUser(name, surname, email, password));
+    }
+
     public Optional<User> authenticate(String email, String password) {
-        return userRepository.findAll().stream().filter(u -> u.getEmail() != null && u.getEmail().equals(email)
-                && u.getPassword() != null && u.getPassword().equals(password)).findFirst();
+        // Find user by email, then verify password using BCrypt
+        return userRepository.findAll().stream()
+                .filter(u -> u.getEmail() != null && u.getEmail().equals(email))
+                .filter(u -> u.getPassword() != null
+                        && passwordEncryptionService.verifyPassword(password, u.getPassword()))
+                .findFirst();
+    }
+
+    /**
+     * Authenticate and return a lightweight user summary for UI usage.
+     */
+    public Optional<UserSummaryDTO> authenticateSummary(String email, String password) {
+        return authenticate(email, password).map(coreMapper::toUserSummary);
     }
 
     public Optional<User> getUser(Long id) {
         return userRepository.findById(id);
+    }
+
+    /**
+     * Get a user summary by ID for UI usage.
+     */
+    public Optional<UserSummaryDTO> getUserSummary(Long id) {
+        return userRepository.findById(id).map(coreMapper::toUserSummary);
     }
 
     public List<User> getAllUsers() {

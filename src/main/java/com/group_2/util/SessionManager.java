@@ -1,7 +1,7 @@
 package com.group_2.util;
 
-import com.group_2.model.User;
-import com.group_2.model.WG;
+import com.group_2.dto.core.UserSessionDTO;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.core.UserService;
 import org.springframework.stereotype.Component;
 
@@ -9,9 +9,8 @@ import java.util.Optional;
 
 /**
  * Spring-managed session manager that maintains only the session snapshot (IDs and
- * basic profile data) instead of holding onto JPA entities. Controllers can still
- * fetch a fresh User on demand via the provided helpers, but the authoritative
- * state is the lightweight snapshot.
+ * basic profile data) instead of holding onto JPA entities. Controllers consume
+ * the lightweight snapshot and re-fetch through services when needed.
  */
 @Component
 public class SessionManager {
@@ -28,39 +27,27 @@ public class SessionManager {
     }
 
     /**
-     * Sets the currently logged-in user by snapshotting only the necessary data.
+     * Sets the currently logged-in user by summary data (no entity reference).
      */
-    public void setCurrentUser(User user) {
+    public void setCurrentUserSummary(UserSummaryDTO user) {
         if (user == null) {
             clear();
             return;
         }
-        this.currentUserId = user.getId();
-        this.currentWgId = user.getWg() != null ? user.getWg().getId() : null;
-        this.currentUserName = user.getName();
-        this.currentUserSurname = user.getSurname();
+        this.currentUserId = user.id();
+        this.currentWgId = user.wgId();
+        this.currentUserName = user.name();
+        this.currentUserSurname = user.surname();
     }
 
     /**
      * Returns the current user snapshot (id, name, surname, wgId) if logged in.
      */
-    public Optional<UserSession> getCurrentUserSession() {
+    public Optional<UserSessionDTO> getCurrentUserSession() {
         if (currentUserId == null) {
             return Optional.empty();
         }
-        return Optional.of(new UserSession(currentUserId, currentUserName, currentUserSurname, currentWgId));
-    }
-
-    /**
-     * Retrieves the currently logged-in user entity (fresh from the database).
-     * Kept for backward compatibility while gradually removing direct entity use
-     * from controllers.
-     */
-    public User getCurrentUser() {
-        if (currentUserId == null) {
-            return null;
-        }
-        return userService.getUser(currentUserId).orElse(null);
+        return Optional.of(new UserSessionDTO(currentUserId, currentUserName, currentUserSurname, currentWgId));
     }
 
     /**
@@ -75,14 +62,6 @@ public class SessionManager {
      */
     public Long getCurrentWgId() {
         return currentWgId;
-    }
-
-    /**
-     * Retrieves the WG of the currently logged-in user (fresh entity).
-     */
-    public WG getCurrentUserWG() {
-        User user = getCurrentUser();
-        return user != null ? user.getWg() : null;
     }
 
     /**
@@ -109,18 +88,6 @@ public class SessionManager {
         if (currentUserId == null) {
             return;
         }
-        userService.getUser(currentUserId).ifPresentOrElse(this::setCurrentUser, this::clear);
-    }
-
-    /**
-     * Snapshot of minimal user information for UI consumption.
-     */
-    public record UserSession(Long userId, String name, String surname, Long wgId) {
-        public String displayName() {
-            if (surname == null || surname.isBlank()) {
-                return name;
-            }
-            return name + " " + surname;
-        }
+        userService.getUserSummary(currentUserId).ifPresentOrElse(this::setCurrentUserSummary, this::clear);
     }
 }

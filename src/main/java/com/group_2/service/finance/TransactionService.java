@@ -22,6 +22,8 @@ import com.group_2.dto.finance.FinanceMapper;
 import com.group_2.dto.finance.TransactionDTO;
 import com.group_2.dto.finance.TransactionViewDTO;
 import com.group_2.dto.finance.BalanceViewDTO;
+import com.group_2.dto.core.CoreMapper;
+import com.group_2.dto.core.UserSummaryDTO;
 
 @Service
 public class TransactionService {
@@ -31,16 +33,28 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final WGRepository wgRepository;
     private final FinanceMapper financeMapper;
+    private final CoreMapper coreMapper;
 
     @Autowired
     public TransactionService(TransactionRepository transactionRepository,
             TransactionSplitRepository transactionSplitRepository, UserRepository userRepository,
-            WGRepository wgRepository, FinanceMapper financeMapper) {
+            WGRepository wgRepository, FinanceMapper financeMapper, CoreMapper coreMapper) {
         this.transactionRepository = transactionRepository;
         this.transactionSplitRepository = transactionSplitRepository;
         this.userRepository = userRepository;
         this.wgRepository = wgRepository;
         this.financeMapper = financeMapper;
+        this.coreMapper = coreMapper;
+    }
+
+    /**
+     * Get WG member summaries for finance UI by WG ID.
+     */
+    public List<UserSummaryDTO> getMemberSummaries(Long wgId) {
+        if (wgId == null) {
+            return List.of();
+        }
+        return coreMapper.toUserSummaries(userRepository.findByWgId(wgId));
     }
 
     /**
@@ -75,6 +89,7 @@ public class TransactionService {
         if (wg == null) {
             throw new RuntimeException("Creator must be part of a WG");
         }
+        assertSameWg(wg, creditor, "Creditor");
 
         // Handle percentages - default to equal split if not provided
         List<Double> finalPercentages = percentages;
@@ -104,6 +119,7 @@ public class TransactionService {
 
             User debtor = userRepository.findById(debtorId)
                     .orElseThrow(() -> new RuntimeException("Debtor not found: " + debtorId));
+            assertSameWg(wg, debtor, "Debtor");
 
             double amount = (percentage / 100.0) * totalAmount;
             TransactionSplit split = new TransactionSplit(transaction, debtor, percentage, amount);
@@ -199,12 +215,13 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         WG wg = currentUser.getWg();
-        if (wg == null || wg.mitbewohner == null) {
+        if (wg == null || wg.getId() == null) {
             return new HashMap<>();
         }
 
         Map<Long, Double> balances = new HashMap<>();
-        for (User member : wg.mitbewohner) {
+        List<User> members = userRepository.findByWgId(wg.getId());
+        for (User member : members) {
             if (!member.getId().equals(currentUserId)) {
                 double balance = calculateBalanceWithUser(currentUserId, member.getId());
                 balances.put(member.getId(), balance);
@@ -242,6 +259,10 @@ public class TransactionService {
 
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
+        WG wg = transaction.getWg();
+        if (wg == null) {
+            throw new RuntimeException("Transaction must belong to a WG");
+        }
 
         // Only the original creator can edit the transaction
         if (!transaction.getCreatedBy().getId().equals(currentUserId)) {
@@ -259,6 +280,7 @@ public class TransactionService {
         // Fetch the new creditor
         User newCreditor = userRepository.findById(newCreditorId)
                 .orElseThrow(() -> new RuntimeException("Creditor not found"));
+        assertSameWg(wg, newCreditor, "Creditor");
 
         // Handle percentages - default to equal split if not provided
         List<Double> finalPercentages = percentages;
@@ -292,6 +314,7 @@ public class TransactionService {
 
             User debtor = userRepository.findById(debtorId)
                     .orElseThrow(() -> new RuntimeException("Debtor not found: " + debtorId));
+            assertSameWg(wg, debtor, "Debtor");
 
             double amount = (percentage / 100.0) * totalAmount;
             TransactionSplit split = new TransactionSplit(transaction, debtor, percentage, amount);
@@ -376,11 +399,12 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         WG wg = currentUser.getWg();
-        if (wg == null || wg.mitbewohner == null) {
+        if (wg == null || wg.getId() == null) {
             return List.of();
         }
 
-        return wg.mitbewohner.stream().filter(member -> !member.getId().equals(currentUserId)).map(member -> {
+        return userRepository.findByWgId(wg.getId()).stream()
+                .filter(member -> !member.getId().equals(currentUserId)).map(member -> {
             double balance = calculateBalanceWithUser(currentUserId, member.getId());
             return financeMapper.toBalanceDTO(member, balance);
         }).filter(dto -> dto != null).toList();
@@ -395,14 +419,29 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         WG wg = currentUser.getWg();
-        if (wg == null || wg.mitbewohner == null) {
+        if (wg == null || wg.getId() == null) {
             return List.of();
         }
 
-        return wg.mitbewohner.stream().filter(member -> !member.getId().equals(currentUserId)).map(member -> {
+        return userRepository.findByWgId(wg.getId()).stream()
+                .filter(member -> !member.getId().equals(currentUserId)).map(member -> {
             double balance = calculateBalanceWithUser(currentUserId, member.getId());
             return financeMapper.toBalanceView(member, balance);
         }).filter(dto -> dto != null).toList();
+    }
+
+    /**
+     * Get available credits for a user (balances > 0), optionally excluding a user.
+     */
+    public List<BalanceViewDTO> getAvailableCredits(Long currentUserId, Long excludedUserId) {
+        if (currentUserId == null) {
+            return List.of();
+        }
+        return calculateAllBalancesView(currentUserId).stream()
+                .filter(dto -> dto.user() != null && dto.user().id() != null)
+                .filter(dto -> excludedUserId == null || !excludedUserId.equals(dto.user().id()))
+                .filter(dto -> dto.balance() > 0)
+                .toList();
     }
 
     /**
@@ -484,5 +523,12 @@ public class TransactionService {
         // Transaction 2: credit source settles their debt with current user
         createTransactionDTO(currentUserId, creditSourceUserId, List.of(currentUserId), null, amount,
                 "Settlement via Credit Transfer (used credit)");
+    }
+
+    private void assertSameWg(WG wg, User user, String role) {
+        if (user == null || user.getWg() == null || user.getWg().getId() == null
+                || !user.getWg().getId().equals(wg.getId())) {
+            throw new RuntimeException(role + " must belong to the same WG");
+        }
     }
 }

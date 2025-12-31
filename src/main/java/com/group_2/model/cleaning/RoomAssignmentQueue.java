@@ -21,6 +21,9 @@ public class RoomAssignmentQueue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
@@ -151,8 +154,8 @@ public class RoomAssignmentQueue {
      * next upcoming occurrence of the target user, preserving total task counts.
      * 
      * Example: Queue [a, b, c, a, b, c, a, b, c], swapWithNextOccurrence(0, c)
-     * → Finds 'a' at index 0, finds next 'c' at index 2
-     * → Result: [c, b, a, a, b, c, a, b, c]
+     * -> Finds 'a' at index 0, finds next 'c' at index 2
+     * -> Result: [c, b, a, a, b, c, a, b, c]
      * 
      * @param currentPosition The index of the position to swap FROM
      * @param targetUserId    The user ID to swap WITH (next occurrence after

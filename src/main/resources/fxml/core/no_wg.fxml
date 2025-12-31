@@ -15,10 +15,10 @@
 
     <!-- Welcome Header -->
     <VBox spacing="10" alignment="CENTER">
-        <Text text="🏠" style="-fx-font-size: 64px;"/>
+        <Text text="WG" style="-fx-font-size: 64px;"/>
         <Text fx:id="welcomeText" text="Welcome!" styleClass="title-text"/>
         <Text text="You're not part of a WG yet. Get started below!" 
-              styleClass="subtitle-text" style="-fx-fill: rgba(255,255,255,0.8);"/>
+              styleClass="subtitle-text" style="-fx-fill: white;"/>
     </VBox>
 
     <!-- Action Cards -->
@@ -26,7 +26,7 @@
         <!-- Create WG Card -->
         <VBox styleClass="card" spacing="20" alignment="CENTER" 
               style="-fx-pref-width: 280; -fx-pref-height: 260;">
-            <Text text="🏗️" style="-fx-font-size: 48px;"/>
+            <Text text="NEW" style="-fx-font-size: 48px;"/>
             <Text text="Create New WG" styleClass="card-title"/>
             <Text text="Start your own WG and invite your roommates to join."
                   styleClass="card-subtitle" wrappingWidth="220" style="-fx-text-alignment: center;"/>
@@ -38,7 +38,7 @@
         <!-- Join WG Card -->
         <VBox styleClass="card" spacing="20" alignment="CENTER"
               style="-fx-pref-width: 280; -fx-pref-height: 260;">
-            <Text text="🤝" style="-fx-font-size: 48px;"/>
+            <Text text="JOIN" style="-fx-font-size: 48px;"/>
             <Text text="Join Existing WG" styleClass="card-title"/>
             <Text text="Have an invite code from your roommate? Enter it to join."
                   styleClass="card-subtitle" wrappingWidth="220" style="-fx-text-alignment: center;"/>
@@ -111,6 +111,6 @@
 
     <!-- Logout link at bottom -->
     <Region VBox.vgrow="ALWAYS"/>
-    <Hyperlink text="Logout" onAction="#handleLogout" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+    <Hyperlink text="Logout" onAction="#handleLogout" style="-fx-text-fill: white;"/>
 
 </VBox>

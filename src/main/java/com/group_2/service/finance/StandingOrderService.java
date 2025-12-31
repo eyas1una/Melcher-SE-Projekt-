@@ -13,6 +13,7 @@ import com.group_2.dto.finance.FinanceMapper;
 import com.group_2.dto.finance.StandingOrderDTO;
 import com.group_2.dto.finance.StandingOrderViewDTO;
 import com.group_2.repository.WGRepository;
+import com.group_2.util.MonthlyScheduleUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,24 +66,23 @@ public class StandingOrderService {
         if (frequency == StandingOrderFrequency.MONTHLY) {
             if (Boolean.TRUE.equals(monthlyLastDay)) {
                 // Last day of month mode
-                LocalDate lastDayThisMonth = now.withDayOfMonth(now.lengthOfMonth());
+                LocalDate lastDayThisMonth = now.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(now));
                 if (lastDayThisMonth.isAfter(now)) {
                     nextExecution = lastDayThisMonth;
                 } else {
-                    nextExecution = now.plusMonths(1).withDayOfMonth(now.plusMonths(1).lengthOfMonth());
+                    LocalDate nextMonth = now.plusMonths(1);
+                    nextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(nextMonth));
                 }
             } else if (monthlyDay != null && monthlyDay >= 1 && monthlyDay <= 31) {
                 // Fixed day mode
-                int daysThisMonth = now.lengthOfMonth();
-                int actualDay = Math.min(monthlyDay, daysThisMonth);
+                int actualDay = MonthlyScheduleUtil.getEffectiveDay(now, monthlyDay);
                 LocalDate candidateDate = now.withDayOfMonth(actualDay);
                 if (candidateDate.isAfter(now)) {
                     nextExecution = candidateDate;
                 } else {
                     // Next month
                     LocalDate nextMonth = now.plusMonths(1);
-                    int daysNextMonth = nextMonth.lengthOfMonth();
-                    nextExecution = nextMonth.withDayOfMonth(Math.min(monthlyDay, daysNextMonth));
+                    nextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, monthlyDay));
                 }
             } else {
                 // Default: 1st of next month
@@ -144,7 +144,9 @@ public class StandingOrderService {
     @Transactional
     public void processDueStandingOrders() {
         LocalDate today = LocalDate.now();
-        List<StandingOrder> dueOrders = standingOrderRepository.findByNextExecutionLessThanEqualAndIsActiveTrue(today);
+        // Use pessimistic lock to prevent double-execution when scheduler runs
+        // concurrently
+        List<StandingOrder> dueOrders = standingOrderRepository.findDueOrdersForUpdate(today);
 
         for (StandingOrder order : dueOrders) {
             try {
@@ -250,11 +252,11 @@ public class StandingOrderService {
             LocalDate newNextExecution;
             if (frequency == StandingOrderFrequency.MONTHLY) {
                 if (Boolean.TRUE.equals(monthlyLastDay)) {
-                    newNextExecution = now.plusMonths(1).withDayOfMonth(now.plusMonths(1).lengthOfMonth());
+                    LocalDate nextMonth = now.plusMonths(1);
+                    newNextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(nextMonth));
                 } else if (monthlyDay != null && monthlyDay >= 1 && monthlyDay <= 31) {
                     LocalDate nextMonth = now.plusMonths(1);
-                    int daysNextMonth = nextMonth.lengthOfMonth();
-                    newNextExecution = nextMonth.withDayOfMonth(Math.min(monthlyDay, daysNextMonth));
+                    newNextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, monthlyDay));
                 } else {
                     newNextExecution = now.plusMonths(1).withDayOfMonth(1);
                 }

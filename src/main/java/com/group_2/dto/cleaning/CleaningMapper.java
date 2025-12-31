@@ -48,7 +48,7 @@ public class CleaningMapper {
 
         return new CleaningTaskTemplateDTO(template.getId(),
                 template.getRoom() != null ? template.getRoom().getId() : null, roomName, template.getDayOfWeek(),
-                template.getRecurrenceInterval());
+                template.getRecurrenceInterval(), template.getBaseWeekStart());
     }
 
     public List<CleaningTaskTemplateDTO> toTemplateDTOList(List<CleaningTaskTemplate> templates) {

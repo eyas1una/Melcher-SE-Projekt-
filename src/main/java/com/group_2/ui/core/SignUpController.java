@@ -1,6 +1,6 @@
 package com.group_2.ui.core;
 
-import com.group_2.model.User;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.core.UserService;
 import com.group_2.util.SessionManager;
 
@@ -52,8 +52,8 @@ public class SignUpController extends Controller {
         }
 
         try {
-            User user = userService.registerUser(name, surname, email, password);
-            sessionManager.setCurrentUser(user); // Set as current user in session
+            UserSummaryDTO user = userService.registerUserSummary(name, surname, email, password);
+            sessionManager.setCurrentUserSummary(user); // Set session snapshot only
             showSuccessAlert("Signup Successful", "Account created!");
             // New users never have a WG, so go to no_wg screen
             loadScene(signupNameField.getScene(), "/core/no_wg.fxml");

@@ -7,4 +7,5 @@ import com.group_2.model.cleaning.Room;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
+    java.util.List<Room> findByWgId(Long wgId);
 }

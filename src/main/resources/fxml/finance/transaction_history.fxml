@@ -15,8 +15,8 @@
         <!-- Top Header -->
         <top>
             <HBox styleClass="navbar" spacing="20" alignment="CENTER_LEFT">
-                <Button text="← Back" onAction="#returnToTransactions" styleClass="navbar-back-button"/>
-                <Text text="📜 Transaction History" styleClass="navbar-title"/>
+                <Button text="&lt; Back" onAction="#returnToTransactions" styleClass="navbar-back-button"/>
+                <Text text="Transaction History" styleClass="navbar-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </HBox>
         </top>
@@ -38,9 +38,9 @@
                     <!-- Filter Bar -->
                     <VBox styleClass="card" spacing="15">
                         <HBox spacing="15" alignment="CENTER_LEFT">
-                            <Text text="📅 Filter by:" styleClass="card-title"/>
+                            <Text text="Filter by:" styleClass="card-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="clearFiltersButton" text="↺ Clear Filters" styleClass="secondary-button" onAction="#clearFilters"/>
+                            <Button fx:id="clearFiltersButton" text="Clear Filters" styleClass="secondary-button" onAction="#clearFilters"/>
                         </HBox>
                         <HBox spacing="15" alignment="CENTER_LEFT">
                             <VBox spacing="5">
@@ -60,7 +60,7 @@
                                 <ComboBox fx:id="debtorFilter" promptText="All Debtors" prefWidth="130"/>
                             </VBox>
                             <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Text text="🔍 Search Description" styleClass="dialog-label-secondary"/>
+                                <Text text="Search Description" styleClass="dialog-label-secondary"/>
                                 <TextField fx:id="searchField" promptText="Type to search..." styleClass="modern-text-field"/>
                             </VBox>
                         </HBox>
@@ -69,7 +69,7 @@
                     <!-- Table Container -->
                     <VBox styleClass="card" spacing="20">
                         <HBox alignment="CENTER_LEFT">
-                            <Text text="📜 Transactions" styleClass="card-title"/>
+                            <Text text="Transactions" styleClass="card-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
                         </HBox>
                         

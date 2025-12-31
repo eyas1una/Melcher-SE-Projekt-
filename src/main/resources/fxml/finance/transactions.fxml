@@ -42,12 +42,12 @@
                     <!-- Balance Sheet Table -->
                     <VBox styleClass="card" spacing="20">
                         <HBox alignment="CENTER_LEFT">
-                            <Text text="💳 Balance Sheet" styleClass="card-title"/>
+                            <Text text="Balance Sheet" styleClass="card-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Button text="🔄 Standing Orders" onAction="#showStandingOrders" 
+                            <Button text="Standing Orders" onAction="#showStandingOrders" 
                                     styleClass="finance-pill"/>
                             <Region prefWidth="10"/>
-                            <Button text="📜 History" onAction="#navigateToHistory" 
+                            <Button text="History" onAction="#navigateToHistory" 
                                     styleClass="finance-pill"/>
                             <Region prefWidth="10"/>
                             <Button text="+ Add Transaction" styleClass="primary-button" onAction="#showAddTransactionDialog" />
@@ -79,4 +79,3 @@
     <fx:include source="standing_orders_dialog.fxml" fx:id="standingOrdersDialog"/>
 
 </StackPane>
-

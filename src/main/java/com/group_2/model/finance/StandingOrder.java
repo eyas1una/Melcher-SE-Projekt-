@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.group_2.util.MonthlyScheduleUtil;
+
 /**
  * Entity representing a standing order (recurring transaction).
  * Stores the template for transactions that will be created automatically.
@@ -20,6 +22,9 @@ public class StandingOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "creditor_id", nullable = false)
@@ -214,18 +219,7 @@ public class StandingOrder {
      * Handles fallback when preferred day doesn't exist in the target month.
      */
     private LocalDate calculateNextMonthlyExecution(LocalDate targetMonth) {
-        if (Boolean.TRUE.equals(monthlyLastDay)) {
-            // Last day of month mode
-            return targetMonth.withDayOfMonth(targetMonth.lengthOfMonth());
-        } else if (monthlyDay != null && monthlyDay >= 1 && monthlyDay <= 31) {
-            // Fixed day mode with fallback
-            int daysInMonth = targetMonth.lengthOfMonth();
-            int actualDay = Math.min(monthlyDay, daysInMonth);
-            return targetMonth.withDayOfMonth(actualDay);
-        } else {
-            // Default: 1st of month
-            return targetMonth.withDayOfMonth(1);
-        }
+        return MonthlyScheduleUtil.resolveMonthlyDate(targetMonth, monthlyDay, monthlyLastDay);
     }
 
     // Monthly preference getters and setters

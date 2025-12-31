@@ -1,9 +1,10 @@
 package com.group_2.ui.finance;
 
+
 import java.time.LocalDate;
 import java.util.*;
 
-import com.group_2.model.User;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.finance.StandingOrderFrequency;
 
 /**
@@ -19,8 +20,8 @@ public class TransactionDialogState {
     }
 
     // Core transaction details
-    private User payer;
-    private Set<User> participants;
+    private UserSummaryDTO payer;
+    private Set<UserSummaryDTO> participants;
     private SplitMode splitMode;
     private double totalAmount;
     private String description;
@@ -33,7 +34,7 @@ public class TransactionDialogState {
     private boolean monthlyLastDay = false; // True = always last day of month
 
     // Mode-specific data
-    private Map<User, Double> customValues; // For percentage or custom amounts
+    private Map<UserSummaryDTO, Double> customValues; // For percentage or custom amounts
 
     public TransactionDialogState() {
         this.participants = new HashSet<>();
@@ -46,7 +47,7 @@ public class TransactionDialogState {
     /**
      * Reset all state to defaults
      */
-    public void reset(User currentUser, List<User> allWgMembers) {
+    public void reset(UserSummaryDTO currentUser, List<UserSummaryDTO> allWgMembers) {
         this.payer = currentUser;
         this.participants = new HashSet<>(); // No participants selected by default
         this.splitMode = SplitMode.EQUAL;
@@ -63,32 +64,32 @@ public class TransactionDialogState {
 
     // Getters and setters
 
-    public User getPayer() {
+    public UserSummaryDTO getPayer() {
         return payer;
     }
 
-    public void setPayer(User payer) {
+    public void setPayer(UserSummaryDTO payer) {
         this.payer = payer;
     }
 
-    public Set<User> getParticipants() {
+    public Set<UserSummaryDTO> getParticipants() {
         return participants;
     }
 
-    public void setParticipants(Set<User> participants) {
+    public void setParticipants(Set<UserSummaryDTO> participants) {
         this.participants = participants;
     }
 
-    public void addParticipant(User user) {
+    public void addParticipant(UserSummaryDTO user) {
         this.participants.add(user);
     }
 
-    public void removeParticipant(User user) {
+    public void removeParticipant(UserSummaryDTO user) {
         this.participants.remove(user);
         this.customValues.remove(user);
     }
 
-    public boolean isParticipant(User user) {
+    public boolean isParticipant(UserSummaryDTO user) {
         return this.participants.contains(user);
     }
 
@@ -116,11 +117,11 @@ public class TransactionDialogState {
         this.description = description;
     }
 
-    public Map<User, Double> getCustomValues() {
+    public Map<UserSummaryDTO, Double> getCustomValues() {
         return customValues;
     }
 
-    public void setCustomValue(User user, double value) {
+    public void setCustomValue(UserSummaryDTO user, double value) {
         this.customValues.put(user, value);
     }
 
@@ -165,7 +166,7 @@ public class TransactionDialogState {
         this.monthlyLastDay = monthlyLastDay;
     }
 
-    public Double getCustomValue(User user) {
+    public Double getCustomValue(UserSummaryDTO user) {
         return this.customValues.get(user);
     }
 
@@ -178,8 +179,8 @@ public class TransactionDialogState {
         }
 
         List<String> names = new ArrayList<>();
-        for (User user : participants) {
-            names.add(user.getName());
+        for (UserSummaryDTO user : participants) {
+            names.add(user.displayName());
         }
         return String.join(", ", names);
     }
@@ -211,7 +212,7 @@ public class TransactionDialogState {
             case PERCENTAGE:
                 // Sum must equal 100% and all participants must have a value > 0
                 double sum = 0.0;
-                for (User participant : participants) {
+                for (UserSummaryDTO participant : participants) {
                     Double value = customValues.get(participant);
                     if (value == null || value <= 0) {
                         return false; // All participants must have a value > 0
@@ -223,7 +224,7 @@ public class TransactionDialogState {
             case CUSTOM_AMOUNT:
                 // Sum must equal total amount and all participants must have a value > 0
                 double totalCustom = 0.0;
-                for (User participant : participants) {
+                for (UserSummaryDTO participant : participants) {
                     Double value = customValues.get(participant);
                     if (value == null || value <= 0) {
                         return false; // All participants must have a value > 0
@@ -263,7 +264,7 @@ public class TransactionDialogState {
             case PERCENTAGE:
                 double sum = 0.0;
                 boolean hasZeroPercentage = false;
-                for (User participant : participants) {
+                for (UserSummaryDTO participant : participants) {
                     Double value = customValues.get(participant);
                     if (value == null || value <= 0) {
                         hasZeroPercentage = true;
@@ -282,7 +283,7 @@ public class TransactionDialogState {
             case CUSTOM_AMOUNT:
                 double totalCustom = 0.0;
                 boolean hasZeroAmount = false;
-                for (User participant : participants) {
+                for (UserSummaryDTO participant : participants) {
                     Double value = customValues.get(participant);
                     if (value == null || value <= 0) {
                         hasZeroAmount = true;

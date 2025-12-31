@@ -15,13 +15,13 @@
 
     <!-- Dialog Card -->
     <VBox styleClass="card dialog-surface" spacing="0"
-          StackPane.alignment="CENTER" maxWidth="900" maxHeight="650" prefWidth="780">
+          StackPane.alignment="CENTER" maxWidth="950" maxHeight="650" prefWidth="900">
         
         <!-- Header -->
         <HBox alignment="CENTER" spacing="15" styleClass="dialog-header">
-            <Button text="✕" onAction="#closeDialog"
+            <Button text="X" onAction="#closeDialog"
                     styleClass="dialog-close-button"/>
-            <Text text="🔄 Standing Orders" styleClass="dialog-title"/>
+            <Text text="Standing Orders" styleClass="dialog-title"/>
             <Region HBox.hgrow="ALWAYS"/>
         </HBox>
 
@@ -35,19 +35,19 @@
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                 </columnResizePolicy>
                 <columns>
-                    <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="140"/>
-                    <TableColumn fx:id="payerColumn" text="Payer" prefWidth="100"/>
-                    <TableColumn fx:id="debtorsColumn" text="Debtors" prefWidth="140"/>
-                    <TableColumn fx:id="amountColumn" text="Amount" prefWidth="80"/>
-                    <TableColumn fx:id="frequencyColumn" text="Frequency" prefWidth="110"/>
-                    <TableColumn fx:id="nextExecutionColumn" text="Next" prefWidth="90"/>
-                    <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="80"/>
+                    <TableColumn fx:id="descriptionColumn" text="Description" prefWidth="130" minWidth="100"/>
+                    <TableColumn fx:id="payerColumn" text="Payer" prefWidth="90" minWidth="70"/>
+                    <TableColumn fx:id="debtorsColumn" text="Debtors" prefWidth="120" minWidth="80"/>
+                    <TableColumn fx:id="amountColumn" text="Amount" prefWidth="70" minWidth="60"/>
+                    <TableColumn fx:id="frequencyColumn" text="Frequency" prefWidth="100" minWidth="80"/>
+                    <TableColumn fx:id="nextExecutionColumn" text="Next" prefWidth="90" minWidth="70"/>
+                    <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="120" minWidth="120"/>
                 </columns>
             </TableView>
             
             <!-- Empty State -->
             <VBox fx:id="emptyState" alignment="CENTER" spacing="10" visible="false" managed="false" VBox.vgrow="ALWAYS">
-                <Text text="📭" styleClass="dialog-header-icon"/>
+                <Text text="LIST" styleClass="dialog-header-icon"/>
                 <Text text="No standing orders yet" styleClass="dialog-message-text"/>
                 <Text text="Create a standing order from the transaction dialog" styleClass="dialog-subtitle-small"/>
             </VBox>

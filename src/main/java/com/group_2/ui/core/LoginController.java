@@ -1,6 +1,6 @@
 package com.group_2.ui.core;
 
-import com.group_2.model.User;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.core.UserService;
 import com.group_2.util.SessionManager;
 
@@ -41,9 +41,9 @@ public class LoginController extends Controller {
         String email = emailField.getText();
         String password = passwordField.getText();
 
-        Optional<User> user = userService.authenticate(email, password);
+        Optional<UserSummaryDTO> user = userService.authenticateSummary(email, password);
         if (user.isPresent()) {
-            sessionManager.setCurrentUser(user.get()); // Set the current user in the session
+            sessionManager.setCurrentUserSummary(user.get()); // Set session snapshot only
             navigateAfterAuth(user.get());
         } else {
             showErrorAlert("Login Failed", "Invalid email or password.");
@@ -55,9 +55,9 @@ public class LoginController extends Controller {
         loadScene(emailField.getScene(), "/core/signup.fxml");
     }
 
-    private void navigateAfterAuth(User user) {
+    private void navigateAfterAuth(UserSummaryDTO user) {
         // Check if user has a WG
-        if (user.getWg() != null) {
+        if (user.wgId() != null) {
             // User has a WG - go to main screen
             loadScene(emailField.getScene(), "/core/main_screen.fxml");
             javafx.application.Platform.runLater(() -> {

@@ -1,8 +1,8 @@
-﻿package com.group_2.ui.finance;
+package com.group_2.ui.finance;
 
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.dto.finance.TransactionViewDTO;
 import com.group_2.dto.finance.TransactionSplitViewDTO;
-import com.group_2.model.User;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.ui.core.Controller;
 import com.group_2.util.SessionManager;
@@ -69,7 +69,7 @@ public class TransactionHistoryController extends Controller {
     @FXML
     private TextField searchField;
 
-    private DecimalFormat currencyFormat = new DecimalFormat("EUR #,##0.00");
+    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -263,9 +263,10 @@ public class TransactionHistoryController extends Controller {
         if (currentUserId == null)
             return;
 
-        User currentUser = sessionManager.getCurrentUser();
-        if (currentUser == null)
+        Long wgId = sessionManager.getCurrentWgId();
+        if (wgId == null) {
             return;
+        }
 
         // Populate year filter from transaction dates
         List<String> yearOptions = new ArrayList<>();
@@ -300,14 +301,9 @@ public class TransactionHistoryController extends Controller {
         List<UserDisplay> members = new ArrayList<>();
         members.add(new UserDisplay(null, "All")); // "All" option
 
-        if (currentUser.getWg() != null && currentUser.getWg().getMitbewohner() != null) {
-            for (User member : currentUser.getWg().getMitbewohner()) {
-                String name = member.getName();
-                if (member.getSurname() != null) {
-                    name += " " + member.getSurname();
-                }
-                members.add(new UserDisplay(member, name));
-            }
+        List<UserSummaryDTO> memberSummaries = transactionService.getMemberSummaries(wgId);
+        for (UserSummaryDTO member : memberSummaries) {
+            members.add(new UserDisplay(member, member.displayName()));
         }
 
         payerFilter.setItems(FXCollections.observableArrayList(members));
@@ -347,7 +343,7 @@ public class TransactionHistoryController extends Controller {
 
             // Payer filter
             if (selectedPayer != null && selectedPayer.getUser() != null) {
-                if (t.creditor() == null || !t.creditor().id().equals(selectedPayer.getUser().getId())) {
+                if (t.creditor() == null || !t.creditor().id().equals(selectedPayer.getUser().id())) {
                     return false;
                 }
             }
@@ -355,7 +351,7 @@ public class TransactionHistoryController extends Controller {
             // Debtor filter
             if (selectedDebtor != null && selectedDebtor.getUser() != null) {
                 boolean hasDebtor = t.splits().stream()
-                        .anyMatch(s -> s.debtor() != null && s.debtor().id().equals(selectedDebtor.getUser().getId()));
+                        .anyMatch(s -> s.debtor() != null && s.debtor().id().equals(selectedDebtor.getUser().id()));
                 if (!hasDebtor) {
                     return false;
                 }
@@ -438,7 +434,7 @@ public class TransactionHistoryController extends Controller {
         descField.getStyleClass().addAll("dialog-field", "dialog-field-small");
 
         // Total Amount field
-        Text amountLabel = new Text("Total Amount (EUR)");
+        Text amountLabel = new Text("Total Amount (€)");
         amountLabel.getStyleClass().add("form-label-bold");
         TextField amountField = new TextField(String.format("%.2f", transaction.totalAmount()));
         amountField.getStyleClass().addAll("dialog-field", "dialog-field-small");
@@ -508,7 +504,7 @@ public class TransactionHistoryController extends Controller {
                         HBox row = new HBox(10);
                         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                         String debtorName = split.debtor() != null ? split.debtor().displayName() : "Unknown";
-                        Text nameText = new Text(debtorName + ": " + String.format("%.2f", equalAmount) + " EUR");
+                        Text nameText = new Text(debtorName + ": " + String.format("%.2f", equalAmount) + " €");
                         nameText.getStyleClass().add("text-small");
                         row.getChildren().add(nameText);
                         splitsContainer.getChildren().add(row);
@@ -572,7 +568,7 @@ public class TransactionHistoryController extends Controller {
                     // Initial calculation
                     double sum = splits.stream().mapToDouble(TransactionSplitViewDTO::percentage).sum();
                     double remaining = 100.0 - sum;
-                    validationLabel.setText(String.format("Total: %.2f EUR of %.2f EUR\n%.2f EUR left", sum, total, remaining));
+                    validationLabel.setText(String.format("Total: %.2f € of %.2f €\n%.2f € left", sum, total, remaining));
                     validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error", "validation-label-muted");
                     if (Math.abs(remaining) < 0.01) {
                         validationLabel.getStyleClass().addAll("validation-label", "validation-label-success");
@@ -662,7 +658,7 @@ public class TransactionHistoryController extends Controller {
                         }
                         if (Math.abs(totalSplitAmount - newAmount) > 0.01) {
                             throw new IllegalArgumentException(String.format(
-                                    "Split amounts (EUR %.2f) must equal total (EUR %.2f)", totalSplitAmount,
+                                    "Split amounts (€%.2f) must equal total (€%.2f)", totalSplitAmount,
                                     newAmount));
                         }
                         for (TransactionSplitViewDTO split : splits) {
@@ -732,15 +728,15 @@ public class TransactionHistoryController extends Controller {
 
     // Helper class for displaying users in ComboBox
     private static class UserDisplay {
-        private final User user;
+        private final UserSummaryDTO user;
         private final String displayName;
 
-        public UserDisplay(User user, String displayName) {
+        public UserDisplay(UserSummaryDTO user, String displayName) {
             this.user = user;
             this.displayName = displayName;
         }
 
-        public User getUser() {
+        public UserSummaryDTO getUser() {
             return user;
         }
 
@@ -750,6 +746,3 @@ public class TransactionHistoryController extends Controller {
         }
     }
 }
-
-
-

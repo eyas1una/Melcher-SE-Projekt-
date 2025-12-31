@@ -2,6 +2,7 @@ package com.group_2.dto.core;
 
 import com.group_2.model.User;
 import com.group_2.model.WG;
+import com.group_2.repository.UserRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,6 +13,12 @@ import java.util.List;
  */
 @Component
 public class CoreMapper {
+
+    private final UserRepository userRepository;
+
+    public CoreMapper(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public UserSummaryDTO toUserSummary(User user) {
         if (user == null) {
@@ -36,7 +43,10 @@ public class CoreMapper {
         if (wg == null) {
             return null;
         }
-        int memberCount = wg.mitbewohner != null ? wg.mitbewohner.size() : 0;
-        return new WgSummaryDTO(wg.getId(), wg.name, memberCount);
+        int memberCount = 0;
+        if (wg.getId() != null) {
+            memberCount = (int) userRepository.countByWgId(wg.getId());
+        }
+        return new WgSummaryDTO(wg.getId(), wg.getName(), memberCount);
     }
 }

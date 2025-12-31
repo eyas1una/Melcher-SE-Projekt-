@@ -25,15 +25,15 @@
             <HBox alignment="CENTER_LEFT" spacing="20" styleClass="cleaning-header">
                 <!-- Week Navigation -->
                 <HBox spacing="12" alignment="CENTER_LEFT">
-                    <Button text="◀" styleClass="icon-button nav-button-light" onAction="#previousWeek"/>
+                    <Button text="&lt;" styleClass="icon-button nav-button-light" onAction="#previousWeek"/>
                     <VBox spacing="2" alignment="CENTER_LEFT">
                         <Text fx:id="weekTitle" text="Week 52, 2024" 
                               styleClass="text-title-cleaning"/>
                         <Text fx:id="weekDateRange" text="December 23 - December 29" 
                               styleClass="text-subtitle-cleaning"/>
                     </VBox>
-                    <Button text="▶" styleClass="icon-button nav-button-light" onAction="#nextWeek"/>
-                    <Button text="📅 Today" styleClass="nav-button-primary" onAction="#goToCurrentWeek"/>
+                    <Button text="&gt;" styleClass="icon-button nav-button-light" onAction="#nextWeek"/>
+                    <Button text="Today" styleClass="nav-button-primary" onAction="#goToCurrentWeek"/>
                 </HBox>
                 
                 <Region HBox.hgrow="ALWAYS"/>
@@ -58,12 +58,12 @@
             <!-- Action Toolbar -->
             <HBox spacing="12" alignment="CENTER_LEFT" styleClass="cleaning-toolbar">
 
-                <Button text="➕ Add Task" onAction="#showAddTaskDialog"
+                <Button text="+ Add Task" onAction="#showAddTaskDialog"
                         styleClass="action-button-light"/>
                 
                 <Region prefWidth="20"/>
                 
-                <Button text="📝 Edit Template" onAction="#openTemplateEditor"
+                <Button text="Edit Template" onAction="#openTemplateEditor"
                         styleClass="action-button-light"/>
             </HBox>
 
@@ -104,12 +104,12 @@
 
                     <!-- Tasks by Room Section -->
                     <VBox spacing="15" styleClass="section-top">
-                        <Text text="📋 All Cleaning Tasks" 
+                        <Text text="All Cleaning Tasks" 
                               styleClass="section-title-cleaning"/>
                         
-                        <HBox fx:id="roomCardsContainer" spacing="15" alignment="TOP_LEFT">
+                        <FlowPane fx:id="roomCardsContainer" hgap="15" vgap="15" alignment="TOP_LEFT">
                             <!-- Room task cards will be added dynamically -->
-                        </HBox>
+                        </FlowPane>
                     </VBox>
 
                 </VBox>

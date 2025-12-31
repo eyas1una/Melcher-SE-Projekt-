@@ -24,8 +24,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.group_2.dto.finance.StandingOrderViewDTO;
-import com.group_2.model.User;
-import com.group_2.model.WG;
 
 @Component
 public class StandingOrdersDialogController extends com.group_2.ui.core.Controller {
