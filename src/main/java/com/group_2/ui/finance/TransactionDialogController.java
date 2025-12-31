@@ -3,7 +3,6 @@ package com.group_2.ui.finance;
 import com.group_2.dto.core.UserSessionDTO;
 import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.finance.StandingOrderFrequency;
-import com.group_2.service.core.WGService;
 import com.group_2.service.finance.StandingOrderService;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.util.SessionManager;
@@ -31,7 +30,6 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
     private final TransactionService transactionService;
     private final StandingOrderService standingOrderService;
     private final SessionManager sessionManager;
-    private final WGService wgService;
     private final TransactionDialogState state;
 
     // Dialog overlay and step screens
@@ -114,11 +112,10 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     @Autowired
     public TransactionDialogController(TransactionService transactionService, StandingOrderService standingOrderService,
-            SessionManager sessionManager, WGService wgService) {
+            SessionManager sessionManager) {
         this.transactionService = transactionService;
         this.standingOrderService = standingOrderService;
         this.sessionManager = sessionManager;
-        this.wgService = wgService;
         this.state = new TransactionDialogState();
     }
 
@@ -179,7 +176,7 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         if (session == null || session.wgId() == null) {
             return;
         }
-        allWgMembers = new ArrayList<>(wgService.getMemberSummaries(session.wgId()));
+        allWgMembers = new ArrayList<>(transactionService.getMemberSummaries(session.wgId()));
         UserSummaryDTO currentUser = findMemberSummary(session.userId(), session);
         if (currentUser != null) {
             boolean exists = allWgMembers.stream()

@@ -314,7 +314,8 @@ public class TransactionsController extends Controller {
 
         if (balance < 0) {
             // Find roommates who owe the current user (positive balances = they owe us)
-            List<BalanceEntry> availableCredits = findAvailableCredits(currentUserId, otherUserId);
+            List<BalanceEntry> availableCredits = toBalanceEntries(
+                    transactionService.getAvailableCredits(currentUserId, otherUserId));
 
             if (!availableCredits.isEmpty()) {
                 // Add separator
@@ -426,7 +427,8 @@ public class TransactionsController extends Controller {
 
     private void showCreditTransferDialog(Long currentUserId, Long debtorToId, double debtAmount, String debtorName) {
         // Find roommates who owe the current user
-        List<BalanceEntry> availableCredits = findAvailableCredits(currentUserId, debtorToId);
+        List<BalanceEntry> availableCredits = toBalanceEntries(
+                transactionService.getAvailableCredits(currentUserId, debtorToId));
 
         if (availableCredits.isEmpty()) {
             showSuccessAlert("No Credits Available", "There are no roommates who currently owe you money.",
@@ -589,23 +591,14 @@ public class TransactionsController extends Controller {
         }
     }
 
-    private List<BalanceEntry> findAvailableCredits(Long currentUserId, Long excludedUserId) {
-        if (currentUserId == null) {
-            return List.of();
-        }
-        List<BalanceViewDTO> balances = transactionService.calculateAllBalancesView(currentUserId);
+    private List<BalanceEntry> toBalanceEntries(List<BalanceViewDTO> balances) {
         List<BalanceEntry> availableCredits = new ArrayList<>();
         for (BalanceViewDTO dto : balances) {
             UserSummaryDTO user = dto.user();
             if (user == null || user.id() == null) {
                 continue;
             }
-            if (excludedUserId != null && user.id().equals(excludedUserId)) {
-                continue;
-            }
-            if (dto.balance() > 0) {
-                availableCredits.add(new BalanceEntry(user.displayName(), dto.balance(), user.id()));
-            }
+            availableCredits.add(new BalanceEntry(user.displayName(), dto.balance(), user.id()));
         }
         return availableCredits;
     }

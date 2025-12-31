@@ -56,6 +56,12 @@ public class WGService {
         // Ensure admin has the WG set and save the user
         admin.setWg(wg);
         userRepository.save(admin);
+        if (rooms != null && !rooms.isEmpty()) {
+            for (Room room : rooms) {
+                room.setWg(wg);
+            }
+            roomRepository.saveAll(rooms);
+        }
         return wg;
     }
 
@@ -111,8 +117,10 @@ public class WGService {
      * Get WG member summaries for UI consumption by WG ID.
      */
     public List<UserSummaryDTO> getMemberSummaries(Long wgId) {
-        WG wg = wgRepository.findById(wgId).orElseThrow(() -> new RuntimeException("WG not found"));
-        return coreMapper.toUserSummaries(wg.getMitbewohner());
+        if (wgId == null) {
+            return List.of();
+        }
+        return coreMapper.toUserSummaries(userRepository.findByWgId(wgId));
     }
 
     public Optional<WG> getWGByInviteCode(String inviteCode) {
@@ -129,9 +137,7 @@ public class WGService {
         WG wg = wgRepository.findByInviteCode(inviteCode.toUpperCase())
                 .orElseThrow(() -> new RuntimeException("WG not found with invite code: " + inviteCode));
 
-        // Check if user is already in this WG (by ID comparison)
-        boolean alreadyMember = wg.getMitbewohner().stream().anyMatch(m -> m.getId().equals(user.getId()));
-        if (alreadyMember) {
+        if (userRepository.existsByIdAndWgId(user.getId(), wg.getId())) {
             throw new RuntimeException("User is already a member of this WG.");
         }
 
@@ -157,14 +163,17 @@ public class WGService {
     @Transactional
     public WG updateWG(Long id, String name, Long adminUserId) {
         WG wg = wgRepository.findById(id).orElseThrow(() -> new RuntimeException("WG not found"));
-        wg.name = name; // Accessing public field directly as per WG.java
+        wg.setName(name);
 
         if (adminUserId != null) {
-            // Find the managed user entity from the WG's member list by ID
-            // This avoids JPA merge issues with detached entities
-            User managedAdmin = wg.getMitbewohner().stream().filter(m -> m.getId().equals(adminUserId)).findFirst()
-                    .orElseThrow(() -> new RuntimeException("User is not a member of this WG"));
-            wg.admin = managedAdmin;
+            User managedAdmin = userRepository.findById(adminUserId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            if (managedAdmin.getWg() == null || !wg.getId().equals(managedAdmin.getWg().getId())) {
+                throw new RuntimeException("User is not a member of this WG");
+            }
+            if (!wg.setAdmin(managedAdmin)) {
+                throw new RuntimeException("Failed to set admin for this WG");
+            }
         }
         return wgRepository.save(wg);
     }

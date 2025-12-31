@@ -3,7 +3,6 @@ package com.group_2.ui.finance;
 import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.dto.finance.TransactionViewDTO;
 import com.group_2.dto.finance.TransactionSplitViewDTO;
-import com.group_2.service.core.WGService;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.ui.core.Controller;
 import com.group_2.util.SessionManager;
@@ -35,7 +34,6 @@ public class TransactionHistoryController extends Controller {
 
     private final TransactionService transactionService;
     private final SessionManager sessionManager;
-    private final WGService wgService;
 
     @Autowired
     private org.springframework.context.ApplicationContext applicationContext;
@@ -83,11 +81,9 @@ public class TransactionHistoryController extends Controller {
             "July", "August", "September", "October", "November", "December" };
 
     @Autowired
-    public TransactionHistoryController(TransactionService transactionService, SessionManager sessionManager,
-            WGService wgService) {
+    public TransactionHistoryController(TransactionService transactionService, SessionManager sessionManager) {
         this.transactionService = transactionService;
         this.sessionManager = sessionManager;
-        this.wgService = wgService;
     }
 
     @FXML
@@ -305,7 +301,7 @@ public class TransactionHistoryController extends Controller {
         List<UserDisplay> members = new ArrayList<>();
         members.add(new UserDisplay(null, "All")); // "All" option
 
-        List<UserSummaryDTO> memberSummaries = wgService.getMemberSummaries(wgId);
+        List<UserSummaryDTO> memberSummaries = transactionService.getMemberSummaries(wgId);
         for (UserSummaryDTO member : memberSummaries) {
             members.add(new UserDisplay(member, member.displayName()));
         }

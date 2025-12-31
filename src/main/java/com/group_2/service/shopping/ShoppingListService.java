@@ -3,6 +3,8 @@ package com.group_2.service.shopping;
 import com.group_2.dto.shopping.ShoppingListDTO;
 import com.group_2.dto.shopping.ShoppingListItemDTO;
 import com.group_2.dto.shopping.ShoppingMapper;
+import com.group_2.dto.core.CoreMapper;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.User;
 import com.group_2.model.shopping.ShoppingList;
 import com.group_2.model.shopping.ShoppingListItem;
@@ -27,13 +29,25 @@ public class ShoppingListService {
     private final ShoppingListItemRepository itemRepository;
     private final UserRepository userRepository;
     private final ShoppingMapper shoppingMapper;
+    private final CoreMapper coreMapper;
 
     public ShoppingListService(ShoppingListRepository shoppingListRepository, ShoppingListItemRepository itemRepository,
-            UserRepository userRepository, ShoppingMapper shoppingMapper) {
+            UserRepository userRepository, ShoppingMapper shoppingMapper, CoreMapper coreMapper) {
         this.shoppingListRepository = shoppingListRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.shoppingMapper = shoppingMapper;
+        this.coreMapper = coreMapper;
+    }
+
+    /**
+     * Get WG member summaries for shopping UI by WG ID.
+     */
+    public List<UserSummaryDTO> getMemberSummaries(Long wgId) {
+        if (wgId == null) {
+            return List.of();
+        }
+        return coreMapper.toUserSummaries(userRepository.findByWgId(wgId));
     }
 
     /**

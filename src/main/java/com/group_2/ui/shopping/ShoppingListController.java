@@ -4,7 +4,6 @@ import com.group_2.dto.core.UserSessionDTO;
 import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.dto.shopping.ShoppingListDTO;
 import com.group_2.dto.shopping.ShoppingListItemDTO;
-import com.group_2.service.core.WGService;
 import com.group_2.service.shopping.ShoppingListService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.NavbarController;
@@ -30,7 +29,6 @@ import java.util.Optional;
 public class ShoppingListController extends Controller {
 
     private final ShoppingListService shoppingListService;
-    private final WGService wgService;
     private final SessionManager sessionManager;
 
     // Left panel - lists
@@ -69,10 +67,8 @@ public class ShoppingListController extends Controller {
 
     private ShoppingListDTO selectedList;
 
-    public ShoppingListController(ShoppingListService shoppingListService, WGService wgService,
-            SessionManager sessionManager) {
+    public ShoppingListController(ShoppingListService shoppingListService, SessionManager sessionManager) {
         this.shoppingListService = shoppingListService;
-        this.wgService = wgService;
         this.sessionManager = sessionManager;
     }
 
@@ -385,7 +381,7 @@ public class ShoppingListController extends Controller {
         VBox memberCheckboxes = new VBox(8);
         List<CheckBox> checkBoxes = new ArrayList<>();
 
-        List<UserSummaryDTO> members = wgService.getMemberSummaries(session.wgId());
+        List<UserSummaryDTO> members = shoppingListService.getMemberSummaries(session.wgId());
         for (UserSummaryDTO member : members) {
             if (!member.id().equals(session.userId())) {
                 CheckBox cb = new CheckBox(member.displayName());
@@ -462,7 +458,7 @@ public class ShoppingListController extends Controller {
         List<CheckBox> checkBoxes = new ArrayList<>();
         List<Long> currentlySharedIds = selectedList.sharedWithIds();
 
-        List<UserSummaryDTO> members = wgService.getMemberSummaries(session.wgId());
+        List<UserSummaryDTO> members = shoppingListService.getMemberSummaries(session.wgId());
         for (UserSummaryDTO member : members) {
             if (!member.id().equals(session.userId())) {
                 CheckBox cb = new CheckBox(member.displayName());

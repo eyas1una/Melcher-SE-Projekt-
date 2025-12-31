@@ -23,16 +23,16 @@ public class WG {
         return inviteCode;
     }
 
-    public String name;
+    private String name;
 
-    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    public List<Room> rooms;
+    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private List<Room> rooms = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
-    public List<User> mitbewohner;
+    @OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private List<User> mitbewohner = new ArrayList<>();
 
     @ManyToOne(cascade = CascadeType.MERGE)
-    public User admin;
+    private User admin;
 
     public WG() {
     } // Required by JPA
@@ -40,10 +40,12 @@ public class WG {
     public WG(String name, User admin, List<Room> rooms) {
         this.name = name;
         this.admin = admin;
-        this.rooms = rooms;
-        this.mitbewohner = new ArrayList<>();
+        this.rooms = rooms != null ? new ArrayList<>(rooms) : new ArrayList<>();
         this.inviteCode = generateInviteCode();
-        addMitbewohner(admin);
+        if (admin != null) {
+            // Defer setting User.wg until the WG is persisted to avoid transient reference flush issues.
+            this.mitbewohner.add(admin);
+        }
     }
 
     private static String generateInviteCode() {
@@ -64,6 +66,22 @@ public class WG {
         this.inviteCode = generateInviteCode();
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public User getAdmin() {
+        return admin;
+    }
+
+    public List<Room> getRooms() {
+        return new ArrayList<>(rooms);
+    }
+
     public boolean addRoom(Room room) {
         if (rooms.contains(room)) {
             return false;
@@ -81,10 +99,10 @@ public class WG {
     }
 
     public boolean setAdmin(User user) {
-        // Check if user is a member by comparing IDs (more reliable with JPA)
-        boolean isMember = mitbewohner.stream()
-                .anyMatch(m -> m.getId().equals(user.getId()));
-        if (!isMember) {
+        if (user == null || user.getWg() == null || user.getWg().getId() == null || id == null) {
+            return false;
+        }
+        if (!id.equals(user.getWg().getId())) {
             return false;
         }
         this.admin = user;
@@ -109,5 +127,22 @@ public class WG {
 
     public List<User> getMitbewohner() {
         return new ArrayList<>(mitbewohner);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        WG wg = (WG) o;
+        return id != null && id.equals(wg.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

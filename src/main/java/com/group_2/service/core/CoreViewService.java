@@ -50,8 +50,8 @@ public class CoreViewService {
         UserSummaryDTO summary = coreMapper.toUserSummary(user);
         WG wg = user.getWg();
         WgSummaryDTO wgSummary = coreMapper.toWgSummary(wg);
-        boolean isAdmin = wg != null && wg.admin != null && wg.admin.getId() != null
-                && wg.admin.getId().equals(userId);
+        boolean isAdmin = wg != null && wg.getAdmin() != null && wg.getAdmin().getId() != null
+                && wg.getAdmin().getId().equals(userId);
         return new UserProfileViewDTO(summary, wgSummary, isAdmin);
     }
 
@@ -65,7 +65,7 @@ public class CoreViewService {
         }
         List<UserSummaryDTO> members = coreMapper.toUserSummaries(userRepository.findByWgId(wg.getId()));
         List<RoomDTO> rooms = cleaningMapper.toRoomDTOList(roomRepository.findByWgId(wg.getId()));
-        return new WgDetailsViewDTO(wg.getId(), wg.name, wg.getInviteCode(), coreMapper.toUserSummary(wg.admin),
+        return new WgDetailsViewDTO(wg.getId(), wg.getName(), wg.getInviteCode(), coreMapper.toUserSummary(wg.getAdmin()),
                 members, rooms);
     }
 

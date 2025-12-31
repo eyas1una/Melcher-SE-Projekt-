@@ -7,7 +7,6 @@ import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.model.cleaning.RecurrenceInterval;
 import com.group_2.service.cleaning.CleaningScheduleService;
 import com.group_2.service.core.HouseholdSetupService;
-import com.group_2.service.core.WGService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.MainScreenController;
 import com.group_2.ui.core.NavbarController;
@@ -39,7 +38,6 @@ public class TemplateEditorController extends Controller {
 
     private final CleaningScheduleService cleaningScheduleService;
     private final HouseholdSetupService householdSetupService;
-    private final WGService wgService;
     private final SessionManager sessionManager;
 
     @Autowired
@@ -105,10 +103,9 @@ public class TemplateEditorController extends Controller {
     }
 
     public TemplateEditorController(CleaningScheduleService cleaningScheduleService,
-            HouseholdSetupService householdSetupService, WGService wgService, SessionManager sessionManager) {
+            HouseholdSetupService householdSetupService, SessionManager sessionManager) {
         this.cleaningScheduleService = cleaningScheduleService;
         this.householdSetupService = householdSetupService;
-        this.wgService = wgService;
         this.sessionManager = sessionManager;
     }
 
@@ -265,7 +262,7 @@ public class TemplateEditorController extends Controller {
             return;
         }
 
-        List<UserSummaryDTO> members = wgService.getMemberSummaries(wgId);
+        List<UserSummaryDTO> members = cleaningScheduleService.getMemberSummaries(wgId);
         if (members.isEmpty()) {
             showWarningAlert("No Members", "WG has no members.", getOwnerWindow(headerTitle));
             return;

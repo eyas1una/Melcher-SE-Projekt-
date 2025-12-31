@@ -6,7 +6,6 @@ import com.group_2.dto.core.UserSessionDTO;
 import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.cleaning.CleaningScheduleService;
 import com.group_2.service.core.HouseholdSetupService;
-import com.group_2.service.core.WGService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.NavbarController;
 import com.group_2.util.SessionManager;
@@ -33,7 +32,6 @@ public class CleaningScheduleController extends Controller {
 
     private final CleaningScheduleService cleaningScheduleService;
     private final HouseholdSetupService householdSetupService;
-    private final WGService wgService;
     private final SessionManager sessionManager;
 
     // Current displayed week
@@ -60,10 +58,9 @@ public class CleaningScheduleController extends Controller {
     private NavbarController navbarController;
 
     public CleaningScheduleController(CleaningScheduleService cleaningScheduleService,
-            HouseholdSetupService householdSetupService, WGService wgService, SessionManager sessionManager) {
+            HouseholdSetupService householdSetupService, SessionManager sessionManager) {
         this.cleaningScheduleService = cleaningScheduleService;
         this.householdSetupService = householdSetupService;
-        this.wgService = wgService;
         this.sessionManager = sessionManager;
     }
 
@@ -471,7 +468,7 @@ public class CleaningScheduleController extends Controller {
             return;
         }
 
-        List<UserSummaryDTO> members = wgService.getMemberSummaries(wgId);
+        List<UserSummaryDTO> members = cleaningScheduleService.getMemberSummaries(wgId);
         if (members.isEmpty()) {
             showWarningAlert("No Members", "WG has no members.", getOwnerWindow(weekTitle));
             return;
@@ -586,7 +583,7 @@ public class CleaningScheduleController extends Controller {
         if (session == null || session.wgId() == null)
             return;
 
-        List<UserSummaryDTO> members = wgService.getMemberSummaries(session.wgId());
+        List<UserSummaryDTO> members = cleaningScheduleService.getMemberSummaries(session.wgId());
         Dialog<UserSummaryDTO> dialog = new Dialog<>();
         configureDialogOwner(dialog, getOwnerWindow(weekTitle));
         styleDialog(dialog);

@@ -1,12 +1,11 @@
 # To dos
 
 ## Refactoring (next)
-- Remove remaining direct WG entity field access (`wg.mitbewohner`, `wg.rooms`) in services/mappers; rely on repositories/DTOs.
-- Add WG membership validation in finance create/update flows; stop direct `wg.mitbewohner` access.
-- Introduce domain facades for finance/cleaning/shopping to move workflow logic out of controllers.
+- Continue moving controller workflow logic into existing services (finance/cleaning/shopping), no new facade classes.
 - Split `CleaningScheduleService` into smaller services; inject a clock/time provider.
-- Encapsulate `WG` fields and add `equals/hashCode` where needed.
-- Centralize UI utilities (dialogs, currency formatting, navigation) and fix encoding settings.
+- Make `FinanceMapper` pure (move repo access + JSON parsing into services, surface parse errors).
+- Validate WG membership in standing order create/update flows (creditor/debtors) before saving.
+- Centralize UI utilities (dialogs, currency formatting, navigation) and lock encoding settings.
 
 ## Features
 - Leaving WG: block leaving with negative balance; allow leaving with positive balance but warn.

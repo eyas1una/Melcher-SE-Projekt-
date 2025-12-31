@@ -47,6 +47,6 @@ public class CoreMapper {
         if (wg.getId() != null) {
             memberCount = (int) userRepository.countByWgId(wg.getId());
         }
-        return new WgSummaryDTO(wg.getId(), wg.name, memberCount);
+        return new WgSummaryDTO(wg.getId(), wg.getName(), memberCount);
     }
 }

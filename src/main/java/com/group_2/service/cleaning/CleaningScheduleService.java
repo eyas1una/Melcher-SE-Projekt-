@@ -10,6 +10,8 @@ import com.group_2.model.cleaning.RoomAssignmentQueue;
 import com.group_2.dto.cleaning.CleaningMapper;
 import com.group_2.dto.cleaning.CleaningTaskDTO;
 import com.group_2.dto.cleaning.CleaningTaskTemplateDTO;
+import com.group_2.dto.core.CoreMapper;
+import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.repository.UserRepository;
 import com.group_2.repository.WGRepository;
 import com.group_2.repository.cleaning.CleaningTaskRepository;
@@ -44,12 +46,13 @@ public class CleaningScheduleService {
     private final RoomRepository roomRepository;
     private final WGRepository wgRepository;
     private final CleaningMapper cleaningMapper;
+    private final CoreMapper coreMapper;
 
     @Autowired
     public CleaningScheduleService(CleaningTaskRepository cleaningTaskRepository,
             CleaningTaskTemplateRepository templateRepository, RoomAssignmentQueueRepository queueRepository,
             UserRepository userRepository, RoomRepository roomRepository, WGRepository wgRepository,
-            CleaningMapper cleaningMapper) {
+            CleaningMapper cleaningMapper, CoreMapper coreMapper) {
         this.cleaningTaskRepository = cleaningTaskRepository;
         this.templateRepository = templateRepository;
         this.queueRepository = queueRepository;
@@ -57,6 +60,17 @@ public class CleaningScheduleService {
         this.roomRepository = roomRepository;
         this.wgRepository = wgRepository;
         this.cleaningMapper = cleaningMapper;
+        this.coreMapper = coreMapper;
+    }
+
+    /**
+     * Get WG member summaries for cleaning UI by WG ID.
+     */
+    public List<UserSummaryDTO> getMemberSummaries(Long wgId) {
+        if (wgId == null) {
+            return List.of();
+        }
+        return coreMapper.toUserSummaries(userRepository.findByWgId(wgId));
     }
 
     /**
