@@ -3,6 +3,7 @@ package com.group_2.ui.finance;
 import com.group_2.model.finance.StandingOrderFrequency;
 import com.group_2.service.core.UserService;
 import com.group_2.service.finance.StandingOrderService;
+import com.group_2.util.FormatUtils;
 import com.group_2.util.SessionManager;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -16,7 +17,6 @@ import javafx.stage.Window;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,6 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
     private final StandingOrderService standingOrderService;
     private final SessionManager sessionManager;
     private final UserService userService;
-    private final DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @FXML
@@ -97,7 +96,7 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
 
         // Amount column
         amountColumn.setCellValueFactory(
-                cellData -> new SimpleStringProperty(currencyFormat.format(cellData.getValue().totalAmount())));
+                cellData -> new SimpleStringProperty(FormatUtils.formatCurrency(cellData.getValue().totalAmount())));
 
         // Frequency column
         frequencyColumn.setCellValueFactory(cellData -> new SimpleStringProperty(formatFrequency(cellData.getValue())));
@@ -166,36 +165,20 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
     private String formatFrequency(StandingOrderViewDTO order) {
         StandingOrderFrequency freq = order.frequency();
         switch (freq) {
-        case WEEKLY:
-            return "Weekly";
-        case BI_WEEKLY:
-            return "Bi-weekly";
-        case MONTHLY:
-            if (Boolean.TRUE.equals(order.monthlyLastDay())) {
-                return "Monthly (last day)";
-            } else if (order.monthlyDay() != null) {
-                return "Monthly (" + order.monthlyDay() + getDaySuffix(order.monthlyDay()) + ")";
-            } else {
-                return "Monthly";
-            }
-        default:
-            return freq.toString();
-        }
-    }
-
-    private String getDaySuffix(int day) {
-        if (day >= 11 && day <= 13) {
-            return "th";
-        }
-        switch (day % 10) {
-        case 1:
-            return "st";
-        case 2:
-            return "nd";
-        case 3:
-            return "rd";
-        default:
-            return "th";
+            case WEEKLY:
+                return "Weekly";
+            case BI_WEEKLY:
+                return "Bi-weekly";
+            case MONTHLY:
+                if (Boolean.TRUE.equals(order.monthlyLastDay())) {
+                    return "Monthly (last day)";
+                } else if (order.monthlyDay() != null) {
+                    return "Monthly (" + order.monthlyDay() + FormatUtils.getDaySuffix(order.monthlyDay()) + ")";
+                } else {
+                    return "Monthly";
+                }
+            default:
+                return freq.toString();
         }
     }
 
@@ -325,9 +308,9 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
         // Set current frequency
         if (defaultFreq != null) {
             switch (defaultFreq) {
-            case WEEKLY -> freqComboBox.setValue("Weekly");
-            case BI_WEEKLY -> freqComboBox.setValue("Bi-weekly");
-            case MONTHLY -> freqComboBox.setValue("Monthly");
+                case WEEKLY -> freqComboBox.setValue("Weekly");
+                case BI_WEEKLY -> freqComboBox.setValue("Bi-weekly");
+                case MONTHLY -> freqComboBox.setValue("Monthly");
             }
         } else {
             freqComboBox.setValue("Monthly");
@@ -627,10 +610,10 @@ public class StandingOrdersDialogController extends com.group_2.ui.core.Controll
                 double newAmount = Double.parseDouble(amountField.getText().replace(",", "."));
 
                 StandingOrderFrequency newFrequency = switch (freqComboBox.getValue()) {
-                case "Weekly" -> StandingOrderFrequency.WEEKLY;
-                case "Bi-weekly" -> StandingOrderFrequency.BI_WEEKLY;
-                case "Monthly" -> StandingOrderFrequency.MONTHLY;
-                default -> order != null ? order.frequency() : StandingOrderFrequency.MONTHLY;
+                    case "Weekly" -> StandingOrderFrequency.WEEKLY;
+                    case "Bi-weekly" -> StandingOrderFrequency.BI_WEEKLY;
+                    case "Monthly" -> StandingOrderFrequency.MONTHLY;
+                    default -> order != null ? order.frequency() : StandingOrderFrequency.MONTHLY;
                 };
 
                 Integer newMonthlyDay = null;

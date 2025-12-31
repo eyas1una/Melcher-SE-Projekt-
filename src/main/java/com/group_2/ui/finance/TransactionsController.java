@@ -4,6 +4,7 @@ import com.group_2.dto.core.UserSummaryDTO;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.ui.core.Controller;
 import com.group_2.ui.core.NavbarController;
+import com.group_2.util.FormatUtils;
 import com.group_2.util.SessionManager;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import java.text.DecimalFormat;
 import java.util.*;
 
 import com.group_2.dto.finance.BalanceViewDTO;
@@ -58,8 +58,6 @@ public class TransactionsController extends Controller {
     // Balance card
     @FXML
     private VBox balanceCard;
-
-    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
 
     @Autowired
     public TransactionsController(TransactionService transactionService, SessionManager sessionManager) {
@@ -168,7 +166,7 @@ public class TransactionsController extends Controller {
             return;
 
         double totalBalance = transactionService.getTotalBalance(currentUserId);
-        totalBalanceText.setText(currencyFormat.format(totalBalance));
+        totalBalanceText.setText(FormatUtils.formatCurrency(totalBalance));
 
         // Change card color based on balance
         if (!balanceCard.getStyleClass().contains("balance-card")) {
@@ -256,7 +254,7 @@ public class TransactionsController extends Controller {
         messageText.getStyleClass().add("dialog-message-text");
 
         // Amount
-        Text amountText = new Text(currencyFormat.format(absBalance));
+        Text amountText = new Text(FormatUtils.formatCurrency(absBalance));
         amountText.getStyleClass().addAll("dialog-amount-text",
                 balance < 0 ? "dialog-amount-negative"
                         : balance > 0 ? "dialog-amount-positive" : "dialog-amount-neutral");
@@ -373,27 +371,15 @@ public class TransactionsController extends Controller {
     private void showSettlementConfirmation(Long currentUserId, Long otherUserId, double amount, String paymentMethod,
             boolean currentUserPays, String memberName) {
 
-        // Create confirmation dialog
-        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmDialog.setTitle("Confirm Settlement");
-        confirmDialog.setHeaderText("Confirm your settlement");
-
         String action = currentUserPays ? "pay" : "mark as received from";
         String message = String.format("You are about to %s %s to %s via %s.\n\nDo you want to proceed?", action,
-                currencyFormat.format(amount), memberName, paymentMethod);
-        confirmDialog.setContentText(message);
+                FormatUtils.formatCurrency(amount), memberName, paymentMethod);
 
-        // Set owner window
-        Window owner = balanceTable.getScene().getWindow();
-        confirmDialog.initOwner(owner);
-
-        // Style the dialog
-        confirmDialog.getDialogPane().getStyleClass().add("dialog-content");
-
-        // Add custom buttons
         ButtonType confirmButton = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        confirmDialog.getButtonTypes().setAll(confirmButton, cancelButton);
+
+        Alert confirmDialog = createStyledConfirmDialog("Confirm Settlement", "Confirm your settlement", message,
+                balanceTable.getScene().getWindow(), confirmButton, cancelButton);
 
         // Style the confirm button
         Button confirmBtn = (Button) confirmDialog.getDialogPane().lookupButton(confirmButton);
@@ -457,7 +443,7 @@ public class TransactionsController extends Controller {
         Text subtitleText = new Text("Choose a roommate's credit to transfer to " + debtorName);
         subtitleText.getStyleClass().add("dialog-subtitle");
 
-        Text debtInfo = new Text("Debt to settle: " + currencyFormat.format(debtAmount));
+        Text debtInfo = new Text("Debt to settle: " + FormatUtils.formatCurrency(debtAmount));
         debtInfo.getStyleClass().add("debt-info-text");
 
         // Create buttons for each available credit
@@ -472,8 +458,8 @@ public class TransactionsController extends Controller {
             Button creditButton = new Button();
             creditButton.getStyleClass().addAll("credit-option-button", "credit-option-button-wide",
                     "credit-option-button-accent");
-            creditButton.setText(credit.getMemberName() + " owes you " + currencyFormat.format(availableAmount)
-                    + "\n-> Transfer " + currencyFormat.format(transferAmount));
+            creditButton.setText(credit.getMemberName() + " owes you " + FormatUtils.formatCurrency(availableAmount)
+                    + "\n-> Transfer " + FormatUtils.formatCurrency(transferAmount));
 
             final BalanceEntry selectedCredit = credit;
             creditButton.setOnAction(e -> {
@@ -504,24 +490,18 @@ public class TransactionsController extends Controller {
     private void showCreditTransferConfirmation(Long currentUserId, Long creditSourceUserId, Long debtorToUserId,
             double amount, String creditSourceName, String debtorName) {
 
-        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmDialog.setTitle("Confirm Credit Transfer");
-        confirmDialog.setHeaderText("Confirm credit transfer");
-
         String message = String.format(
                 "Transfer %s of credit from %s to settle your debt with %s.\n\n" + "This will:\n"
                         + "- Reduce %s's credit with you by %s\n" + "- Reduce your debt to %s by %s\n\n"
                         + "Do you want to proceed?",
-                currencyFormat.format(amount), creditSourceName, debtorName, creditSourceName,
-                currencyFormat.format(amount), debtorName, currencyFormat.format(amount));
-        confirmDialog.setContentText(message);
-
-        confirmDialog.initOwner(balanceTable.getScene().getWindow());
-        confirmDialog.getDialogPane().getStyleClass().add("dialog-content");
+                FormatUtils.formatCurrency(amount), creditSourceName, debtorName, creditSourceName,
+                FormatUtils.formatCurrency(amount), debtorName, FormatUtils.formatCurrency(amount));
 
         ButtonType confirmButton = new ButtonType("Confirm Transfer", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        confirmDialog.getButtonTypes().setAll(confirmButton, cancelButton);
+
+        Alert confirmDialog = createStyledConfirmDialog("Confirm Credit Transfer", "Confirm credit transfer", message,
+                balanceTable.getScene().getWindow(), confirmButton, cancelButton);
 
         Button confirmBtn = (Button) confirmDialog.getDialogPane().lookupButton(confirmButton);
         confirmBtn.getStyleClass().addAll("confirm-button", "confirm-button-primary");
@@ -543,7 +523,7 @@ public class TransactionsController extends Controller {
 
             showSuccessAlert("Credit Transfer Complete",
                     String.format("Successfully transferred %s of credit from %s to settle debt with %s.",
-                            currencyFormat.format(amount), creditSourceName, debtorName),
+                            FormatUtils.formatCurrency(amount), creditSourceName, debtorName),
                     balanceTable.getScene().getWindow());
 
         } catch (Exception e) {
@@ -607,7 +587,6 @@ public class TransactionsController extends Controller {
         private final String memberName;
         private final double balance;
         private final Long userId;
-        private final DecimalFormat format = new DecimalFormat("€#,##0.00");
 
         public BalanceEntry(String memberName, double balance, Long userId) {
             this.memberName = memberName;
@@ -628,7 +607,7 @@ public class TransactionsController extends Controller {
         }
 
         public String getBalanceFormatted() {
-            return format.format(balance);
+            return FormatUtils.formatCurrency(balance);
         }
     }
 }

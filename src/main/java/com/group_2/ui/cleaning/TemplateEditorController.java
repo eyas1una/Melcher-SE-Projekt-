@@ -636,15 +636,12 @@ public class TemplateEditorController extends Controller {
     }
 
     private boolean confirmDiscardChanges() {
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        configureDialogOwner(confirm, getOwnerWindow(headerTitle));
-        confirm.setTitle("Unsaved Changes");
-        confirm.setHeaderText("You have unsaved changes");
-        confirm.setContentText("Do you want to discard your changes and go back?");
-
         ButtonType discardButton = new ButtonType("Discard Changes", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        confirm.getButtonTypes().setAll(discardButton, cancelButton);
+
+        Alert confirm = createStyledConfirmDialog("Unsaved Changes", "You have unsaved changes",
+                "Do you want to discard your changes and go back?", getOwnerWindow(headerTitle), discardButton,
+                cancelButton);
 
         return confirm.showAndWait().orElse(cancelButton) == discardButton;
     }

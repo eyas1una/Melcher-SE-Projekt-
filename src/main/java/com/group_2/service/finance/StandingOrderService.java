@@ -82,7 +82,8 @@ public class StandingOrderService {
                 } else {
                     // Next month
                     LocalDate nextMonth = now.plusMonths(1);
-                    nextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, monthlyDay));
+                    nextExecution = nextMonth
+                            .withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, monthlyDay));
                 }
             } else {
                 // Default: 1st of next month
@@ -256,7 +257,8 @@ public class StandingOrderService {
                     newNextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(nextMonth));
                 } else if (monthlyDay != null && monthlyDay >= 1 && monthlyDay <= 31) {
                     LocalDate nextMonth = now.plusMonths(1);
-                    newNextExecution = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, monthlyDay));
+                    newNextExecution = nextMonth
+                            .withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, monthlyDay));
                 } else {
                     newNextExecution = now.plusMonths(1).withDayOfMonth(1);
                 }
@@ -316,6 +318,16 @@ public class StandingOrderService {
         }
     }
 
+    /**
+     * Helper method to resolve a user by ID for the FinanceMapper.
+     */
+    private User resolveUser(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        return userRepository.findById(userId).orElse(null);
+    }
+
     // ==================== DTO METHODS ====================
     // These methods return DTOs instead of entities for UI consumption
 
@@ -324,12 +336,12 @@ public class StandingOrderService {
      */
     public List<StandingOrderDTO> getActiveStandingOrdersDTO(WG wg) {
         List<StandingOrder> orders = getActiveStandingOrders(wg);
-        return financeMapper.toStandingOrderDTOList(orders);
+        return financeMapper.toStandingOrderDTOList(orders, this::resolveUser);
     }
 
     public List<StandingOrderViewDTO> getActiveStandingOrdersView(WG wg) {
         List<StandingOrder> orders = getActiveStandingOrders(wg);
-        return financeMapper.toStandingOrderViewList(orders);
+        return financeMapper.toStandingOrderViewList(orders, this::resolveUser);
     }
 
     /**
@@ -362,7 +374,7 @@ public class StandingOrderService {
      */
     public StandingOrderDTO getStandingOrderByIdDTO(Long id) {
         StandingOrder order = getStandingOrderById(id);
-        return financeMapper.toDTO(order);
+        return financeMapper.toDTO(order, this::resolveUser);
     }
 
     /**
@@ -370,7 +382,7 @@ public class StandingOrderService {
      */
     public StandingOrderViewDTO getStandingOrderByIdView(Long id) {
         StandingOrder order = getStandingOrderById(id);
-        return financeMapper.toStandingOrderView(order);
+        return financeMapper.toStandingOrderView(order, this::resolveUser);
     }
 
     /**
@@ -382,7 +394,7 @@ public class StandingOrderService {
             List<Double> percentages, Integer monthlyDay, Boolean monthlyLastDay) {
         StandingOrder order = createStandingOrder(creator, creditor, wg, totalAmount, description, frequency, startDate,
                 debtorIds, percentages, monthlyDay, monthlyLastDay);
-        return financeMapper.toDTO(order);
+        return financeMapper.toDTO(order, this::resolveUser);
     }
 
     /**
@@ -410,7 +422,7 @@ public class StandingOrderService {
 
         StandingOrder order = createStandingOrder(creator, creditor, wg, totalAmount, description, frequency, startDate,
                 debtorIds, percentages, monthlyDay, monthlyLastDay);
-        return financeMapper.toDTO(order);
+        return financeMapper.toDTO(order, this::resolveUser);
     }
 
     /**
@@ -435,7 +447,7 @@ public class StandingOrderService {
             Integer monthlyDay, Boolean monthlyLastDay) {
         StandingOrder order = updateStandingOrder(id, currentUserId, newCreditor, totalAmount, description, frequency,
                 debtorIds, percentages, monthlyDay, monthlyLastDay);
-        return financeMapper.toDTO(order);
+        return financeMapper.toDTO(order, this::resolveUser);
     }
 
     /**
@@ -451,7 +463,7 @@ public class StandingOrderService {
 
         StandingOrder order = updateStandingOrder(id, currentUserId, newCreditor, totalAmount, description, frequency,
                 debtorIds, percentages, monthlyDay, monthlyLastDay);
-        return financeMapper.toDTO(order);
+        return financeMapper.toDTO(order, this::resolveUser);
     }
 
     /**

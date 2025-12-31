@@ -8,6 +8,8 @@ import com.group_2.service.finance.TransactionService;
 import com.group_2.util.SessionManager;
 import com.group_2.util.MonthlyScheduleUtil;
 
+import com.group_2.util.FormatUtils;
+
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -20,7 +22,6 @@ import javafx.scene.text.Text;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -106,7 +107,6 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
     private ToggleGroup splitModeToggleGroup;
     private ToggleGroup creditorToggleGroup;
-    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
     private List<UserSummaryDTO> allWgMembers;
     private Runnable onTransactionSaved;
 
@@ -266,17 +266,17 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
 
         StandingOrderFrequency freq;
         switch (selected) {
-        case "Weekly":
-            freq = StandingOrderFrequency.WEEKLY;
-            break;
-        case "Bi-weekly":
-            freq = StandingOrderFrequency.BI_WEEKLY;
-            break;
-        case "Monthly":
-            freq = StandingOrderFrequency.MONTHLY;
-            break;
-        default:
-            freq = null;
+            case "Weekly":
+                freq = StandingOrderFrequency.WEEKLY;
+                break;
+            case "Bi-weekly":
+                freq = StandingOrderFrequency.BI_WEEKLY;
+                break;
+            case "Monthly":
+                freq = StandingOrderFrequency.MONTHLY;
+                break;
+            default:
+                freq = null;
         }
         state.setStandingOrderFrequency(freq);
 
@@ -402,65 +402,49 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
         StringBuilder sb = new StringBuilder("The standing order will be executed ");
 
         switch (freq) {
-        case WEEKLY:
-            String dayOfWeek = startDate.getDayOfWeek().toString().toLowerCase();
-            dayOfWeek = dayOfWeek.substring(0, 1).toUpperCase() + dayOfWeek.substring(1);
-            sb.append("every ").append(dayOfWeek);
-            sb.append(" starting ").append(startDate.toString());
-            break;
-        case BI_WEEKLY:
-            String biWeeklyDay = startDate.getDayOfWeek().toString().toLowerCase();
-            biWeeklyDay = biWeeklyDay.substring(0, 1).toUpperCase() + biWeeklyDay.substring(1);
-            sb.append("every second ").append(biWeeklyDay);
-            sb.append(" starting ").append(startDate.toString());
-            break;
-        case MONTHLY:
-            if (state.isMonthlyLastDay()) {
-                sb.append("on the last day of every month");
-                // Calculate first execution (last day of current or next month)
-                LocalDate now = LocalDate.now();
-                LocalDate firstExec = now.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(now));
-                if (firstExec.isBefore(now) || firstExec.equals(now)) {
-                    LocalDate nextMonth = now.plusMonths(1);
-                    firstExec = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(nextMonth));
+            case WEEKLY:
+                String dayOfWeek = startDate.getDayOfWeek().toString().toLowerCase();
+                dayOfWeek = dayOfWeek.substring(0, 1).toUpperCase() + dayOfWeek.substring(1);
+                sb.append("every ").append(dayOfWeek);
+                sb.append(" starting ").append(startDate.toString());
+                break;
+            case BI_WEEKLY:
+                String biWeeklyDay = startDate.getDayOfWeek().toString().toLowerCase();
+                biWeeklyDay = biWeeklyDay.substring(0, 1).toUpperCase() + biWeeklyDay.substring(1);
+                sb.append("every second ").append(biWeeklyDay);
+                sb.append(" starting ").append(startDate.toString());
+                break;
+            case MONTHLY:
+                if (state.isMonthlyLastDay()) {
+                    sb.append("on the last day of every month");
+                    // Calculate first execution (last day of current or next month)
+                    LocalDate now = LocalDate.now();
+                    LocalDate firstExec = now.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(now));
+                    if (firstExec.isBefore(now) || firstExec.equals(now)) {
+                        LocalDate nextMonth = now.plusMonths(1);
+                        firstExec = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveLastDay(nextMonth));
+                    }
+                    sb.append(" starting ").append(firstExec.toString());
+                } else {
+                    int day = startDate.getDayOfMonth();
+                    String suffix = FormatUtils.getDaySuffix(day);
+                    sb.append("on the ").append(day).append(suffix).append(" of every month");
+                    // Set the monthly day from the selected date
+                    state.setMonthlyDay(day);
+                    // Calculate first execution
+                    LocalDate now = LocalDate.now();
+                    int actualDay = MonthlyScheduleUtil.getEffectiveDay(now, day);
+                    LocalDate firstExec = now.withDayOfMonth(actualDay);
+                    if (firstExec.isBefore(now) || firstExec.equals(now)) {
+                        LocalDate nextMonth = now.plusMonths(1);
+                        firstExec = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, day));
+                    }
+                    sb.append(" starting ").append(firstExec.toString());
                 }
-                sb.append(" starting ").append(firstExec.toString());
-            } else {
-                int day = startDate.getDayOfMonth();
-                String suffix = getDaySuffix(day);
-                sb.append("on the ").append(day).append(suffix).append(" of every month");
-                // Set the monthly day from the selected date
-                state.setMonthlyDay(day);
-                // Calculate first execution
-                LocalDate now = LocalDate.now();
-                int actualDay = MonthlyScheduleUtil.getEffectiveDay(now, day);
-                LocalDate firstExec = now.withDayOfMonth(actualDay);
-                if (firstExec.isBefore(now) || firstExec.equals(now)) {
-                    LocalDate nextMonth = now.plusMonths(1);
-                    firstExec = nextMonth.withDayOfMonth(MonthlyScheduleUtil.getEffectiveDay(nextMonth, day));
-                }
-                sb.append(" starting ").append(firstExec.toString());
-            }
-            break;
+                break;
         }
 
         return sb.toString();
-    }
-
-    private String getDaySuffix(int day) {
-        if (day >= 11 && day <= 13) {
-            return "th";
-        }
-        switch (day % 10) {
-        case 1:
-            return "st";
-        case 2:
-            return "nd";
-        case 3:
-            return "rd";
-        default:
-            return "th";
-        }
     }
 
     private boolean validateStep1() {
@@ -722,18 +706,18 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
             debtorIds.add(participant.id());
 
             switch (state.getSplitMode()) {
-            case EQUAL:
-                // Equal split - service will handle this
-                break;
-            case PERCENTAGE:
-                Double percentage = state.getCustomValue(participant);
-                percentages.add(percentage != null ? percentage : 0.0);
-                break;
-            case CUSTOM_AMOUNT:
-                Double customAmount = state.getCustomValue(participant);
-                double percent = (customAmount / state.getTotalAmount()) * 100.0;
-                percentages.add(percent);
-                break;
+                case EQUAL:
+                    // Equal split - service will handle this
+                    break;
+                case PERCENTAGE:
+                    Double percentage = state.getCustomValue(participant);
+                    percentages.add(percentage != null ? percentage : 0.0);
+                    break;
+                case CUSTOM_AMOUNT:
+                    Double customAmount = state.getCustomValue(participant);
+                    double percent = (customAmount / state.getTotalAmount()) * 100.0;
+                    percentages.add(percent);
+                    break;
             }
         }
 
@@ -755,7 +739,8 @@ public class TransactionDialogController extends com.group_2.ui.core.Controller 
                         state.getSplitMode() == TransactionDialogState.SplitMode.EQUAL ? null : percentages,
                         state.getMonthlyDay(), state.isMonthlyLastDay());
             } else {
-                // Create immediate transaction (current user is the creator, payer is the creditor)
+                // Create immediate transaction (current user is the creator, payer is the
+                // creditor)
                 transactionService.createTransactionDTO(currentUserId, // creator (gets edit rights)
                         state.getPayer().id(), // creditor (payer)
                         debtorIds, state.getSplitMode() == TransactionDialogState.SplitMode.EQUAL ? null : percentages,

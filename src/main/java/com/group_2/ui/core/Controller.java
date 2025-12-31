@@ -1,6 +1,5 @@
 package com.group_2.ui.core;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
@@ -170,77 +169,28 @@ public abstract class Controller {
         return alert.showAndWait();
     }
 
-    // ========== Legacy Methods (for backward compatibility) ==========
-
     /**
-     * @deprecated Use {@link #showErrorAlert(String, String)} instead.
+     * Creates a styled confirmation dialog with custom buttons for advanced use
+     * cases.
+     * The caller is responsible for showing the dialog and handling the result.
+     * 
+     * @param title   Dialog title
+     * @param header  Dialog header text
+     * @param message Dialog content text
+     * @param owner   Owner window for proper modal behavior
+     * @param buttons Custom button types
+     * @return The configured Alert dialog
      */
-    @Deprecated
-    protected void showError(String title, String header, String content) {
-        showError(title, header, content, null);
-    }
-
-    /**
-     * @deprecated Use {@link #showErrorAlert(String, String, Window)} instead.
-     */
-    @Deprecated
-    protected void showError(String title, String header, String content, Window owner) {
-        Alert alert = createStyledAlert(Alert.AlertType.ERROR, owner);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    /**
-     * @deprecated Use typed methods like {@link #showSuccessAlert},
-     *             {@link #showErrorAlert}, etc.
-     */
-    @Deprecated
-    protected void showAlert(Alert.AlertType type, String title, String content) {
-        showAlert(type, title, content, null);
-    }
-
-    /**
-     * @deprecated Use typed methods like {@link #showSuccessAlert},
-     *             {@link #showErrorAlert}, etc.
-     */
-    @Deprecated
-    protected void showAlert(Alert.AlertType type, String title, String content, Window owner) {
-        Alert alert = createStyledAlert(type, owner);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    /**
-     * @deprecated Use {@link #showConfirmDialog} instead.
-     */
-    @Deprecated
-    protected void showConfirmation(String title, String header, String content) {
-        showConfirmation(title, header, content, null);
-    }
-
-    /**
-     * @deprecated Use {@link #showConfirmDialog} instead.
-     */
-    @Deprecated
-    protected void showConfirmation(String title, String header, String content, Window owner) {
-        ButtonType correctButton = new ButtonType("Korrigieren");
-        ButtonType cancelButton = new ButtonType("Prozess abbrechen");
-
+    protected Alert createStyledConfirmDialog(String title, String header, String message,
+            Window owner, ButtonType... buttons) {
         Alert alert = createStyledAlert(Alert.AlertType.CONFIRMATION, owner);
         alert.setTitle(title);
         alert.setHeaderText(header);
-        alert.setContentText(content);
-        alert.getButtonTypes().setAll(correctButton, cancelButton);
-
-        alert.showAndWait().ifPresent(response -> {
-            if (response == cancelButton) {
-                Platform.exit();
-            }
-        });
+        alert.setContentText(message);
+        if (buttons != null && buttons.length > 0) {
+            alert.getButtonTypes().setAll(buttons);
+        }
+        return alert;
     }
 
     // ========== Private Helpers ==========

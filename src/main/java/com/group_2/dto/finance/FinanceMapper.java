@@ -12,27 +12,31 @@ import com.group_2.model.User;
 import com.group_2.model.finance.StandingOrder;
 import com.group_2.model.finance.Transaction;
 import com.group_2.model.finance.TransactionSplit;
-import com.group_2.repository.UserRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Mapper for converting finance entities to DTOs. Centralizes the mapping logic
  * and user name resolution.
+ * 
+ * Note: This mapper does NOT access repositories directly. User resolution
+ * should be handled by the calling service layer.
  */
 @Component
 public class FinanceMapper {
 
-    private final UserRepository userRepository;
+    private static final Logger log = LoggerFactory.getLogger(FinanceMapper.class);
     private final ObjectMapper objectMapper;
     private final CoreMapper coreMapper;
 
-    public FinanceMapper(UserRepository userRepository, CoreMapper coreMapper) {
-        this.userRepository = userRepository;
+    public FinanceMapper(CoreMapper coreMapper) {
         this.coreMapper = coreMapper;
         this.objectMapper = new ObjectMapper();
     }
@@ -69,14 +73,15 @@ public class FinanceMapper {
     }
 
     /**
-     * Convert a StandingOrder entity to DTO
+     * Convert a StandingOrder entity to DTO.
+     * Requires a user resolver function to look up user names by ID.
      */
-    public StandingOrderDTO toDTO(StandingOrder order) {
+    public StandingOrderDTO toDTO(StandingOrder order, Function<Long, User> userResolver) {
         if (order == null)
             return null;
 
         List<StandingOrderDTO.DebtorShareDTO> debtorDTOs = parseDebtorData(order.getDebtorData(),
-                order.getTotalAmount());
+                order.getTotalAmount(), userResolver);
 
         return new StandingOrderDTO(order.getId(), order.getCreditor().getId(), getDisplayName(order.getCreditor()),
                 order.getCreatedBy().getId(), getDisplayName(order.getCreatedBy()), order.getTotalAmount(),
@@ -85,24 +90,20 @@ public class FinanceMapper {
     }
 
     /**
-     * Create a BalanceDTO
+     * Convert a StandingOrder entity to DTO (uses entity users directly).
+     */
+    public StandingOrderDTO toDTO(StandingOrder order) {
+        return toDTO(order, id -> null); // No external resolution needed if debtors are embedded
+    }
+
+    /**
+     * Create a BalanceDTO from user entity and balance
      */
     public BalanceDTO toBalanceDTO(User user, Double balance) {
         if (user == null)
             return null;
 
         return new BalanceDTO(user.getId(), getDisplayName(user), balance);
-    }
-
-    /**
-     * Create a BalanceDTO from user ID and balance
-     */
-    public BalanceDTO toBalanceDTO(Long userId, Double balance) {
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null)
-            return null;
-
-        return toBalanceDTO(user, balance);
     }
 
     /**
@@ -121,14 +122,22 @@ public class FinanceMapper {
     /**
      * Convert a list of standing orders to DTOs
      */
-    public List<StandingOrderDTO> toStandingOrderDTOList(List<StandingOrder> orders) {
+    public List<StandingOrderDTO> toStandingOrderDTOList(List<StandingOrder> orders,
+            Function<Long, User> userResolver) {
         List<StandingOrderDTO> dtos = new ArrayList<>();
         if (orders != null) {
             for (StandingOrder order : orders) {
-                dtos.add(toDTO(order));
+                dtos.add(toDTO(order, userResolver));
             }
         }
         return dtos;
+    }
+
+    /**
+     * Convert a list of standing orders to DTOs (no external resolution)
+     */
+    public List<StandingOrderDTO> toStandingOrderDTOList(List<StandingOrder> orders) {
+        return toStandingOrderDTOList(orders, id -> null);
     }
 
     /**
@@ -145,9 +154,12 @@ public class FinanceMapper {
     }
 
     /**
-     * Parse the JSON debtor data string from StandingOrder
+     * Parse the JSON debtor data string from StandingOrder.
+     * Returns parsed data with percentage and amount calculations.
+     * User resolution is delegated to the provided function.
      */
-    private List<StandingOrderDTO.DebtorShareDTO> parseDebtorData(String json, Double totalAmount) {
+    private List<StandingOrderDTO.DebtorShareDTO> parseDebtorData(String json, Double totalAmount,
+            Function<Long, User> userResolver) {
         List<StandingOrderDTO.DebtorShareDTO> debtors = new ArrayList<>();
 
         if (json == null || json.isEmpty()) {
@@ -170,13 +182,19 @@ public class FinanceMapper {
 
                 Double amount = (percentage / 100.0) * totalAmount;
 
-                // Resolve user name
-                String userName = userRepository.findById(userId).map(this::getDisplayName).orElse("Unknown User");
+                // Resolve user name via provided function
+                String userName = "Unknown User";
+                if (userResolver != null) {
+                    User user = userResolver.apply(userId);
+                    if (user != null) {
+                        userName = getDisplayName(user);
+                    }
+                }
 
                 debtors.add(new StandingOrderDTO.DebtorShareDTO(userId, userName, percentage, amount));
             }
         } catch (Exception e) {
-            // Log and return empty list on parse failure
+            log.error("Failed to parse debtor data JSON: {}", e.getMessage(), e);
         }
 
         return debtors;
@@ -226,14 +244,15 @@ public class FinanceMapper {
         return new BalanceViewDTO(summary, balance);
     }
 
-    public StandingOrderViewDTO toStandingOrderView(StandingOrder order) {
+    public StandingOrderViewDTO toStandingOrderView(StandingOrder order, Function<Long, User> userResolver) {
         if (order == null) {
             return null;
         }
         List<StandingOrderViewDTO.DebtorShareViewDTO> debtorDTOs = new ArrayList<>();
-        List<StandingOrderDTO.DebtorShareDTO> parsed = parseDebtorData(order.getDebtorData(), order.getTotalAmount());
+        List<StandingOrderDTO.DebtorShareDTO> parsed = parseDebtorData(order.getDebtorData(), order.getTotalAmount(),
+                userResolver);
         for (StandingOrderDTO.DebtorShareDTO d : parsed) {
-            User debtor = userRepository.findById(d.userId()).orElse(null);
+            User debtor = userResolver != null ? userResolver.apply(d.userId()) : null;
             debtorDTOs.add(new StandingOrderViewDTO.DebtorShareViewDTO(d.userId(), coreMapper.toUserSummary(debtor),
                     d.percentage(), d.amount()));
         }
@@ -243,13 +262,22 @@ public class FinanceMapper {
                 order.getMonthlyDay(), order.getMonthlyLastDay(), debtorDTOs, coreMapper.toWgSummary(order.getWg()));
     }
 
-    public List<StandingOrderViewDTO> toStandingOrderViewList(List<StandingOrder> orders) {
+    public StandingOrderViewDTO toStandingOrderView(StandingOrder order) {
+        return toStandingOrderView(order, id -> null);
+    }
+
+    public List<StandingOrderViewDTO> toStandingOrderViewList(List<StandingOrder> orders,
+            Function<Long, User> userResolver) {
         List<StandingOrderViewDTO> dtos = new ArrayList<>();
         if (orders != null) {
             for (StandingOrder order : orders) {
-                dtos.add(toStandingOrderView(order));
+                dtos.add(toStandingOrderView(order, userResolver));
             }
         }
         return dtos;
+    }
+
+    public List<StandingOrderViewDTO> toStandingOrderViewList(List<StandingOrder> orders) {
+        return toStandingOrderViewList(orders, id -> null);
     }
 }

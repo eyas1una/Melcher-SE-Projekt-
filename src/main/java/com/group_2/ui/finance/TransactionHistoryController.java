@@ -5,6 +5,7 @@ import com.group_2.dto.finance.TransactionViewDTO;
 import com.group_2.dto.finance.TransactionSplitViewDTO;
 import com.group_2.service.finance.TransactionService;
 import com.group_2.ui.core.Controller;
+import com.group_2.util.FormatUtils;
 import com.group_2.util.SessionManager;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -18,7 +19,6 @@ import javafx.scene.text.Text;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
@@ -69,7 +69,6 @@ public class TransactionHistoryController extends Controller {
     @FXML
     private TextField searchField;
 
-    private DecimalFormat currencyFormat = new DecimalFormat("€#,##0.00");
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -106,7 +105,7 @@ public class TransactionHistoryController extends Controller {
 
         amountColumn.setCellValueFactory(cellData -> {
             Double amount = cellData.getValue().totalAmount();
-            return new SimpleStringProperty(currencyFormat.format(amount));
+            return new SimpleStringProperty(FormatUtils.formatCurrency(amount));
         });
 
         // Add styling to amount column based on value
@@ -146,7 +145,7 @@ public class TransactionHistoryController extends Controller {
                 String debtors = splits.stream()
                         .map(split -> {
                             String name = split.debtor() != null ? split.debtor().displayName() : "Unknown";
-                            return name + " (" + currencyFormat.format(split.amount()) + ")";
+                            return name + " (" + FormatUtils.formatCurrency(split.amount()) + ")";
                         })
                         .collect(Collectors.joining(", "));
                 if (debtors.length() > 50) {
@@ -568,8 +567,10 @@ public class TransactionHistoryController extends Controller {
                     // Initial calculation
                     double sum = splits.stream().mapToDouble(TransactionSplitViewDTO::percentage).sum();
                     double remaining = 100.0 - sum;
-                    validationLabel.setText(String.format("Total: %.2f € of %.2f €\n%.2f € left", sum, total, remaining));
-                    validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error", "validation-label-muted");
+                    validationLabel
+                            .setText(String.format("Total: %.2f € of %.2f €\n%.2f € left", sum, total, remaining));
+                    validationLabel.getStyleClass().removeAll("validation-label-success", "validation-label-error",
+                            "validation-label-muted");
                     if (Math.abs(remaining) < 0.01) {
                         validationLabel.getStyleClass().addAll("validation-label", "validation-label-success");
                     } else {
@@ -704,7 +705,7 @@ public class TransactionHistoryController extends Controller {
             return;
 
         String message = "Transaction: " + transaction.description() + "\nAmount: "
-                + currencyFormat.format(transaction.totalAmount())
+                + FormatUtils.formatCurrency(transaction.totalAmount())
                 + "\n\nThis action cannot be undone and will affect all balances.";
 
         boolean confirmed = showConfirmDialog("Delete Transaction", "Are you sure you want to delete this transaction?",

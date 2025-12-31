@@ -1,29 +1,49 @@
 # To dos
 
-## Refactoring (next)
-- Continue moving controller workflow logic into existing services (finance/cleaning/shopping), no new facade classes.
-- Split `CleaningScheduleService` into smaller services; inject a clock/time provider.
-- Make `FinanceMapper` pure (move repo access + JSON parsing into services, surface parse errors).
-- Validate WG membership in standing order create/update flows (creditor/debtors) before saving.
-- Centralize UI utilities (dialogs, currency formatting, navigation) and lock encoding settings.
+## 🔴 Kritisch (Priorität 0)
+- [ ] Unit Tests hinzufügen (aktuell 0% Coverage für 84 Quelldateien)
+- [ ] N+1 Query Problem in `TransactionService.calculateAllBalances()` beheben
+- [ ] Custom Exception Hierarchy erstellen (`EntityNotFoundException`, `UnauthorizedOperationException`, `ValidationException`)
+
+## 🟠 Hoch (Priorität 1)
+- [ ] `UserService.registerUser()` und `authenticate()` optimieren (aktuell laden alle User in Memory)
+- [ ] Null Safety in `FinanceMapper` verbessern (null-checks vor nested object access)
+- [ ] StandingOrder Debtor-Daten normalisieren (aktuell JSON-String statt Relation)
+- [ ] WG-Mitgliedschaft in Standing Order create/update validieren
+
+## 🟡 Mittel (Priorität 2)
+- [ ] EAGER zu LAZY Fetch Strategy ändern (alle Entity-Relationen)
+- [ ] `CleaningScheduleService` in kleinere Services aufteilen; Clock/Time Provider injizieren
+- [ ] `@Transactional` konsistent anwenden (class-level `readOnly=true`)
+- [ ] Controller Workflow-Logik in bestehende Services verschieben
+
+## Refactoring (in Progress)
+- [x] Finance-Controller auf View DTOs umgestellt
+- [x] Session Boundary mit Snapshot-IDs implementiert
+- [x] `WG` Felder gekapselt (private + accessors, LAZY collections)
+- [x] Transaction create/update validiert WG-Mitgliedschaft
+- [ ] `FinanceMapper` pure machen (Repository-Zugriff/JSON-Parsing in Services)
+- [ ] UI-Utilities zentralisieren (Dialogs, Currency Formatting, Navigation)
 
 ## Features
-- Leaving WG: block leaving with negative balance; allow leaving with positive balance but warn.
-- Transactions: improve wording for single-debtor case (e.g., "Daniel paid for [User]").
-- Transaction history: include transactions of former members.
-- Notifications for cleaning schedule and transactions.
+- [ ] WG verlassen mit negativem Balance blockieren
+- [ ] Transactions: Wording für Single-Debtor verbessern
+- [ ] Transaction History: Transaktionen ehemaliger Mitglieder anzeigen
+- [ ] Notifications für Cleaning Schedule und Transaktionen
 
 ## UI/Style
-- Fix duplicate Transaction History header.
-- Improve icons and dialog window styling.
+- [ ] Duplicate Transaction History Header fixen
+- [ ] Icons und Dialog-Styling verbessern
 
-## Data/Security
-- Password hashing/encryption.
-- Access handling and validation.
+## Sicherheit
+- [x] Password Hashing mit BCrypt implementiert
+- [ ] `SecureRandom` statt `Random` für Invite Codes
+- [ ] Admin-Override für Content-Moderation
 
 ## Testing
-- Add tests for balances, settlements, and cleaning schedule generation/rotation.
+- [ ] Tests für Balances, Settlements, Cleaning Schedule Generation
+- [ ] Integration Tests für kritische Workflows
 
 ## Extras
-- Settings: currency selection.
-- Shopping list: payment link (optional).
+- [ ] Settings: Währungsauswahl
+- [ ] Shopping List: Payment Link (optional)
